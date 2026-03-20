@@ -432,7 +432,6 @@ st.markdown("""
     position: relative;
     overflow: hidden;
 ">
-    <!-- 배경 장식 원 -->
     <div style="
         position:absolute; top:-30px; right:-30px;
         width:160px; height:160px; border-radius:50%;
@@ -443,8 +442,6 @@ st.markdown("""
         width:100px; height:100px; border-radius:50%;
         background:rgba(255,255,255,0.06);
     "></div>
-
-    <!-- 뱃지 -->
     <div style="
         display:inline-block;
         background:rgba(255,255,255,0.18);
@@ -457,8 +454,6 @@ st.markdown("""
         margin-bottom:12px;
         letter-spacing:0.5px;
     ">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
-
-    <!-- 타이틀 -->
     <div style="
         font-size:2.1rem;
         font-weight:900;
@@ -469,8 +464,6 @@ st.markdown("""
     ">🏠 서울 스타터<br>
     <span style="font-size:1.2rem; font-weight:500; opacity:0.92;">서울시 자취 가이드</span>
     </div>
-
-    <!-- 설명 -->
     <div style="
         font-size:0.90rem;
         color:rgba(255,255,255,0.90);
@@ -480,8 +473,6 @@ st.markdown("""
         처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>
         월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터를 기반으로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.
     </div>
-
-    <!-- 안내 칩 -->
     <div style="
         display:inline-block;
         background:rgba(255,255,255,0.15);
