@@ -391,19 +391,31 @@ if 'selected_gu' not in st.session_state:
 # ① 타이틀 배너 — 좌우 분할
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown(f"""
-<div style="
-    background:linear-gradient(120deg,#1a5499 0%,#2979c8 50%,#4a9de0 100%);
-    border-radius:20px; padding:28px 36px 26px;
-    margin-bottom:20px; position:relative; overflow:hidden;
-    box-shadow:0 8px 32px rgba(26,84,153,0.18);
-    display:flex; align-items:center; justify-content:space-between; gap:32px;
-">
-    <div style="position:absolute;top:-40px;right:220px;width:200px;height:200px;
-                border-radius:50%;background:rgba(255,255,255,0.05);"></div>
-    <div style="position:absolute;bottom:-60px;right:60px;width:180px;height:180px;
-                border-radius:50%;background:rgba(255,255,255,0.04);"></div>
-
+<div style="background:linear-gradient(120deg,#1a5499 0%,#2979c8 50%,#4a9de0 100%);border-radius:20px;padding:28px 36px 26px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(26,84,153,0.18);display:flex;align-items:center;justify-content:space-between;gap:32px;">
+    <div style="position:absolute;top:-40px;right:220px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+    <div style="position:absolute;bottom:-60px;right:60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
     <div style="flex:1;position:relative;z-index:1;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:20px;padding:3px 13px;font-size:0.70rem;color:rgba(255,255,255,0.88);font-weight:600;margin-bottom:12px;letter-spacing:0.5px;">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
+        <div style="font-size:2.6rem;font-weight:900;color:#fff;line-height:1.1;margin-bottom:6px;letter-spacing:-1px;">🏠 서울 스타터</div>
+        <div style="font-size:1.1rem;font-weight:400;color:rgba(255,255,255,0.78);margin-bottom:14px;">서울시 자취 가이드</div>
+        <div style="font-size:0.86rem;color:rgba(255,255,255,0.82);line-height:1.8;">처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0;position:relative;z-index:1;">
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">25</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">자치구 비교</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">4</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">생활 지표</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">실측</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">공공데이터</div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
         <div style="display:inline-flex;align-items:center;gap:6px;
                     background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);
                     border-radius:20px;padding:3px 13px;
