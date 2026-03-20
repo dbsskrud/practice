@@ -376,6 +376,47 @@ STATION_TO_GU = {
     '둔촌오륜':'강동구','중앙보훈병원':'강동구',
 }
 
+UNI_TO_GU = {
+    "선택 안 함": [],
+    "서울대학교":       ["관악구","동작구","금천구"],
+    "연세대학교":       ["서대문구","마포구","은평구"],
+    "이화여자대학교":   ["서대문구","마포구","은평구"],
+    "서강대학교":       ["마포구","서대문구","영등포구"],
+    "홍익대학교":       ["마포구","서대문구","영등포구"],
+    "건국대학교":       ["광진구","성동구","송파구"],
+    "경희대학교":       ["동대문구","성북구","중랑구"],
+    "한국외국어대학교": ["동대문구","성북구","중랑구"],
+    "고려대학교":       ["성북구","동대문구","종로구"],
+    "한양대학교":       ["성동구","동대문구","광진구"],
+    "중앙대학교":       ["동작구","관악구","영등포구"],
+    "숭실대학교":       ["동작구","관악구","영등포구"],
+    "숙명여자대학교":   ["용산구","마포구","중구"],
+    "성균관대학교":     ["종로구","성북구","중구"],
+    "국민대학교":       ["성북구","강북구","종로구"],
+    "서울과학기술대학교":["노원구","중랑구","도봉구"],
+}
+
+WORK_TO_GU = {
+    "선택 안 함": [],
+    "강남역/테헤란로":   ["강남구","서초구","송파구","동작구","광진구"],
+    "여의도":            ["영등포구","동작구","마포구","관악구","구로구"],
+    "광화문/종로":       ["종로구","중구","서대문구","용산구","성북구"],
+    "성수/서울숲":       ["성동구","광진구","송파구","동대문구"],
+    "상암DMC":           ["마포구","은평구","서대문구","강서구"],
+    "구로디지털단지":    ["구로구","금천구","관악구","영등포구"],
+    "마곡":              ["강서구","양천구","영등포구","구로구"],
+    "잠실/송파":         ["송파구","강동구","성동구","강남구"],
+}
+
+RENT_BAND = {
+    "상관없음":      (0,  999),
+    "50만원대 이하": (0,   59),
+    "60만원대":      (60,  69),
+    "70만원대":      (70,  79),
+    "80만원대":      (80,  89),
+    "90만원대 이상": (90, 999),
+}
+
 PRIORITY_ITEMS = {
     "💰 월세 저렴":  "norm_평균월세",
     "🛒 물가 저렴":  "norm_평균물가",
@@ -410,39 +451,65 @@ st.markdown(
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
 
-col_left, col_right = st.columns([1, 1.7])
+col_a, col_b, col_c = st.columns([1, 1, 1.6])
 
-with col_left:
-    st.markdown("""
-    <div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;
-                border:1.5px solid rgba(41,121,200,0.12);
-                box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;
-                border-top:3px solid #2979c8;">
-        <div style="font-size:0.72rem;font-weight:800;color:#2979c8;
-                    letter-spacing:0.5px;margin-bottom:10px;">🚉 지하철 호선으로 찾기</div>
-    </div>
-    """, unsafe_allow_html=True)
+with col_a:
+    st.markdown(
+        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        'border:1.5px solid rgba(41,121,200,0.12);'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'border-top:3px solid #2979c8;">'
+        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+        'letter-spacing:0.5px;margin-bottom:10px;">🎓 통학 · 🏢 통근 조건</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    university = st.selectbox(
+        "재학 중인 대학교",
+        list(UNI_TO_GU.keys()),
+        key="university_select"
+    )
+    work_place = st.selectbox(
+        "근무지 / 자주 가는 업무지구",
+        list(WORK_TO_GU.keys()),
+        key="work_select"
+    )
+
+with col_b:
+    st.markdown(
+        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        'border:1.5px solid rgba(41,121,200,0.12);'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'border-top:3px solid #4a9de0;">'
+        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+        'letter-spacing:0.5px;margin-bottom:10px;">🚉 지하철 · 💸 월세 조건</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
     selected_lines = st.multiselect(
-        "호선을 선택하세요 (최대 3개)",
+        "희망 지하철 호선 (최대 3개)",
         list(LINE_STATIONS.keys()),
         max_selections=3,
         key="line_select"
     )
-    if selected_lines:
-        st.info(f"🚇 **{', '.join(selected_lines)}** 경유 자치구 우선 추천")
-    else:
-        st.caption("호선 선택 시 해당 노선 경유 자치구를 우선 추천합니다")
+    rent_band = st.selectbox(
+        "희망 월세 가격대",
+        list(RENT_BAND.keys()),
+        index=0,
+        key="rent_band_select"
+    )
 
-with col_right:
-    st.markdown("""
-    <div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;
-                border:1.5px solid rgba(41,121,200,0.12);
-                box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;
-                border-top:3px solid #4a9de0;">
-        <div style="font-size:0.72rem;font-weight:800;color:#2979c8;
-                    letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>
-    </div>
-    """, unsafe_allow_html=True)
+with col_c:
+    st.markdown(
+        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        'border:1.5px solid rgba(41,121,200,0.12);'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'border-top:3px solid #7eb5e8;">'
+        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+        'letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
     st.markdown(
         '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
         unsafe_allow_html=True
@@ -462,7 +529,6 @@ with col_right:
                 used.append(choice)
                 priority_order.append(choice)
 
-
 # ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
     w = {0: 4, 1: 3, 2: 2, 3: 1}
@@ -472,6 +538,7 @@ if len(priority_order) == 4:
 else:
     df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
 
+# 호선 보너스
 if selected_lines:
     line_gu_set = set()
     for line in selected_lines:
@@ -483,6 +550,35 @@ if selected_lines:
         lambda r: r['total_score'] + bonus if r['자치구'] in line_gu_set else r['total_score'],
         axis=1
     )
+
+# 대학교 보너스
+if university != "선택 안 함":
+    uni_gu_list = UNI_TO_GU.get(university, [])
+    uni_bonus = df['total_score'].max() * 0.25
+    df['total_score'] = df.apply(
+        lambda r: r['total_score'] + uni_bonus * (1 - uni_gu_list.index(r['자치구']) * 0.2)
+        if r['자치구'] in uni_gu_list else r['total_score'],
+        axis=1
+    )
+
+# 근무지 보너스
+if work_place != "선택 안 함":
+    work_gu_list = WORK_TO_GU.get(work_place, [])
+    work_bonus = df['total_score'].max() * 0.25
+    df['total_score'] = df.apply(
+        lambda r: r['total_score'] + work_bonus * (1 - work_gu_list.index(r['자치구']) * 0.15)
+        if r['자치구'] in work_gu_list else r['total_score'],
+        axis=1
+    )
+
+# 월세 필터링
+rent_lo, rent_hi = RENT_BAND[rent_band]
+filtered_df = df[(df['평균월세'] >= rent_lo) & (df['평균월세'] <= rent_hi)].copy()
+if filtered_df.empty:
+    st.warning("해당 월세 가격대의 자치구가 없습니다. 조건을 완화해 주세요.")
+    filtered_df = df.copy()
+else:
+    df = filtered_df.copy()
 
 rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
