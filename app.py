@@ -459,8 +459,8 @@ rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
 top5_df = rec_df.head(5)
 
-# selected_gu가 None이거나 top3 밖이면 → 항상 1위 구로 초기화
-if st.session_state.selected_gu not in top3_gu:
+# selected_gu가 None이면 → 1위 구로 초기화 (유효한 자치구를 클릭한 경우는 유지)
+if st.session_state.selected_gu is None:
     st.session_state.selected_gu = top3_gu[0]
 
 # 상위 3개 강조색
@@ -563,7 +563,7 @@ with col_map:
         ))
 
     # ── Layer 3: 마커 (클릭 이벤트 + 레이블) ─────────────────────────────────
-    # 상위 3개 — 눈에 띄게
+    # 상위 3개 — 눈에 띄게, customdata를 [[구명]] 형태로 감싸야 pt["customdata"][0] == 구명
     for rgu in top3_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
         rank_n = top3_gu.index(rgu)
@@ -587,32 +587,29 @@ with col_map:
                 f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
                 f"문화공간: {int(row_d['기타문화공간수'])}개<extra></extra>"
             ),
-            customdata=[rgu],
+            customdata=[[rgu]],   # ← [[구명]] 형태: pt["customdata"][0] == 구명
             showlegend=False,
             name=rgu,
         ))
 
-    # 나머지 22개 구 — 작은 회색 마커
-    others = df[~df['자치구'].isin(top3_gu)]
-    fig.add_trace(go.Scattermapbox(
-        lat=others['lat'].tolist(),
-        lon=others['lon'].tolist(),
-        mode="markers+text",
-        marker=dict(size=9, color="#607080", opacity=0.60, allowoverlap=True),
-        text=others['자치구'].tolist(),
-        textposition="top center",
-        textfont=dict(size=8, color="#444444", family="Noto Sans KR"),
-        customdata=others['자치구'].tolist(),
-        hovertemplate=(
-            "<b>%{text}</b><br>"
-            "추천점수: %{customdata[0]}<extra></extra>"
-        ),
-        showlegend=False,
-        name="기타",
-    ))
-    # others hover 개별 정보를 위해 개별 처리
-    for _, r2 in others.iterrows():
-        pass  # 위 일괄 처리로 충분
+    # 나머지 22개 구 — 각각 개별 trace로 추가해 customdata가 정확히 전달되도록
+    for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
+        gn = row_d['자치구']
+        fig.add_trace(go.Scattermapbox(
+            lat=[row_d['lat']], lon=[row_d['lon']],
+            mode="markers+text",
+            marker=dict(size=10, color="#607080", opacity=0.60, allowoverlap=True),
+            text=[gn],
+            textposition="top center",
+            textfont=dict(size=8, color="#444444", family="Noto Sans KR"),
+            customdata=[[gn]],    # ← [[구명]] 형태: pt["customdata"][0] == 구명
+            hovertemplate=(
+                f"<b>{gn}</b><br>"
+                f"월세: {int(row_d['평균월세'])}만원 | 공원: {int(row_d['공원수'])}개<extra></extra>"
+            ),
+            showlegend=False,
+            name=gn,
+        ))
 
     fig.update_layout(
         mapbox=dict(
@@ -630,33 +627,36 @@ with col_map:
     # 지도 렌더링 및 클릭 이벤트
     ev = st.plotly_chart(fig, use_container_width=True, on_select="rerun", key="main_map")
 
-    # ── 클릭 처리: customdata[0] 또는 text에서 구명 추출 ──────────────────────
+    # ── 클릭 처리 ─────────────────────────────────────────────────────────────
     if ev and ev.selection and ev.selection.points:
         pt = ev.selection.points[0]
-
         clicked_gu = None
 
-        # 1순위: customdata (가장 신뢰도 높음)
+        # 1순위: customdata — [[구명]] 형태이므로 [0]이 구명 문자열
         cd = pt.get("customdata")
-        if cd:
-            candidate = cd[0] if isinstance(cd, list) else cd
-            if str(candidate) in gu_list:
-                clicked_gu = str(candidate)
+        if cd is not None:
+            val = cd[0] if isinstance(cd, (list, tuple)) else cd
+            if str(val) in gu_list:
+                clicked_gu = str(val)
 
-        # 2순위: hovertext / text
+        # 2순위: Choropleth는 location 키로 구명이 옴
         if not clicked_gu:
-            raw = pt.get("hovertext") or pt.get("text") or pt.get("location") or ""
+            loc = pt.get("location", "")
+            if loc in gu_list:
+                clicked_gu = loc
+
+        # 3순위: hovertext / text 에서 구명 추출
+        if not clicked_gu:
+            raw = str(pt.get("hovertext") or pt.get("text") or "")
             for gn in gu_list:
-                if gn in str(raw):
+                if gn in raw:
                     clicked_gu = gn
                     break
 
-        if clicked_gu and clicked_gu in top3_gu and clicked_gu != st.session_state.selected_gu:
+        # 구명이 확인되면 세션 업데이트 → rerun으로 우측 패널 즉시 반영
+        if clicked_gu and clicked_gu != st.session_state.selected_gu:
             st.session_state.selected_gu = clicked_gu
             st.rerun()
-        elif clicked_gu and clicked_gu in top3_gu:
-            # 이미 선택된 구를 다시 클릭한 경우 — 변경 없음
-            pass
 
     # 범례
     st.markdown(f"""
