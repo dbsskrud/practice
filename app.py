@@ -417,108 +417,97 @@ if 'selected_gu' not in st.session_state:
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <div style="
-    background: linear-gradient(135deg, #2a6dc4 0%, #3590f3 40%, #62bfed 80%, #c2bbf0 100%);
-    border-radius: 20px;
-    padding: 32px 36px 28px;
-    margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
+    background: linear-gradient(120deg, #1a5499 0%, #2979c8 50%, #4a9de0 100%);
+    border-radius: 16px;
+    padding: 28px 36px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
 ">
-    <div style="
-        position:absolute; top:-30px; right:-30px;
-        width:160px; height:160px; border-radius:50%;
-        background:rgba(255,255,255,0.08);
-    "></div>
-    <div style="
-        position:absolute; bottom:-40px; right:80px;
-        width:100px; height:100px; border-radius:50%;
-        background:rgba(255,255,255,0.06);
-    "></div>
-    <div style="
-        display:inline-block;
-        background:rgba(255,255,255,0.18);
-        border:1px solid rgba(255,255,255,0.35);
-        border-radius:20px;
-        padding:4px 14px;
-        font-size:0.75rem;
-        color:#fff;
-        font-weight:600;
-        margin-bottom:12px;
-        letter-spacing:0.5px;
-    ">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
-    <div style="
-        font-size:2.1rem;
-        font-weight:900;
-        color:#ffffff;
-        line-height:1.2;
-        margin-bottom:10px;
-        letter-spacing:-0.5px;
-    ">>🏠 서울 스타터<br>
-    <span style="font-size:1.2rem; font-weight:500; opacity:0.92;">서울시 자취 가이드</span>
+    <div>
+        <div style="
+            display:inline-block;
+            background:rgba(255,255,255,0.15);
+            border:1px solid rgba(255,255,255,0.30);
+            border-radius:20px; padding:3px 13px;
+            font-size:0.72rem; color:rgba(255,255,255,0.90);
+            font-weight:600; margin-bottom:10px; letter-spacing:0.5px;
+        ">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
+        <div style="
+            font-size:2.2rem; font-weight:900; color:#ffffff;
+            line-height:1.15; margin-bottom:8px; letter-spacing:-0.5px;
+        ">🏠 서울 스타터
+        <span style="font-size:1.1rem;font-weight:400;opacity:0.85;display:block;margin-top:2px;">서울시 자취 가이드</span>
+        </div>
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);line-height:1.75;">
+            처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>
+            월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.
+        </div>
     </div>
     <div style="
-        font-size:0.90rem;
-        color:rgba(255,255,255,0.90);
-        line-height:1.85;
-        margin-bottom:14px;
+        background:rgba(255,255,255,0.12);
+        border:1px solid rgba(255,255,255,0.22);
+        border-radius:14px; padding:16px 20px;
+        text-align:center; min-width:130px; flex-shrink:0;
     ">
-        처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>
-        월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터를 기반으로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.
+        <div style="font-size:2rem;margin-bottom:4px;">📍</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.90);font-weight:700;line-height:1.6;">
+            25개 자치구<br>실시간 비교
+        </div>
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.65);margin-top:6px;">
+            💡 우선순위 조절로<br>순위 실시간 변경
+        </div>
     </div>
-    <div style="
-        display:inline-block;
-        background:rgba(255,255,255,0.15);
-        border:1px solid rgba(255,255,255,0.30);
-        border-radius:12px;
-        padding:6px 16px;
-        font-size:0.78rem;
-        color:rgba(255,255,255,0.95);
-    ">💡 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다</div>
 </div>
 """, unsafe_allow_html=True)
-
 # ══════════════════════════════════════════════════════════════════════════
 # 상단 컨트롤 패널
 # ══════════════════════════════════════════════════════════════════════════
-with st.container(border=True):
-    col_left, col_right = st.columns([1, 1.7])
+st.markdown("""
+<div style="background:#ffffff;border-radius:14px;padding:20px 24px 16px;
+            border:1.5px solid rgba(41,121,200,0.15);
+            box-shadow:0 2px 12px rgba(26,84,153,0.08);margin-bottom:16px;">
+""", unsafe_allow_html=True)
 
-    # 호선 선택
-    with col_left:
-        st.subheader("🚉 지하철 호선으로 찾기")
-        selected_lines = st.multiselect(
-            "호선을 선택하세요 (최대 3개)",
-            list(LINE_STATIONS.keys()),
-            max_selections=3,
-            key="line_select"
-        )
-        if selected_lines:
-            st.info(f"🚇 **{', '.join(selected_lines)}** 경유 자치구를 우선 추천합니다")
-        else:
-            st.caption("호선을 선택하면 해당 노선 경유 자치구를 우선 추천합니다")
-           
-    # 우선순위 설정
-    with col_right:
-        st.subheader("⚖️ 주거 우선순위 설정 (1순위 → 4순위)")
-        st.markdown(
-            '<div class="priority-hint">💡 1순위에 가장 중요한 항목을 선택하세요. 중복 선택은 불가합니다.</div>',
-            unsafe_allow_html=True
-        )
-        p_cols = st.columns(4)
-        priority_keys = list(PRIORITY_ITEMS.keys())
-        used, priority_order = [], []
-        for rank in range(1, 5):
-            with p_cols[rank - 1]:
-                st.markdown(f"**{rank}순위**")
-                remaining = [k for k in priority_keys if k not in used]
-                choice = st.selectbox(
-                    f"#{rank}", options=["선택"] + remaining,
-                    key=f"prio_{rank}", label_visibility="collapsed"
-                )
-                if choice != "선택":
-                    used.append(choice)
-                    priority_order.append(choice)
+col_left, col_right = st.columns([1, 1.7])
 
+with col_left:
+    st.markdown("**🚉 지하철 호선으로 찾기**")
+    selected_lines = st.multiselect(
+        "호선을 선택하세요 (최대 3개)",
+        list(LINE_STATIONS.keys()),
+        max_selections=3,
+        key="line_select"
+    )
+    if selected_lines:
+        st.info(f"🚇 **{', '.join(selected_lines)}** 경유 자치구 우선 추천")
+    else:
+        st.caption("호선 선택 시 해당 노선 경유 자치구를 우선 추천합니다")
+
+with col_right:
+    st.markdown("**⚖️ 주거 우선순위 설정 — 1순위가 가장 중요합니다**")
+    st.markdown(
+        '<div class="priority-hint">💡 중복 선택 불가 · 선택하지 않으면 균등 가중치가 적용됩니다.</div>',
+        unsafe_allow_html=True
+    )
+    p_cols = st.columns(4)
+    priority_keys = list(PRIORITY_ITEMS.keys())
+    used, priority_order = [], []
+    for rank in range(1, 5):
+        with p_cols[rank - 1]:
+            st.markdown(f"**{rank}순위**")
+            remaining = [k for k in priority_keys if k not in used]
+            choice = st.selectbox(
+                f"#{rank}", options=["선택"] + remaining,
+                key=f"prio_{rank}", label_visibility="collapsed"
+            )
+            if choice != "선택":
+                used.append(choice)
+                priority_order.append(choice)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
@@ -924,51 +913,63 @@ with col_info:
 # ══════════════════════════════════════════════════════════════════════════
 # 하단: TOP 5 추천 카드
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown("---")
-st.subheader("🌟 우선순위 기반 추천 지역 TOP 5")
+st.markdown("""
+<div style="background:#ffffff;border-radius:14px;padding:20px 24px 18px;
+            border:1.5px solid rgba(41,121,200,0.15);
+            box-shadow:0 2px 12px rgba(26,84,153,0.08);margin-top:8px;">
+    <div style="font-size:1.0rem;font-weight:800;color:#1a5499;margin-bottom:16px;
+                letter-spacing:-0.2px;">
+        🏆 우선순위 기반 추천 지역 TOP 5
+    </div>
+""", unsafe_allow_html=True)
 
-CARD_BG     = ["#f0f5ff", "#f0f5ff", "#f0f5ff", "#f0f5ff", "#f0f5ff"]
-CARD_BORDER = ["#3590f3", "#62bfed", "#8fb8ed", "#c2bbf0", "#c2bbf0"]
+CARD_BORDER = ["#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0", "#d4e4f7"]
+CARD_RANK_BG = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
 CARD_EMOJI  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
 cols_top = st.columns(5)
 for i, (_, r) in enumerate(top5_df.iterrows()):
     with cols_top[i]:
         is_sel  = r['자치구'] == st.session_state.selected_gu
-        shadow  = "0 4px 20px rgba(0,0,0,0.16)" if is_sel else "none"
-        outline = f"2px solid {CARD_BORDER[i]}" if not is_sel else f"3px solid {CARD_BORDER[i]}"
+        shadow  = f"0 4px 18px rgba(41,121,200,0.22)" if is_sel else "0 1px 6px rgba(26,84,153,0.07)"
+        outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,0.15)"
         rd      = r['평균월세'] - AVG_RENT
-        rs, rc  = ("▲", "#c0392b") if rd > 0 else ("▼", "#1e8449")
-
-        # 공원·도서관 서울 평균 대비
-        p_diff = r['공원수'] - AVG_PARK
-        l_diff = r['도서관수'] - AVG_LIB
-
-        # 100점 만점 환산
-        s100 = to_100(r['total_score'])
+        rs, rc  = ("▲", "#c0392b") if rd > 0 else ("▼", "#1a6e45")
+        p_diff  = r['공원수'] - AVG_PARK
+        l_diff  = r['도서관수'] - AVG_LIB
+        s100    = to_100(r['total_score'])
 
         st.markdown(f"""
-        <div style="background:{CARD_BG[i]};border:{outline};border-radius:14px;
-                    padding:15px 10px;text-align:center;box-shadow:{shadow};min-height:175px;">
-            <div style="font-size:1.9rem;">{CARD_EMOJI[i]}</div>
-            <div style="font-size:1.05rem;font-weight:900;margin:5px 0 4px;">{r['자치구']}</div>
-            <div style="font-size:0.73rem;color:#444;line-height:1.7;">
-                🏠 월세 <b>{int(r['평균월세'])}만원</b>
-                <span style="color:{rc};font-size:0.67rem;">({rs}{abs(rd):.0f}만)</span><br>
-                🌳 공원 {int(r['공원수'])}개
-                <span style="color:{'#1e8449' if p_diff>=0 else '#c0392b'};font-size:0.65rem;">
-                ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
-                &nbsp;📚 도서관 {int(r['도서관수'])}개
-                <span style="color:{'#1e8449' if l_diff>=0 else '#c0392b'};font-size:0.65rem;">
-                ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
-                🎨 문화공간 {int(r['기타문화공간수'])}개
+        <div style="background:#ffffff;border:{outline};border-radius:13px;
+                    padding:14px 10px 12px;text-align:center;box-shadow:{shadow};">
+            <div style="background:{CARD_RANK_BG[i]};color:#fff;border-radius:8px;
+                        padding:3px 0;font-size:0.68rem;font-weight:800;
+                        margin-bottom:8px;letter-spacing:0.3px;">
+                {CARD_EMOJI[i]} {i+1}위 추천
             </div>
-            <div style="font-size:0.67rem;background:rgba(0,0,0,0.07);border-radius:8px;
-                        padding:2px 9px;display:inline-block;margin-top:6px;font-weight:700;">
+            <div style="font-size:1.05rem;font-weight:900;color:#162640;margin-bottom:8px;">
+                {r['자치구']}
+            </div>
+            <div style="font-size:0.71rem;color:#3d6490;line-height:1.85;text-align:left;padding:0 4px;">
+                🏠 월세 <b style="color:#162640;">{int(r['평균월세'])}만원</b>
+                <span style="color:{rc};font-size:0.65rem;">({rs}{abs(rd):.0f}만)</span><br>
+                🌳 공원 <b style="color:#162640;">{int(r['공원수'])}개</b>
+                <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.63rem;">
+                ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span><br>
+                📚 도서관 <b style="color:#162640;">{int(r['도서관수'])}개</b>
+                <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.63rem;">
+                ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
+                🎨 문화공간 <b style="color:#162640;">{int(r['기타문화공간수'])}개</b>
+            </div>
+            <div style="margin-top:10px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
+                        border-radius:8px;padding:4px 0;
+                        font-size:0.72rem;font-weight:800;color:#1a5499;">
                 추천점수 {s100:.0f}점
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.caption(
