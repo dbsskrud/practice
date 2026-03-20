@@ -598,23 +598,26 @@ with col_map:
             name=rank_label_map[rgu]
         ))
 
-    # Layer 3: TOP5 텍스트
-    rank_icons_map = {top5_gu[0]: "🥇", top5_gu[1]: "🥈", top5_gu[2]: "🥉",
-                      top5_gu[3]: "4️⃣", top5_gu[4]: "5️⃣"}
-    for rgu in top5_gu:
-        row_d = df[df['자치구'] == rgu].iloc[0]
+   # Layer 3: TOP5 — 색칠된 구 텍스트 (흰색으로 잘 보이게)
+    rank_icons_all = {top5_df.iloc[j]['자치구']: ["🥇","🥈","🥉","4️⃣","5️⃣"][j] for j in range(5)}
+    top5_gu_list   = [top5_df.iloc[j]['자치구'] for j in range(5)]
+
+    for rgu in top5_gu_list:
+        row_d  = df[df['자치구'] == rgu].iloc[0]
         is_top3 = rgu in top3_gu
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
             mode="markers+text",
             marker=dict(size=1, color="#1a5499", opacity=0, allowoverlap=True),
-            text=[f"{rank_icons_map[rgu]} {rgu}"],
+            text=[f"{rank_icons_all[rgu]} {rgu}"],
             textposition="middle center",
-            textfont=dict(size=14 if is_top3 else 11,
-                          color="#ffffff" if is_top3 else "#1a5499",
-                          family="Noto Sans KR"),
+            textfont=dict(
+                size=14 if is_top3 else 11,
+                color="#ffffff",
+                family="Noto Sans KR"
+            ),
             hovertemplate=(
-                f"<b>{rank_icons_map[rgu]} {rgu}</b><br>"
+                f"<b>{rank_icons_all[rgu]} {rgu}</b><br>"
                 f"추천점수: {row_d['total_score']:.2f}<br>"
                 f"월세: {int(row_d['평균월세'])}만원<br>"
                 f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
@@ -626,7 +629,7 @@ with col_map:
         ))
 
     # Layer 4: 나머지 20개 구 텍스트
-    for _, row_d in df[~df['자치구'].isin(top5_gu)].iterrows():
+    for _, row_d in df[~df['자치구'].isin(top5_gu_list)].iterrows():
         gn = row_d['자치구']
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
