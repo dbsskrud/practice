@@ -743,16 +743,15 @@ with col_map:
                     f'<div style="'
                     f'background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
                     f'color:white;border-radius:10px;padding:10px 4px;text-align:center;'
-                    f'font-size:0.78rem;font-weight:900;'
+                    f'font-size:0.78rem;font-weight:900;height:38px;line-height:18px;'
                     f'box-shadow:0 3px 10px {RANK_COLORS_BTN[i]}55;">'
-                    f'{RANK_ICONS_BTN[i]} {rgu}'
-                    f'<div style="font-size:0.62rem;opacity:0.85;margin-top:2px;">{RANK_LABELS_BTN[i]} ✓</div>'
+                    f'{RANK_ICONS_BTN[i]} {rgu} ✓'
                     f'</div>',
                     unsafe_allow_html=True
                 )
             else:
                 if st.button(
-                    f"{RANK_ICONS_BTN[i]} {rgu}\n{RANK_LABELS_BTN[i]}",
+                    f"{RANK_ICONS_BTN[i]} {rgu}",
                     key=f"sel_top_{i}",
                     use_container_width=True
                 ):
