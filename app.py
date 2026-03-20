@@ -663,82 +663,73 @@ with col_info:
             unsafe_allow_html=True
         )
 
-    # ── 비교 배지 생성 함수 ────────────────────────────────────────────────────
-    def badge_more_less(val, avg, unit="개"):
-        """많을수록 좋은 지표 (공원·도서관·문화공간)"""
-        if avg == 0:
-            return ""
-        pct = (val - avg) / avg * 100
-        if pct > 2:
-            return f'<span class="mcomp better">서울 평균 대비 +{pct:.0f}% 많음 ▲</span>'
-        elif pct < -2:
-            return f'<span class="mcomp worse">서울 평균 대비 {pct:.0f}% 적음 ▼</span>'
-        else:
-            return f'<span class="mcomp neutral">서울 평균과 비슷</span>'
+    # ── 비교 퍼센트 계산 (순수 숫자만) ──────────────────────────────────────────
+    def _pct(val, avg):
+        return (val - avg) / avg * 100 if avg != 0 else 0
 
-    def badge_rent(val, avg):
-        """월세 — 낮을수록 좋음"""
-        if avg == 0:
-            return ""
-        pct = (val - avg) / avg * 100
+    rent_pct    = _pct(row['평균월세'],         AVG_RENT)
+    park_pct    = _pct(row['공원수'],            AVG_PARK)
+    lib_pct     = _pct(row['도서관수'],          AVG_LIB)
+    culture_pct = _pct(row['기타문화공간수'],    AVG_CULTURE)
+
+    def _badge_rent(pct):
         if pct < -2:
-            return f'<span class="mcomp better">서울 평균보다 {abs(pct):.0f}% 저렴 ▼</span>'
+            cls, txt = "better", f"서울 평균보다 {abs(pct):.0f}% 저렴 ▼"
         elif pct > 2:
-            return f'<span class="mcomp worse">서울 평균보다 +{pct:.0f}% 비쌈 ▲</span>'
+            cls, txt = "worse",  f"서울 평균보다 +{pct:.0f}% 비쌈 ▲"
         else:
-            return f'<span class="mcomp neutral">서울 평균과 비슷</span>'
+            cls, txt = "neutral", "서울 평균과 비슷"
+        return cls, txt
 
-    rb = badge_rent(row['평균월세'],         AVG_RENT)
-    pb = badge_more_less(row['공원수'],       AVG_PARK,    "개")
-    lb = badge_more_less(row['도서관수'],     AVG_LIB,     "개")
-    cb = badge_more_less(row['기타문화공간수'], AVG_CULTURE, "개")
+    def _badge_more(pct):
+        if pct > 2:
+            cls, txt = "better", f"서울 평균 대비 +{pct:.0f}% 많음 ▲"
+        elif pct < -2:
+            cls, txt = "worse",  f"서울 평균 대비 {pct:.0f}% 적음 ▼"
+        else:
+            cls, txt = "neutral", "서울 평균과 비슷"
+        return cls, txt
 
-    # ── 메트릭 그리드 ──────────────────────────────────────────────────────────
-    st.markdown(f"""
-    <div class="metric-grid">
+    rc, rt = _badge_rent(rent_pct)
+    pc, pt_txt = _badge_more(park_pct)
+    lc, lt = _badge_more(lib_pct)
+    cc, ct = _badge_more(culture_pct)
 
-        <div class="metric-card">
-            <div class="mlabel">🏠 평균 월세</div>
-            <div class="mvalue">{int(row['평균월세'])}만원</div>
-            <div class="msub">
-                원룸 기준 추정<br>
-                서울 전체 평균 <b>{AVG_RENT:.0f}만원</b>
-            </div>
-            {rb}
-        </div>
+    # ── 메트릭 그리드: 완전한 HTML을 단일 문자열로 구성 후 렌더링 ──────────────
+    metric_html = (
+        '<div class="metric-grid">'
 
-        <div class="metric-card green">
-            <div class="mlabel">🌳 공원 수</div>
-            <div class="mvalue">{int(row['공원수'])}개소</div>
-            <div class="msub">
-                서울시 주요공원 기준<br>
-                서울 전체 평균 <b>{AVG_PARK:.1f}개</b>
-            </div>
-            {pb}
-        </div>
+        '<div class="metric-card">'
+        '<div class="mlabel">🏠 평균 월세</div>'
+        f'<div class="mvalue">{int(row["평균월세"])}만원</div>'
+        f'<div class="msub">원룸 기준 추정<br>서울 전체 평균 <b>{AVG_RENT:.0f}만원</b></div>'
+        f'<span class="mcomp {rc}">{rt}</span>'
+        '</div>'
 
-        <div class="metric-card orange">
-            <div class="mlabel">📚 공공도서관</div>
-            <div class="mvalue">{int(row['도서관수'])}개</div>
-            <div class="msub">
-                구립·시립 포함<br>
-                서울 전체 평균 <b>{AVG_LIB:.1f}개</b>
-            </div>
-            {lb}
-        </div>
+        '<div class="metric-card green">'
+        '<div class="mlabel">🌳 공원 수</div>'
+        f'<div class="mvalue">{int(row["공원수"])}개소</div>'
+        f'<div class="msub">서울시 주요공원 기준<br>서울 전체 평균 <b>{AVG_PARK:.1f}개</b></div>'
+        f'<span class="mcomp {pc}">{pt_txt}</span>'
+        '</div>'
 
-        <div class="metric-card purple">
-            <div class="mlabel">🎨 기타 문화공간</div>
-            <div class="mvalue">{int(row['기타문화공간수'])}개</div>
-            <div class="msub">
-                미술관·공연장·박물관 등<br>
-                서울 전체 평균 <b>{AVG_CULTURE:.1f}개</b>
-            </div>
-            {cb}
-        </div>
+        '<div class="metric-card orange">'
+        '<div class="mlabel">📚 공공도서관</div>'
+        f'<div class="mvalue">{int(row["도서관수"])}개</div>'
+        f'<div class="msub">구립·시립 포함<br>서울 전체 평균 <b>{AVG_LIB:.1f}개</b></div>'
+        f'<span class="mcomp {lc}">{lt}</span>'
+        '</div>'
 
-    </div>
-    """, unsafe_allow_html=True)
+        '<div class="metric-card purple">'
+        '<div class="mlabel">🎨 기타 문화공간</div>'
+        f'<div class="mvalue">{int(row["기타문화공간수"])}개</div>'
+        f'<div class="msub">미술관·공연장·박물관 등<br>서울 전체 평균 <b>{AVG_CULTURE:.1f}개</b></div>'
+        f'<span class="mcomp {cc}">{ct}</span>'
+        '</div>'
+
+        '</div>'
+    )
+    st.markdown(metric_html, unsafe_allow_html=True)
 
     # ── 추천 점수 바 ────────────────────────────────────────────────────────────
     score     = row['total_score']
