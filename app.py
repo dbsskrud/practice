@@ -467,6 +467,16 @@ rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
 top5_df = rec_df.head(5)
 
+# 100점 환산용 전역 기준값
+SCORE_MAX = df['total_score'].max()
+SCORE_MIN = df['total_score'].min()
+
+def to_100(score):
+    """raw score → 100점 만점 환산"""
+    if SCORE_MAX > SCORE_MIN:
+        return (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN) * 100
+    return 100.0
+
 # selected_gu가 None이면 → 1위 구로 초기화 (유효한 자치구를 클릭한 경우는 유지)
 if st.session_state.selected_gu is None:
     st.session_state.selected_gu = top3_gu[0]
@@ -800,8 +810,7 @@ with col_info:
 
     # ── 추천 점수 바 ────────────────────────────────────────────────────────────
     score     = row['total_score']
-    max_score = df['total_score'].max()
-    sc_pct    = int(score / max_score * 100) if max_score > 0 else 0
+    score_100 = to_100(score)
     bar_col   = (
         "#E8002D" if rank_pos == 1 else
         "#FF6B00" if rank_pos == 2 else
@@ -811,9 +820,9 @@ with col_info:
     <div class="score-bar-wrap">
         <div class="score-bar-label">✨ 종합 추천 점수</div>
         <div class="score-bar-bg">
-            <div class="score-bar-fill" style="width:{sc_pct}%;background:{bar_col};"></div>
+            <div class="score-bar-fill" style="width:{score_100:.0f}%;background:{bar_col};"></div>
         </div>
-        <div class="score-bar-val">{score:.2f} / {max_score:.2f}</div>
+        <div class="score-bar-val">{score_100:.1f} / 100점</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -851,6 +860,9 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
         p_diff = r['공원수'] - AVG_PARK
         l_diff = r['도서관수'] - AVG_LIB
 
+        # 100점 만점 환산
+        s100 = to_100(r['total_score'])
+
         st.markdown(f"""
         <div style="background:{CARD_BG[i]};border:{outline};border-radius:14px;
                     padding:15px 10px;text-align:center;box-shadow:{shadow};min-height:175px;">
@@ -869,7 +881,7 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
             </div>
             <div style="font-size:0.67rem;background:rgba(0,0,0,0.07);border-radius:8px;
                         padding:2px 9px;display:inline-block;margin-top:6px;font-weight:700;">
-                추천점수 {r['total_score']:.2f}
+                추천점수 {s100:.1f}점
             </div>
         </div>
         """, unsafe_allow_html=True)
