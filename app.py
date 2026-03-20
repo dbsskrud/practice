@@ -9,48 +9,136 @@ import json
 st.set_page_config(page_title="서울 스타터: 서울시 자취 가이드", layout="wide", page_icon="🏠")
 
 # ══════════════════════════════════════════════════════════════════════════
-# 커스텀 CSS (Glassmorphism & Soft Depth)
+# 커스텀 CSS
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Inter:wght@400;600;700&display=swap');
 
 :root {
-    --main-gradient: linear-gradient(135deg, #2979c8 0%, #1a5499 100%);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --soft-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --bg:        #f0f5fb;
+    --surface:   #ffffff;
+    --border:    rgba(42,109,196,0.11);
+    --col-main:  #2979c8;
+    --col-dark:  #1a5499;
+    --col-light: #e8f1fd;
+    --col-mid:   #7eb5e8;
+    --col-text:  #0d2137;
+    --col-sub:   #4a6d96;
+    --col-muted: #8aadcc;
+    --sh-s: 0 2px 8px rgba(26,84,153,0.07);
+    --sh-m: 0 6px 22px rgba(26,84,153,0.12);
+    --sh-l: 0 12px 40px rgba(26,84,153,0.16);
+    --r-sm:10px; --r-md:14px; --r-lg:20px;
 }
 
-/* 전체 폰트 및 배경 교체 */
 html, body, [class*="css"] {
-    font-family: 'Pretendard', sans-serif !important;
+    font-family:'Noto Sans KR','Inter',sans-serif;
+    background:#ffffff !important; color:var(--col-text);
+}
+[data-testid="stAppViewContainer"] { background:#ffffff !important; }
+[data-testid="stSidebar"] > div    { background:#f0f5fb !important; }
+.block-container { padding-top:2rem; padding-bottom:4rem; max-width:1240px; }
+hr { border:none; border-top:1.5px solid var(--border); margin:24px 0; }
+
+/* ── 섹션 레이블 ── */
+.section-label {
+    font-size:0.68rem; font-weight:800; color:var(--col-muted);
+    letter-spacing:1.4px; text-transform:uppercase; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+}
+.section-label::after {
+    content:''; flex:1; height:1px;
+    background:linear-gradient(90deg,var(--border),transparent);
 }
 
-/* 메트릭 카드: 마우스 호버 시 떠오르는 효과 */
+/* ── 우측 자치구 헤더 ── */
+.gu-header {
+    background:linear-gradient(135deg,var(--col-dark) 0%,var(--col-main) 60%,var(--col-mid) 100%);
+    border-radius:var(--r-lg); padding:24px 22px 20px;
+    margin-bottom:14px; box-shadow:var(--sh-m); text-align:center;
+}
+.gu-header h2 { font-size:1.75rem; font-weight:900; margin:0 0 5px; color:#fff; letter-spacing:-0.5px; }
+.gu-tagline   { font-size:0.83rem; color:rgba(255,255,255,0.80); font-style:italic; line-height:1.6; }
+.rank-badge-text { font-size:0.72rem; color:rgba(255,255,255,0.65); margin-bottom:6px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; }
+
+/* ── 메트릭 그리드: 가로 4열 ── */
+.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
 .metric-card {
-    border-radius: 20px !important;
-    background: var(--glass-bg) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border) !important;
-    box-shadow: var(--soft-shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-    padding: 20px !important;
+    border-radius:var(--r-sm); padding:12px 10px 10px;
+    background:var(--surface); border:1.5px solid var(--border);
+    box-shadow:var(--sh-s); border-top:3px solid var(--col-main);
 }
-.metric-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
-    border: 1px solid rgba(41, 121, 200, 0.3) !important;
+.metric-card.green  { border-top-color:#4a9de0; }
+.metric-card.orange { border-top-color:#7eb5e8; }
+.metric-card.purple { border-top-color:#a8c8e8; }
+.metric-card .mlabel { font-size:0.62rem; color:var(--col-sub); font-weight:700; margin-bottom:4px; text-align:center; letter-spacing:0.3px; text-transform:uppercase; }
+.metric-card .mvalue { font-size:1.15rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
+.metric-card .msub   { font-size:0.58rem; color:var(--col-muted); margin-top:3px; line-height:1.5; text-align:center; }
+
+/* ── 비교 배지 ── */
+.mcomp {
+    display:block; margin:6px auto 0; padding:2px 8px; border-radius:20px;
+    font-size:0.60rem; font-weight:700; text-align:center; width:fit-content;
+}
+.mcomp.better  { background:#e6f3ff; color:#1a5499; }
+.mcomp.worse   { background:#fff0f0; color:#c0392b; }
+.mcomp.neutral { background:#eef4fb; color:var(--col-sub); }
+
+/* ── 역 태그 ── */
+.station-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.station-tag  {
+    background:var(--col-light); color:var(--col-dark);
+    padding:3px 10px; border-radius:20px;
+    font-size:0.65rem; font-weight:600; border:1px solid var(--border);
 }
 
-/* 입력창 컨테이너: '카드' 타입으로 묶어 가독성 향상 */
-.input-container {
-    background: #f8fafd;
-    border-radius: 24px;
-    padding: 25px;
-    margin-bottom: 20px;
-    border: 1px solid #eef2f7;
+/* ── 힌트 박스 ── */
+.priority-hint {
+    background:var(--col-light); border-left:3px solid var(--col-main);
+    border-radius:var(--r-sm); padding:7px 13px;
+    font-size:0.74rem; color:var(--col-sub); margin-top:5px;
 }
+.map-hint {
+    background:var(--col-light); border-left:3px solid var(--col-mid);
+    border-radius:var(--r-sm); padding:6px 13px;
+    font-size:0.73rem; color:var(--col-dark); margin-bottom:8px;
+}
+
+/* ── 점수 바 ── */
+.score-bar-wrap  { background:var(--col-light); border-radius:var(--r-md); padding:13px 15px; margin-bottom:10px; border:1px solid var(--border); }
+.score-bar-label { font-size:0.72rem; color:var(--col-sub); font-weight:700; margin-bottom:5px; }
+.score-bar-bg    { background:rgba(126,181,232,0.22); border-radius:6px; height:9px; overflow:hidden; }
+.score-bar-fill  { height:100%; border-radius:6px; }
+.score-bar-val   { text-align:right; font-size:0.76rem; color:var(--col-dark); font-weight:900; margin-top:4px; }
+
+/* ── 버튼 ── */
+.stButton > button {
+    border-radius:var(--r-sm) !important; border:1.5px solid var(--border) !important;
+    background:var(--surface) !important; color:var(--col-text) !important;
+    font-weight:600 !important; font-size:0.76rem !important;
+    box-shadow:var(--sh-s) !important; transition:all 0.18s ease !important;
+    padding:6px 8px !important;
+}
+.stButton > button:hover {
+    border-color:var(--col-main) !important; color:var(--col-main) !important;
+    background:var(--col-light) !important; box-shadow:var(--sh-m) !important;
+}
+
+/* ── Expander ── */
+div[data-testid="stExpander"] {
+    border:1.5px solid var(--border) !important; border-radius:var(--r-md) !important;
+    background:var(--surface) !important; box-shadow:var(--sh-s) !important;
+}
+
+/* ── Container ── */
+div[data-testid="stVerticalBlockBorderWrapper"] > div {
+    border-radius:var(--r-md) !important; border-color:var(--border) !important;
+    background:var(--surface) !important; box-shadow:var(--sh-s) !important;
+}
+
+.gu-btn-wrap { position:relative; margin-bottom:4px; }
+.gu-btn-card { border-radius:var(--r-sm); padding:7px 4px; text-align:center; font-size:0.82rem; font-weight:800; pointer-events:none; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -359,33 +447,88 @@ st.markdown(
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# ② 컨트롤 패널 — 세련된 카드 그룹화
+# ② 컨트롤 패널 — 2개 독립 카드
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown('<div class="section-label">⚙️ 맞춤형 주거 필터링</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
 
-# 전체를 하나의 밝은 카드 영역으로 감싸 시선 분산을 방지
-with st.container():
-    st.markdown('<div class="input-container">', unsafe_allow_html=True)
-    
-    c1, c2, c3 = st.columns([1, 1, 1])
-    
-    with c1:
-        st.markdown("##### 📍 어디로 가시나요?")
-        university = st.selectbox("학교 선택", list(UNI_TO_GU.keys()), help="인근 지역에 가중치를 부여합니다.")
-        work_place = st.selectbox("직장/주요지", list(WORK_TO_GU.keys()))
+col_a, col_b, col_c = st.columns([1, 1, 1.6])
 
-    with c2:
-        st.markdown("##### 💰 예산 및 교통")
-        rent_band = st.select_slider("희망 월세 범위", options=list(RENT_BAND.keys()), value="상관없음")
-        selected_lines = st.multiselect("선호 호선", list(LINE_STATIONS.keys()), max_selections=3)
+with col_a:
+    st.markdown(
+        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        'border:1.5px solid rgba(41,121,200,0.12);'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'border-top:3px solid #2979c8;">'
+        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+        'letter-spacing:0.5px;margin-bottom:10px;">🎓 통학 · 🏢 통근 조건</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    university = st.selectbox(
+        "재학 중인 대학교",
+        list(UNI_TO_GU.keys()),
+        key="university_select"
+    )
+    work_place = st.selectbox(
+        "근무지 / 자주 가는 업무지구",
+        list(WORK_TO_GU.keys()),
+        key="work_select"
+    )
 
-    with c3:
-        st.markdown("##### 🌟 나의 라이프스타일")
-        # 우선순위를 드래그 앤 드롭 느낌의 멀티셀렉트로 간소화하거나 칩 형태로 변형 가능
-        prio_1 = st.selectbox("가장 중요한 가치", list(PRIORITY_ITEMS.keys()), index=0)
-        prio_2 = st.selectbox("두 번째 가치", [k for k in PRIORITY_ITEMS.keys() if k != prio_1], index=0)
+with col_b:
+    st.markdown(
+        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        'border:1.5px solid rgba(41,121,200,0.12);'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'border-top:3px solid #4a9de0;">'
+        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+        'letter-spacing:0.5px;margin-bottom:10px;">🚉 지하철 · 💸 월세 조건</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    selected_lines = st.multiselect(
+        "희망 지하철 호선 (최대 3개)",
+        list(LINE_STATIONS.keys()),
+        max_selections=3,
+        key="line_select"
+    )
+    rent_band = st.selectbox(
+        "희망 월세 가격대",
+        list(RENT_BAND.keys()),
+        index=0,
+        key="rent_band_select"
+    )
 
-    st.markdown('</div>', unsafe_allow_html=True)
+with col_c:
+    st.markdown(
+        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        'border:1.5px solid rgba(41,121,200,0.12);'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'border-top:3px solid #7eb5e8;">'
+        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+        'letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
+        unsafe_allow_html=True
+    )
+    p_cols = st.columns(4)
+    priority_keys = list(PRIORITY_ITEMS.keys())
+    used, priority_order = [], []
+    for rank in range(1, 5):
+        with p_cols[rank - 1]:
+            st.markdown(f"**{rank}순위**")
+            remaining = [k for k in priority_keys if k not in used]
+            choice = st.selectbox(
+                f"#{rank}", options=["선택"] + remaining,
+                key=f"prio_{rank}", label_visibility="collapsed"
+            )
+            if choice != "선택":
+                used.append(choice)
+                priority_order.append(choice)
+
 # ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
     w = {0: 4, 1: 3, 2: 2, 3: 1}
