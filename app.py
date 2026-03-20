@@ -99,7 +99,7 @@ h1 {
     font-size: 0.67rem; font-weight: 700; line-height: 1.4;
     text-align: center; width: fit-content;
 }
-}
+
 .mcomp.better  { background:#dff0fb; color:#1a6a9a; }
 .mcomp.worse   { background:#fde8e8; color:#c0392b; }
 .mcomp.neutral { background:#ede8f8; color:var(--col-subtext); }
@@ -150,15 +150,6 @@ h1 {
 }
 </style>
 """, unsafe_allow_html=True)
-
-st.markdown("""
-<div style="padding: 10px 4px 18px; color: #5a5a8a; font-size: 0.92rem; line-height: 1.8;">
-    🏠 처음 자취를 시작하는 분들을 위한 <b>서울 25개 자치구 비교 가이드</b>입니다.<br>
-    월세, 공원, 도서관, 문화공간 등 실생활 데이터를 기반으로 <b>나에게 맞는 동네</b>를 찾아보세요.<br>
-    <span style="font-size:0.80rem; color:#8fb8ed;">※ 좌측 슬라이더로 나만의 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다.</span>
-</div>
-""", unsafe_allow_html=True)
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # 서울 자치구 GeoJSON (인라인 내장 — 네트워크 불필요)
@@ -432,9 +423,15 @@ if 'selected_gu' not in st.session_state:
 # ══════════════════════════════════════════════════════════════════════════
 # 헤더
 # ══════════════════════════════════════════════════════════════════════════
-st.title("🚀 서울 스타터 v2.0 : 당신의 첫 자취 명당 찾기")
+st.title("🚀 서울 스타터: 자취 가이드")
 st.caption("20~30대를 위한 서울 자취 지역 추천 가이드 | 실측 공공데이터 기반")
-
+st.markdown("""
+<div style="padding: 10px 4px 18px; color: #5a5a8a; font-size: 0.92rem; line-height: 1.8;">
+    🏠 처음 자취를 시작하는 분들을 위한 <b>서울 25개 자치구 비교 가이드</b>입니다.<br>
+    월세, 공원, 도서관, 문화공간 등 실생활 데이터를 기반으로 <b>나에게 맞는 동네</b>를 찾아보세요.<br>
+    <span style="font-size:0.80rem; color:#8fb8ed;">※ 좌측 슬라이더로 나만의 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다.</span>
+</div>
+""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════
 # 상단 컨트롤 패널
