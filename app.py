@@ -626,7 +626,7 @@ with col_map:
     fig = go.Figure()
 
     # ── Layer 1: 비우선순위 구 — 외곽선만, 매우 옅은 배경 ──────────────────────
-    others_df = df[~df['자치구'].isin(top3_gu)]
+    others_df = df[~df['자치구'].isin(top3_gu)].copy()
     fig.add_trace(go.Choroplethmapbox(
         geojson=active_geojson,
         locations=others_df['자치구'],
@@ -638,7 +638,7 @@ with col_map:
         marker_line_color="rgba(100,120,160,0.45)",
         hovertemplate="<b>%{location}</b><extra></extra>",
         name="기타구",
-        below="",
+        below=""
     ))
 
     # ── Layer 2: 상위 3개 구 강조 — 홈페이지 팔레트 색상 ────────────────────────
