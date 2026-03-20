@@ -866,39 +866,36 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-CARD_RANK_BG  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
-CARD_BORDER   = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
-CARD_EMOJI    = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
-CARD_HEIGHT   = ["auto", "auto", "auto", "auto", "auto"]
+CARD_RANK_BG = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
+CARD_BORDER  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
+CARD_EMOJI   = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
-cols_top = st.columns([1.15, 1.05, 1, 0.95, 0.90])
+cols_top = st.columns(5)
 for i, (_, r) in enumerate(top5_df.iterrows()):
     with cols_top[i]:
-        is_sel  = r['자치구'] == st.session_state.selected_gu
-        shadow  = f"0 6px 24px rgba(26,84,153,0.22)" if is_sel else f"0 2px 10px rgba(26,84,153,{0.10 - i*0.01})"
-        outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,{0.18 - i*0.02})"
-        rd      = r['평균월세'] - AVG_RENT
-        rs, rc  = ("▲", "#c0392b") if rd > 0 else ("▼", "#1a6e45")
-        p_diff  = r['공원수'] - AVG_PARK
-        l_diff  = r['도서관수'] - AVG_LIB
-        s100    = to_100(r['total_score'])
-        # 1위일수록 진하고 큰 폰트
-        name_size = 1.08 - i * 0.04
+        is_sel = r['자치구'] == st.session_state.selected_gu
+        shadow  = "0 6px 24px rgba(26,84,153,0.22)" if is_sel else "0 2px 10px rgba(26,84,153,0.08)"
+        outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,0.15)"
+        rd     = r['평균월세'] - AVG_RENT
+        rs, rc = ("▲", "#c0392b") if rd > 0 else ("▼", "#1a6e45")
+        p_diff = r['공원수'] - AVG_PARK
+        l_diff = r['도서관수'] - AVG_LIB
+        s100   = to_100(r['total_score'])
 
         st.markdown(f"""
         <div style="background:#ffffff;border:{outline};border-radius:14px;
-                    padding:{16 - i}px 10px {14 - i}px;text-align:center;
+                    padding:14px 10px 12px;text-align:center;
                     box-shadow:{shadow};border-top:3px solid {CARD_RANK_BG[i]};">
             <div style="background:{CARD_RANK_BG[i]};color:#fff;border-radius:8px;
-                        padding:3px 0;font-size:{0.70 - i*0.02:.2f}rem;font-weight:800;
+                        padding:3px 0;font-size:0.70rem;font-weight:800;
                         margin-bottom:7px;letter-spacing:0.3px;">
                 {CARD_EMOJI[i]} {i+1}위
             </div>
-            <div style="font-size:{name_size:.2f}rem;font-weight:900;color:#0d2137;
+            <div style="font-size:1.0rem;font-weight:900;color:#0d2137;
                         margin-bottom:8px;letter-spacing:-0.3px;">
                 {r['자치구']}
             </div>
-            <div style="font-size:{0.70 - i*0.01:.2f}rem;color:#4a6d96;line-height:1.85;text-align:left;padding:0 3px;">
+            <div style="font-size:0.70rem;color:#4a6d96;line-height:1.85;text-align:left;padding:0 3px;">
                 🏠 <b style="color:#0d2137;">{int(r['평균월세'])}만원</b>
                 <span style="color:{rc};font-size:0.62rem;">({rs}{abs(rd):.0f}만)</span><br>
                 🌳 <b style="color:#0d2137;">{int(r['공원수'])}개</b>
@@ -911,11 +908,15 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
             </div>
             <div style="margin-top:9px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
                         border-radius:8px;padding:4px 0;
-                        font-size:{0.72 - i*0.01:.2f}rem;font-weight:800;color:#1a5499;">
+                        font-size:0.72rem;font-weight:800;color:#1a5499;">
                 {s100:.0f}점
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+        if st.button("✓ 선택됨" if is_sel else "상세보기", key=f"top5_btn_{i}", use_container_width=True):
+            st.session_state.selected_gu = r['자치구']
+            st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════
