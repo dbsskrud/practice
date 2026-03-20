@@ -855,8 +855,9 @@ with col_info:
     # 반원 도넛: SVG로 구현
     # 반원 둘레 = π * r = 3.14159 * 54 ≈ 169.6
     # fill = score_100 / 100 * 169.6
-    r = 54
-    circumference = 3.14159 * r
+    r = 50
+    cx, cy = 80, 85
+    circumference = 3.14159 * r          # 반원 둘레 ≈ 157
     fill_len  = score_100 / 100 * circumference
     empty_len = circumference - fill_len
 
@@ -867,29 +868,29 @@ with col_info:
         <div style="font-size:0.76rem;color:var(--col-subtext);font-weight:700;margin-bottom:6px;">
             ✨ 종합 추천 점수
         </div>
-        <svg width="140" height="80" viewBox="0 0 140 80">
+        <svg width="160" height="100" viewBox="0 0 160 100">
             <!-- 배경 반원 -->
-            <path d="M 13 70 A 57 57 0 0 1 127 70"
-                  fill="none" stroke="rgba(194,187,240,0.35)" stroke-width="13"
+            <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
+                  fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="14"
                   stroke-linecap="round"/>
-            <!-- 점수 반원 (stroke-dasharray로 채움 조절) -->
-            <circle cx="70" cy="70" r="{r}"
-                fill="none"
-                stroke="{arc_col}"
-                stroke-width="13"
-                stroke-linecap="round"
-                stroke-dasharray="{fill_len:.1f} {empty_len:.1f}"
-                stroke-dashoffset="{circumference:.1f}"
-                transform="rotate(180 70 70)"
+            <!-- 점수 반원 -->
+            <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
+                  fill="none"
+                  stroke="{arc_col}"
+                  stroke-width="14"
+                  stroke-linecap="round"
+                  stroke-dasharray="{fill_len:.1f} {circumference:.1f}"
+                  stroke-dashoffset="0"
             />
-            <!-- 중앙 점수 텍스트 -->
-            <text x="70" y="62" text-anchor="middle"
-                  font-size="22" font-weight="900"
+            <!-- 점수 숫자 -->
+            <text x="{cx}" y="{cy-14}" text-anchor="middle"
+                  font-size="26" font-weight="900"
                   fill="{arc_col}" font-family="Noto Sans KR">
                 {score_100:.0f}
             </text>
-            <text x="70" y="76" text-anchor="middle"
-                  font-size="10" fill="var(--col-subtext)" font-family="Noto Sans KR">
+            <!-- /100점 -->
+            <text x="{cx}" y="{cy+2}" text-anchor="middle"
+                  font-size="11" fill="#5a5a8a" font-family="Noto Sans KR">
                 / 100점
             </text>
         </svg>
