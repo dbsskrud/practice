@@ -664,7 +664,7 @@ with col_map:
             name=RANK_LABEL[rgu]
         ))
 
-    # ── Layer 3: TOP3 — 진한 색 마커 위에 흰색 텍스트 ──────────────────────────
+# ── Layer 3: TOP3 — 진한 색 마커 위에 흰색 텍스트 ──────────────────────────
     top3_marker_col = {top3_gu[0]: "#1a4fa0", top3_gu[1]: "#1a7aaa", top3_gu[2]: "#6a5aaa"}
     for rgu in top3_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
