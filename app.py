@@ -892,75 +892,56 @@ with col_info:
     fill_len  = score_100 / 100 * circumference
     empty_len = circumference - fill_len
 
+    pr = row['물가비율']
+    price_bg  = "#fde8e8" if pr > 0 else "#e8f8f0"
+    price_col = "#c0392b" if pr > 0 else "#1e8449"
+    price_icon = "📈" if pr > 0 else "📉"
+    price_txt = f"+{abs(pr):.1f}% 높음" if pr > 0 else f"-{abs(pr):.1f}% 낮음"
+
     st.markdown(f"""
     <div style="background:linear-gradient(135deg,var(--col-lightest),#e8dcf5);
                 border-radius:12px;padding:13px 15px;margin-bottom:11px;
-                border:1px solid var(--col-lavender);text-align:center;">
-        <div style="font-size:0.76rem;color:var(--col-subtext);font-weight:700;margin-bottom:6px;">
+                border:1px solid var(--col-lavender);">
+        <div style="font-size:0.76rem;color:var(--col-subtext);font-weight:700;
+                    margin-bottom:10px;text-align:center;">
             ✨ 종합 추천 점수
         </div>
-        <svg width="160" height="100" viewBox="0 0 160 100">
-            <!-- 배경 반원 -->
-            <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-                  fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="14"
-                  stroke-linecap="round"/>
-            <!-- 점수 반원 -->
-            <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-                  fill="none"
-                  stroke="{arc_col}"
-                  stroke-width="14"
-                  stroke-linecap="round"
-                  stroke-dasharray="{fill_len:.1f} {circumference:.1f}"
-                  stroke-dashoffset="0"
-            />
-            <!-- 점수 숫자 -->
-            <text x="{cx}" y="{cy-14}" text-anchor="middle"
-                  font-size="26" font-weight="900"
-                  fill="{arc_col}" font-family="Noto Sans KR">
-                {score_100:.0f}
-            </text>
-            <!-- /100점 -->
-            <text x="{cx}" y="{cy+2}" text-anchor="middle"
-                  font-size="11" fill="#5a5a8a" font-family="Noto Sans KR">
-                / 100점
-            </text>
-        </svg>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown(f"""
-    <div style="background:linear-gradient(135deg,var(--col-lightest),#e8dcf5);
-                border-radius:12px;padding:13px 15px;margin-bottom:11px;
-                border:1px solid var(--col-lavender);text-align:center;">
-        <div style="font-size:0.76rem;color:var(--col-subtext);font-weight:700;margin-bottom:6px;">
-            ✨ 종합 추천 점수
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+            <svg width="160" height="100" viewBox="0 0 160 100">
+                <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
+                      fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="14"
+                      stroke-linecap="round"/>
+                <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
+                      fill="none"
+                      stroke="{arc_col}"
+                      stroke-width="14"
+                      stroke-linecap="round"
+                      stroke-dasharray="{fill_len:.1f} {circumference:.1f}"
+                      stroke-dashoffset="0"
+                />
+                <text x="{cx}" y="{cy-14}" text-anchor="middle"
+                      font-size="26" font-weight="900"
+                      fill="{arc_col}" font-family="Noto Sans KR">
+                    {score_100:.0f}
+                </text>
+                <text x="{cx}" y="{cy+2}" text-anchor="middle"
+                      font-size="11" fill="#5a5a8a" font-family="Noto Sans KR">
+                    / 100점
+                </text>
+            </svg>
+            <div style="background:{price_bg};border-radius:10px;padding:10px 14px;
+                        border:1px solid {price_col}40;text-align:center;min-width:90px;">
+                <div style="font-size:0.68rem;color:#555;font-weight:600;margin-bottom:4px;">
+                    💸 생활물가
+                </div>
+                <div style="font-size:0.82rem;font-weight:900;color:{price_col};">
+                    {price_icon} {price_txt}
+                </div>
+                <div style="font-size:0.65rem;color:#888;margin-top:3px;">
+                    서울 평균 대비
+                </div>
+            </div>
         </div>
-        <svg width="160" height="100" viewBox="0 0 160 100">
-            <!-- 배경 반원 -->
-            <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-                  fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="14"
-                  stroke-linecap="round"/>
-            <!-- 점수 반원 -->
-            <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-                  fill="none"
-                  stroke="{arc_col}"
-                  stroke-width="14"
-                  stroke-linecap="round"
-                  stroke-dasharray="{fill_len:.1f} {circumference:.1f}"
-                  stroke-dashoffset="0"
-            />
-            <!-- 점수 숫자 -->
-            <text x="{cx}" y="{cy-14}" text-anchor="middle"
-                  font-size="26" font-weight="900"
-                  fill="{arc_col}" font-family="Noto Sans KR">
-                {score_100:.0f}
-            </text>
-            <!-- /100점 -->
-            <text x="{cx}" y="{cy+2}" text-anchor="middle"
-                  font-size="11" fill="#5a5a8a" font-family="Noto Sans KR">
-                / 100점
-            </text>
-        </svg>
     </div>
     """, unsafe_allow_html=True)
     
