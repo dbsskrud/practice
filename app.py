@@ -94,9 +94,11 @@ h1 {
 .metric-card .msub   { font-size:0.66rem; color:var(--col-subtext); margin-top:3px; line-height:1.45; text-align:center; }
 /* ── 비교 배지 ── */
 .mcomp {
-    display: inline-block; margin-top: 6px;
+    display: block; margin-top: 6px; margin-left: auto; margin-right: auto;
     padding: 3px 9px; border-radius: 20px;
     font-size: 0.67rem; font-weight: 700; line-height: 1.4;
+    text-align: center; width: fit-content;
+}
 }
 .mcomp.better  { background:#dff0fb; color:#1a6a9a; }
 .mcomp.worse   { background:#fde8e8; color:#c0392b; }
@@ -844,24 +846,58 @@ with col_info:
     )
     st.markdown(metric_html, unsafe_allow_html=True)
 
-    # ── 추천 점수 바 ────────────────────────────────────────────────────────────
+   # ── 추천 점수 반원 도넛 ─────────────────────────────────────────────────────
     score     = row['total_score']
     score_100 = to_100(score)
-    bar_col   = (
-        "#3590f3" if rank_pos == 1 else
-        "#62bfed" if rank_pos == 2 else
-        "#8fb8ed" if rank_pos == 3 else "#c2bbf0"
+    arc_col   = (
+        "#ff3c3c" if rank_pos == 1 else
+        "#ffa500" if rank_pos == 2 else
+        "#ffdc00" if rank_pos == 3 else "#c2bbf0"
     )
+
+    # 반원 도넛: SVG로 구현
+    # 반원 둘레 = π * r = 3.14159 * 54 ≈ 169.6
+    # fill = score_100 / 100 * 169.6
+    r = 54
+    circumference = 3.14159 * r
+    fill_len  = score_100 / 100 * circumference
+    empty_len = circumference - fill_len
+
     st.markdown(f"""
-    <div class="score-bar-wrap">
-        <div class="score-bar-label">✨ 종합 추천 점수</div>
-        <div class="score-bar-bg">
-            <div class="score-bar-fill" style="width:{score_100:.0f}%;background:{bar_col};"></div>
+    <div style="background:linear-gradient(135deg,var(--col-lightest),#e8dcf5);
+                border-radius:12px;padding:13px 15px;margin-bottom:11px;
+                border:1px solid var(--col-lavender);text-align:center;">
+        <div style="font-size:0.76rem;color:var(--col-subtext);font-weight:700;margin-bottom:6px;">
+            ✨ 종합 추천 점수
         </div>
-        <div class="score-bar-val">{score_100:.0f}점</div>
+        <svg width="140" height="80" viewBox="0 0 140 80">
+            <!-- 배경 반원 -->
+            <path d="M 13 70 A 57 57 0 0 1 127 70"
+                  fill="none" stroke="rgba(194,187,240,0.35)" stroke-width="13"
+                  stroke-linecap="round"/>
+            <!-- 점수 반원 (stroke-dasharray로 채움 조절) -->
+            <circle cx="70" cy="70" r="{r}"
+                fill="none"
+                stroke="{arc_col}"
+                stroke-width="13"
+                stroke-linecap="round"
+                stroke-dasharray="{fill_len:.1f} {empty_len:.1f}"
+                stroke-dashoffset="{circumference:.1f}"
+                transform="rotate(180 70 70)"
+            />
+            <!-- 중앙 점수 텍스트 -->
+            <text x="70" y="62" text-anchor="middle"
+                  font-size="22" font-weight="900"
+                  fill="{arc_col}" font-family="Noto Sans KR">
+                {score_100:.0f}
+            </text>
+            <text x="70" y="76" text-anchor="middle"
+                  font-size="10" fill="var(--col-subtext)" font-family="Noto Sans KR">
+                / 100점
+            </text>
+        </svg>
     </div>
     """, unsafe_allow_html=True)
-
     # ── 주변 역 태그 ────────────────────────────────────────────────────────────
     st.markdown("**🚉 주변 주요역**")
     tags_html = "".join(
