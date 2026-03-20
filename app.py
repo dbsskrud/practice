@@ -625,23 +625,23 @@ with col_map:
 
     fig = go.Figure()
 
-    # ── Layer 1: 비우선순위 구 — 외곽선만, 매우 옅은 배경 ──────────────────────
+   # ── Layer 1: 비우선순위 구 — 외곽선만, 매우 옅은 배경 ──────────────────────
     others_df = df[~df['자치구'].isin(top3_gu)].copy()
+    others_z = [1] * len(others_df)
     fig.add_trace(go.Choroplethmapbox(
         geojson=active_geojson,
-        locations=others_df['자치구'],
-        z=[1] * len(others_df),
+        locations=list(others_df['자치구']),
+        z=others_z,
         featureidkey="properties.name",
-        colorscale=[[0, "rgba(220,225,235,0.25)"], [1, "rgba(220,225,235,0.25)"]],
+        colorscale=[[0, "rgba(220,225,235,0.22)"], [1, "rgba(220,225,235,0.22)"]],
         showscale=False,
         marker_line_width=1.4,
-        marker_line_color="rgba(100,120,160,0.45)",
+        marker_line_color="rgba(100,120,160,0.40)",
         hovertemplate="<b>%{location}</b><extra></extra>",
-        name="기타구",
-        below=""
+        name="기타구"
     ))
 
-    # ── Layer 2: 상위 3개 구 강조 — 홈페이지 팔레트 색상 ────────────────────────
+    # ── Layer 2: 상위 3개 구 강조 — 홈페이지 블루 팔레트 ────────────────────────
     fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.75)",
                   top3_gu[1]: "rgba(98,191,237,0.62)",
                   top3_gu[2]: "rgba(194,187,240,0.58)"}
@@ -650,42 +650,18 @@ with col_map:
                   top3_gu[2]: "rgba(143,184,237,1.0)"}
 
     for rgu in top3_gu:
-        sub = df[df['자치구'] == rgu][['자치구','total_score']]
+        sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
         fig.add_trace(go.Choroplethmapbox(
             geojson=active_geojson,
-            locations=sub['자치구'],
-            z=sub['total_score'],
+            locations=list(sub['자치구']),
+            z=list(sub['total_score']),
             featureidkey="properties.name",
             colorscale=[[0, fill_alpha[rgu]], [1, fill_alpha[rgu]]],
-
-    # ── Layer 3: 마커 (클릭 이벤트 + 레이블) ─────────────────────────────────
-    # 상위 3개 — 눈에 띄게, customdata를 [[구명]] 형태로 감싸야 pt["customdata"][0] == 구명
-    for rgu in top3_gu:
-        row_d = df[df['자치구'] == rgu].iloc[0]
-        rank_n = top3_gu.index(rgu)
-        sizes  = [30, 24, 20]
-        fig.add_trace(go.Scattermapbox(
-            lat=[row_d['lat']], lon=[row_d['lon']],
-            mode="markers+text",
-            marker=dict(
-                size=sizes[rank_n],
-                color=RANK_COLOR[rgu],
-                opacity=1.0,
-                allowoverlap=True,
-            ),
-            text=[f"{RANK_ICON[rgu]} {rgu}"],
-            textposition="top center",
-            textfont=dict(size=13, color="#111111", family="Noto Sans KR"),
-            hovertemplate=(
-                f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
-                f"추천점수: {row_d['total_score']:.2f}<br>"
-                f"월세: {int(row_d['평균월세'])}만원<br>"
-                f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
-                f"문화공간: {int(row_d['기타문화공간수'])}개<extra></extra>"
-            ),
-            customdata=[[rgu]],   # ← [[구명]] 형태: pt["customdata"][0] == 구명
-            showlegend=False,
-            name=rgu,
+            showscale=False,
+            marker_line_width=3.0,
+            marker_line_color=border_col[rgu],
+            hoverinfo="skip",
+            name=RANK_LABEL[rgu]
         ))
 
     # 나머지 22개 구 — 각각 개별 trace로 추가해 customdata가 정확히 전달되도록
