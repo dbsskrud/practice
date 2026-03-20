@@ -722,74 +722,56 @@ with col_map:
 
     RANK_COLORS_BTN = ["#3590f3", "#62bfed", "#8fb8ed"]
     RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
+    RANK_LABELS_BTN = ["1위 추천", "2위 추천", "3위 추천"]
 
-    st.markdown("""
+    # ── 안내 문구 ──────────────────────────────────────────────────────────────
+    st.markdown(f"""
     <div style="
-        display:flex; align-items:center; gap:10px;
-        background:linear-gradient(90deg, #e8eeff, #dff0fb);
-        border-left:3px solid #3590f3;
-        border-radius:8px; padding:8px 14px;
-        margin:6px 0 10px;
+        background:linear-gradient(135deg,#2a6dc4,#3590f3);
+        border-radius:10px; padding:9px 16px; margin:8px 0 10px;
+        display:flex; align-items:center; justify-content:space-between;
     ">
-        <span style="font-size:1rem;">📍</span>
-        <span style="font-size:0.78rem;color:#2a6dc4;font-weight:700;letter-spacing:0.2px;">
-            자치구를 선택하면 우측 상세정보가 바뀝니다
+        <span style="font-size:0.78rem;color:rgba(255,255,255,0.95);font-weight:600;">
+            📍 자치구를 선택하면 우측 상세정보가 바뀝니다
         </span>
-    </div>""", unsafe_allow_html=True)
+        <span style="font-size:0.70rem;color:rgba(255,255,255,0.70);">
+            추천 1위 <b style="color:#fff;">{top3_gu[0]}</b> &nbsp;
+            2위 <b style="color:#fff;">{top3_gu[1]}</b> &nbsp;
+            3위 <b style="color:#fff;">{top3_gu[2]}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # TOP3 + 나머지 전체를 두 행으로 표시
-    # 1행: TOP3 (강조 버튼)
+    # ── TOP3 버튼 ──────────────────────────────────────────────────────────────
     cols3 = st.columns(3)
     for i, rgu in enumerate(top3_gu):
         with cols3[i]:
             is_active = (sel_gu == rgu)
-            label = f"{RANK_ICONS_BTN[i]} {rgu}"
             if is_active:
                 st.markdown(
-                    f'<div style="border:2.5px solid {RANK_COLORS_BTN[i]};'
-                    f'background:{RANK_COLORS_BTN[i]};color:white;'
-                    f'border-radius:10px;padding:9px 4px;text-align:center;'
-                    f'font-size:0.82rem;font-weight:900;">{label} ✓</div>',
+                    f'<div style="'
+                    f'background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
+                    f'color:white;border-radius:10px;padding:10px 4px;text-align:center;'
+                    f'font-size:0.78rem;font-weight:900;'
+                    f'box-shadow:0 3px 10px {RANK_COLORS_BTN[i]}55;">'
+                    f'{RANK_ICONS_BTN[i]} {rgu}'
+                    f'<div style="font-size:0.62rem;opacity:0.85;margin-top:2px;">{RANK_LABELS_BTN[i]} ✓</div>'
+                    f'</div>',
                     unsafe_allow_html=True
                 )
             else:
-                if st.button(label, key=f"sel_top_{i}", use_container_width=True):
+                if st.button(
+                    f"{RANK_ICONS_BTN[i]} {rgu}\n{RANK_LABELS_BTN[i]}",
+                    key=f"sel_top_{i}",
+                    use_container_width=True
+                ):
                     st.session_state.selected_gu = rgu
                     st.rerun()
 
-    # 2행: 나머지 22개 구 (접이식 그리드)
+    # ── 나머지 22개 구 ─────────────────────────────────────────────────────────
     others_gu = [g for g in gu_list if g not in top3_gu]
-    with st.expander("➕ 다른 자치구 보기", expanded=False):
+    with st.expander("🔍 다른 자치구 보기", expanded=False):
         n_cols = 5
-        rows = [others_gu[i:i+n_cols] for i in range(0, len(others_gu), n_cols)]
-        for row_items in rows:
-            cols_o = st.columns(n_cols)
-            for j, g in enumerate(row_items):
-                with cols_o[j]:
-                    is_active = (sel_gu == g)
-                    if is_active:
-                        st.markdown(
-                            f'<div style="background:#3590f3;color:white;border-radius:8px;'
-                            f'padding:6px 2px;text-align:center;font-size:0.72rem;'
-                            f'font-weight:700;border:1px solid #3590f3;">{g} ✓</div>',
-                            unsafe_allow_html=True
-                        )
-                    else:
-                        if st.button(g, key=f"sel_other_{g}", use_container_width=True):
-                            st.session_state.selected_gu = g
-                            st.rerun()
-
-    # 범례
-    st.markdown(f"""
-    <div style='display:flex;gap:14px;padding:4px 2px;font-size:0.74rem;
-                color:#444;flex-wrap:wrap;align-items:center;margin-top:4px;'>
-        <span style='font-weight:700;color:#2a6dc4;'>추천순위:</span>
-        <span style='color:#3590f3;font-weight:700;'>🥇 {top3_gu[0]}</span>
-        <span style='color:#62bfed;font-weight:700;'>🥈 {top3_gu[1]}</span>
-        <span style='color:#8fb8ed;font-weight:700;'>🥉 {top3_gu[2]}</span>
-    </div>
-    """, unsafe_allow_html=True)
-
 
 # ──────────────────────────────────────── 우측 상세 정보 ────────────────────
 with col_info:
