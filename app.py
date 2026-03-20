@@ -633,7 +633,7 @@ with col_map:
         locations=list(others_df['자치구']),
         z=others_z,
         featureidkey="properties.name",
-        colorscale=[[0, "rgba(220,225,235,0.22)"], [1, "rgba(220,225,235,0.22)"]],
+        colorscale=[[0, "rgba(255,255,255,0.85)"], [1, "rgba(255,255,255,0.85)"]],
         showscale=False,
         marker_line_width=1.4,
         marker_line_color="rgba(100,120,160,0.40)",
