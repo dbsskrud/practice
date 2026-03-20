@@ -13,133 +13,137 @@ st.set_page_config(page_title="서울 스타터: 서울시 자취 가이드", la
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Inter:wght@400;600;700&display=swap');
 
-/* ── 팔레트 변수 ──
-   #f1e3f3  연보라핑크   (가장 연한 베이스)
-   #c2bbf0  라벤더       (서브 강조)
-   #8fb8ed  스카이블루   (일반 강조)
-   #62bfed  밝은 블루    (액센트)
-   #3590f3  진한 블루    (메인/버튼)
-── */
 :root {
-    --col-lightest: #f1e3f3;
-    --col-lavender: #c2bbf0;
-    --col-sky:      #8fb8ed;
-    --col-bright:   #62bfed;
-    --col-main:     #3590f3;
-    --col-dark:     #2a6dc4;
-    --col-text:     #2c2c54;
-    --col-subtext:  #5a5a8a;
+    --bg:         #f4f7fc;
+    --surface:    #ffffff;
+    --border:     rgba(42,109,196,0.12);
+    --col-main:   #2979c8;
+    --col-dark:   #1a5499;
+    --col-light:  #e8f1fd;
+    --col-mid:    #7eb5e8;
+    --col-text:   #0f2744;
+    --col-sub:    #4a6d96;
+    --col-muted:  #8aadcc;
+    --shadow-s:   0 1px 6px rgba(26,84,153,0.07);
+    --shadow-m:   0 4px 16px rgba(26,84,153,0.11);
+    --r-sm: 10px; --r-md: 14px; --r-lg: 18px;
 }
 
-html, body, [class*="css"] { font-family: 'Noto Sans KR', sans-serif; }
-.block-container { padding-top: 1.4rem; padding-bottom: 2rem; }
-h1 {
-    font-family: 'Bebas Neue', 'Noto Sans KR', sans-serif;
-    letter-spacing: 2px; font-size: 2.5rem !important;
-    color: var(--col-dark) !important;
+html, body, [class*="css"] {
+    font-family: 'Noto Sans KR', 'Inter', sans-serif;
+    background: var(--bg) !important;
+    color: var(--col-text);
 }
+[data-testid="stAppViewContainer"] { background: var(--bg) !important; }
+[data-testid="stSidebar"] > div    { background: #e4eef9 !important; }
+.block-container { padding-top:1.8rem; padding-bottom:3rem; max-width:1200px; }
 
-/* ── 헤더 카드 ── */
+/* ── 섹션 구분선 대신 여백 ── */
+hr { border: none; border-top: 1.5px solid var(--border); margin: 20px 0; }
+
+/* ── 우측 자치구 헤더 ── */
 .gu-header {
-    background: linear-gradient(135deg, var(--col-main) 0%, var(--col-sky) 60%, var(--col-lavender) 100%);
-    border-radius: 16px; padding: 20px 24px 18px; color: white;
-    margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.25);
+    background: linear-gradient(135deg, var(--col-dark) 0%, var(--col-main) 60%, var(--col-mid) 100%);
+    border-radius: var(--r-lg); padding: 22px 24px 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-m);
     text-align: center;
 }
-.gu-header h2 {
-    font-size: 2rem; font-weight: 900; margin: 0 0 6px 0;
-    color: #fff; text-align: center;
-}
-.gu-tagline {
-    font-size: 0.88rem; color: rgba(255,255,255,0.88); line-height: 1.5;
-    font-style: italic; text-align: center;
-}
-.rank-badge-text {
-    font-size: 0.84rem; color: var(--col-lightest);
-    margin-bottom: 6px; text-align: center; font-weight: 600;
-}
-
-/* ── 물가 배지 ── */
-.price-badge {
-    display: inline-block; padding: 5px 14px; border-radius: 20px;
-    font-weight: 700; font-size: 0.82rem; margin-bottom: 10px;
-}
-.price-badge.high { background:#fde8e8; color:#c0392b; border:1px solid #e74c3c40; }
-.price-badge.low  { background:#e8f8f0; color:#1e8449; border:1px solid #27ae6040; }
+.gu-header h2 { font-size:1.8rem; font-weight:900; margin:0 0 5px; color:#fff; }
+.gu-tagline   { font-size:0.84rem; color:rgba(255,255,255,0.82); font-style:italic; line-height:1.55; }
+.rank-badge-text { font-size:0.75rem; color:rgba(255,255,255,0.70); margin-bottom:6px; font-weight:700; letter-spacing:0.5px; }
 
 /* ── 메트릭 그리드 ── */
-.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
 .metric-card {
-    border-radius: 14px; padding: 14px 14px 12px;
-    border: 1.5px solid rgba(194,187,240,0.5);
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(53,144,243,0.07);
-    transition: box-shadow 0.2s;
+    border-radius: var(--r-md); padding:14px 13px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow-s);
 }
-.metric-card.green  { border-color: rgba(98,191,237,0.45); }
-.metric-card.orange { border-color: rgba(194,187,240,0.55); }
-.metric-card.purple { border-color: rgba(143,184,237,0.45); }
+.metric-card.green  { border-left: 3px solid #4a9de0; }
+.metric-card.orange { border-left: 3px solid #7eb5e8; }
+.metric-card.purple { border-left: 3px solid #a8c8e8; }
+.metric-card        { border-left: 3px solid var(--col-main); }
 
-.metric-card .mlabel { font-size:0.69rem; color:var(--col-subtext); font-weight:700; margin-bottom:5px; text-align:center; letter-spacing:0.3px; }
-.metric-card .mvalue { font-size:1.35rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
-.metric-card .msub   { font-size:0.64rem; color:#8888aa; margin-top:4px; line-height:1.5; text-align:center; }
+.metric-card .mlabel { font-size:0.67rem; color:var(--col-sub); font-weight:700; margin-bottom:4px; text-align:center; letter-spacing:0.3px; text-transform:uppercase; }
+.metric-card .mvalue { font-size:1.28rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
+.metric-card .msub   { font-size:0.62rem; color:var(--col-muted); margin-top:4px; line-height:1.5; text-align:center; }
+
 /* ── 비교 배지 ── */
 .mcomp {
-    display: block; margin-top: 7px; margin-left: auto; margin-right: auto;
-    padding: 3px 10px; border-radius: 20px;
-    font-size: 0.66rem; font-weight: 700; line-height: 1.4;
-    text-align: center; width: fit-content;
+    display:block; margin:7px auto 0; padding:3px 10px; border-radius:20px;
+    font-size:0.64rem; font-weight:700; text-align:center; width:fit-content;
 }
-.mcomp.better  { background:#e6f4ff; color:#1a6a9a; }
+.mcomp.better  { background:#e6f3ff; color:#1a5499; }
 .mcomp.worse   { background:#fff0f0; color:#c0392b; }
-.mcomp.neutral { background:#f3f0fb; color:var(--col-subtext); }
-
-/* ── 점수 바 ── */
-.score-bar-wrap {
-    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
-    border-radius:12px; padding:13px 15px; margin-bottom:11px;
-    border: 1px solid var(--col-lavender);
-}
-.score-bar-label { font-size:0.76rem; color:var(--col-subtext); font-weight:700; margin-bottom:6px; }
-.score-bar-bg { background: rgba(194,187,240,0.35); border-radius:6px; height:11px; overflow:hidden; }
-.score-bar-fill { height:100%; border-radius:6px; transition: width 0.4s ease; }
-.score-bar-val {
-    text-align:right; font-size:0.80rem;
-    color:var(--col-dark); font-weight:900; margin-top:4px;
-}
+.mcomp.neutral { background:#eef4fb; color:var(--col-sub); }
 
 /* ── 역 태그 ── */
-.station-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
-.station-tag {
-    background: var(--col-main);
-    color: #fff;
-    padding:3px 10px; border-radius:20px;
-    font-size:0.69rem; font-weight:500;
-    border:1px solid rgba(255,255,255,0.3);
+.station-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.station-tag  {
+    background: var(--col-light); color: var(--col-dark);
+    padding:4px 12px; border-radius:20px;
+    font-size:0.67rem; font-weight:600; border:1px solid var(--border);
 }
 
 /* ── 힌트 박스 ── */
 .priority-hint {
-    background: linear-gradient(90deg, #ede8f8, var(--col-lightest));
-    border-radius:10px; padding:7px 13px;
-    font-size:0.78rem; color:var(--col-subtext); margin-top:5px;
-    border-left:3px solid var(--col-lavender);
+    background: var(--col-light); border-left:3px solid var(--col-main);
+    border-radius:var(--r-sm); padding:8px 14px;
+    font-size:0.76rem; color:var(--col-sub); margin-top:5px;
 }
 .map-hint {
-    background: linear-gradient(90deg, #e8eeff, #dff0fb);
-    border-radius:8px; padding:6px 12px; font-size:0.76rem;
-    color:var(--col-dark); border-left:3px solid var(--col-bright); margin-bottom:6px;
+    background: var(--col-light); border-left:3px solid var(--col-mid);
+    border-radius:var(--r-sm); padding:7px 13px;
+    font-size:0.74rem; color:var(--col-dark); margin-bottom:8px;
 }
 
-/* ── 버튼 래퍼 ── */
-.gu-btn-wrap { position: relative; margin-bottom: 4px; }
-.gu-btn-card {
-    border-radius: 10px; padding: 7px 4px;
-    text-align: center; font-size: 0.82rem; font-weight: 800;
-    pointer-events: none;
+/* ── 점수 바 ── */
+.score-bar-wrap  { background:var(--col-light); border-radius:var(--r-md); padding:13px 15px; margin-bottom:11px; border:1px solid var(--border); }
+.score-bar-label { font-size:0.74rem; color:var(--col-sub); font-weight:700; margin-bottom:6px; }
+.score-bar-bg    { background:rgba(126,181,232,0.25); border-radius:6px; height:10px; overflow:hidden; }
+.score-bar-fill  { height:100%; border-radius:6px; }
+.score-bar-val   { text-align:right; font-size:0.78rem; color:var(--col-dark); font-weight:900; margin-top:4px; }
+
+/* ── Streamlit 버튼 ── */
+.stButton > button {
+    border-radius: var(--r-sm) !important;
+    border: 1.5px solid var(--border) !important;
+    background: var(--surface) !important;
+    color: var(--col-text) !important;
+    font-weight: 600 !important; font-size: 0.77rem !important;
+    box-shadow: var(--shadow-s) !important;
+    transition: all 0.18s ease !important;
+    padding: 6px 8px !important;
 }
+.stButton > button:hover {
+    border-color: var(--col-main) !important;
+    color: var(--col-main) !important;
+    background: var(--col-light) !important;
+    box-shadow: var(--shadow-m) !important;
+}
+
+/* ── Expander ── */
+div[data-testid="stExpander"] {
+    border: 1.5px solid var(--border) !important;
+    border-radius: var(--r-md) !important;
+    background: var(--surface) !important;
+    box-shadow: var(--shadow-s) !important;
+}
+
+/* ── Container ── */
+div[data-testid="stVerticalBlockBorderWrapper"] > div {
+    border-radius: var(--r-md) !important;
+    border-color: var(--border) !important;
+    background: var(--surface) !important;
+    box-shadow: var(--shadow-s) !important;
+}
+
+.gu-btn-wrap { position:relative; margin-bottom:4px; }
+.gu-btn-card { border-radius:var(--r-sm); padding:7px 4px; text-align:center; font-size:0.82rem; font-weight:800; pointer-events:none; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -564,7 +568,7 @@ col_map, col_info = st.columns([1.6, 1])
 
 # ─────────────────────────────────────────────── 지도 ──────────────────────
 with col_map:
-    st.subheader("📍 서울 자치구 추천 지도")
+    st.markdown('<p style="font-size:1.0rem;font-weight:800;color:#1a5499;margin:0 0 6px;letter-spacing:-0.2px;">📍 서울 자치구 추천 지도</p>', unsafe_allow_html=True)
     hint_line = f" · {', '.join(selected_lines)} 경유 자치구 우선 반영" if selected_lines else ""
     st.markdown(
         f'<div class="map-hint">🥇🥈🥉 우선순위{hint_line} → 지도에서 추천 자치구를 <b>클릭</b>하면 우측 상세정보가 바뀝니다</div>',
@@ -915,13 +919,13 @@ with col_info:
 # 하단: TOP 5 추천 카드
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="background:#ffffff;border-radius:14px;padding:20px 24px 18px;
-            border:1.5px solid rgba(41,121,200,0.15);
-            box-shadow:0 2px 12px rgba(26,84,153,0.08);margin-top:8px;">
-    <div style="font-size:1.0rem;font-weight:800;color:#1a5499;margin-bottom:16px;
-                letter-spacing:-0.2px;">
+<div style="display:flex;align-items:center;gap:12px;margin:24px 0 14px;">
+    <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.15),transparent);"></div>
+    <div style="font-size:1.0rem;font-weight:800;color:#1a5499;letter-spacing:-0.2px;white-space:nowrap;">
         🏆 우선순위 기반 추천 지역 TOP 5
     </div>
+    <div style="flex:1;height:1.5px;background:linear-gradient(90deg,transparent,rgba(41,121,200,0.15));"></div>
+</div>
 """, unsafe_allow_html=True)
 
 CARD_BORDER = ["#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0", "#d4e4f7"]
@@ -972,12 +976,15 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
-st.caption(
-    "※ 도서관: 서울시 공공도서관 현황(2024, 215개) | "
-    "문화공간: 서울시 문화공간 정보(1,036개, 도서관 제외 862개) | "
-    "공원: 서울시 주요공원현황(2026 상반기, 130개) | "
-    "생활물가: 서울시 생필품·농수축산물 가격정보(2024, 98,053건) | "
-    "평균월세: 추정치(전월세 실거래 미반영) | "
-    "지하철역: 서울교통공사 역주소 현황(289개)"
-)
+st.markdown("""
+<div style="margin-top:20px;padding:12px 18px;background:#ffffff;border-radius:10px;
+            border:1.5px solid rgba(42,109,196,0.10);
+            font-size:0.68rem;color:#7a9ab8;line-height:1.9;">
+    ※ 도서관: 서울시 공공도서관 현황(2024, 215개) &nbsp;|&nbsp;
+    문화공간: 서울시 문화공간 정보(1,036개, 도서관 제외 862개) &nbsp;|&nbsp;
+    공원: 서울시 주요공원현황(2026 상반기, 130개) &nbsp;|&nbsp;
+    생활물가: 서울시 생필품·농수축산물 가격정보(2024, 98,053건) &nbsp;|&nbsp;
+    평균월세: 추정치(전월세 실거래 미반영) &nbsp;|&nbsp;
+    지하철역: 서울교통공사 역주소 현황(289개)
+</div>
+""", unsafe_allow_html=True)
