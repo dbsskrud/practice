@@ -379,7 +379,7 @@ PRIORITY_ITEMS = {
 
 # ── 세션 상태 초기화 ──────────────────────────────────────────────────────
 if 'selected_gu' not in st.session_state:
-    st.session_state.selected_gu = '마포구'
+    st.session_state.selected_gu = None   # 점수 계산 후 top1으로 덮어씀
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -452,6 +452,10 @@ rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
 top5_df = rec_df.head(5)
 
+# selected_gu가 None이거나 top3 밖이면 → 항상 1위 구로 초기화
+if st.session_state.selected_gu not in top3_gu:
+    st.session_state.selected_gu = top3_gu[0]
+
 # 상위 3개 강조색
 RANK_COLOR = {top3_gu[0]: "#E8002D", top3_gu[1]: "#FF6B00", top3_gu[2]: "#FFB800"}
 RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
@@ -467,7 +471,7 @@ col_map, col_info = st.columns([1.6, 1])
 with col_map:
     st.subheader("📍 서울 자치구 추천 지도")
     st.markdown(
-        '<div class="map-hint">🖱️ 지도에서 자치구를 <b>클릭</b>하면 우측 상세정보가 바뀝니다</div>',
+        '<div class="map-hint">🥇🥈🥉 지도에서 <b>추천 1~3위 자치구</b>를 클릭하면 우측 상세정보가 바뀝니다</div>',
         unsafe_allow_html=True
     )
 
@@ -639,7 +643,7 @@ with col_map:
                     clicked_gu = gn
                     break
 
-        if clicked_gu and clicked_gu != st.session_state.selected_gu:
+        if clicked_gu and clicked_gu in top3_gu and clicked_gu != st.session_state.selected_gu:
             st.session_state.selected_gu = clicked_gu
             st.rerun()
 
@@ -782,16 +786,31 @@ with col_info:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── 자치구 직접 선택 ────────────────────────────────────────────────────────
-    st.markdown("**🗺️ 다른 자치구 직접 선택**")
-    all_gu = df['자치구'].tolist()
-    sel = st.selectbox(
-        "자치구", all_gu, index=all_gu.index(gu),
-        key="gu_direct", label_visibility="collapsed"
-    )
-    if sel != gu:
-        st.session_state.selected_gu = sel
-        st.rerun()
+    # ── 추천 TOP3 자치구 선택 버튼 ─────────────────────────────────────────────
+    st.markdown("**📍 추천 자치구 선택**")
+    btn_cols = st.columns(3)
+    btn_labels = {
+        top3_gu[0]: f"🥇 {top3_gu[0]}",
+        top3_gu[1]: f"🥈 {top3_gu[1]}",
+        top3_gu[2]: f"🥉 {top3_gu[2]}",
+    }
+    btn_colors = ["#E8002D", "#FF6B00", "#FFB800"]
+    for idx, rgu in enumerate(top3_gu):
+        with btn_cols[idx]:
+            is_active = (gu == rgu)
+            border = f"2px solid {btn_colors[idx]}"
+            bg = f"rgba({['232,0,45','255,107,0','255,184,0'][idx]},0.12)"
+            fw = "900" if is_active else "600"
+            st.markdown(
+                f'<div style="border:{border};background:{bg};border-radius:10px;'
+                f'padding:8px 4px;text-align:center;font-size:0.82rem;font-weight:{fw};">'
+                f'{btn_labels[rgu]}</div>',
+                unsafe_allow_html=True
+            )
+            if st.button(btn_labels[rgu], key=f"top3_btn_{idx}",
+                         use_container_width=True, label_visibility="collapsed"):
+                st.session_state.selected_gu = rgu
+                st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════
