@@ -724,8 +724,17 @@ with col_map:
     RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
 
     st.markdown("""
-    <div style='font-size:0.78rem;color:#666;margin:4px 0 6px;font-weight:600;'>
-        👇 자치구를 선택하면 우측 상세정보가 바뀝니다
+    <div style="
+        display:flex; align-items:center; gap:10px;
+        background:linear-gradient(90deg, #e8eeff, #dff0fb);
+        border-left:3px solid #3590f3;
+        border-radius:8px; padding:8px 14px;
+        margin:6px 0 10px;
+    ">
+        <span style="font-size:1rem;">📍</span>
+        <span style="font-size:0.78rem;color:#2a6dc4;font-weight:700;letter-spacing:0.2px;">
+            자치구를 선택하면 우측 상세정보가 바뀝니다
+        </span>
     </div>""", unsafe_allow_html=True)
 
     # TOP3 + 나머지 전체를 두 행으로 표시
