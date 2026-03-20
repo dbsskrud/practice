@@ -786,29 +786,28 @@ with col_info:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+
     # ── 추천 TOP3 자치구 선택 버튼 ─────────────────────────────────────────────
     st.markdown("**📍 추천 자치구 선택**")
     btn_cols = st.columns(3)
-    btn_labels = {
-        top3_gu[0]: f"🥇 {top3_gu[0]}",
-        top3_gu[1]: f"🥈 {top3_gu[1]}",
-        top3_gu[2]: f"🥉 {top3_gu[2]}",
-    }
-    btn_colors = ["#E8002D", "#FF6B00", "#FFB800"]
+    rank_emojis = ["🥇", "🥈", "🥉"]
+    btn_colors  = ["#E8002D", "#FF6B00", "#FFB800"]
     for idx, rgu in enumerate(top3_gu):
         with btn_cols[idx]:
             is_active = (gu == rgu)
-            border = f"2px solid {btn_colors[idx]}"
-            bg = f"rgba({['232,0,45','255,107,0','255,184,0'][idx]},0.12)"
-            fw = "900" if is_active else "600"
+            border_w  = "3px" if is_active else "2px"
+            fw        = "900" if is_active else "600"
+            label     = f"{rank_emojis[idx]} {rgu}"
+            # 선택 상태를 시각적으로 표시하는 카드
             st.markdown(
-                f'<div style="border:{border};background:{bg};border-radius:10px;'
-                f'padding:8px 4px;text-align:center;font-size:0.82rem;font-weight:{fw};">'
-                f'{btn_labels[rgu]}</div>',
+                f'<div style="border:{border_w} solid {btn_colors[idx]};'
+                f'border-radius:10px;padding:8px 4px;'
+                f'text-align:center;font-size:0.82rem;font-weight:{fw};">'
+                f'{label}</div>',
                 unsafe_allow_html=True
             )
-            if st.button(btn_labels[rgu], key=f"top3_btn_{idx}",
-                         use_container_width=True, label_visibility="collapsed"):
+            # 버튼은 label만 사용 (label_visibility 제거)
+            if st.button(label, key=f"top3_btn_{idx}", use_container_width=True):
                 st.session_state.selected_gu = rgu
                 st.rerun()
 
