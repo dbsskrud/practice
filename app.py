@@ -472,9 +472,13 @@ st.markdown("""
 # 상단 컨트롤 패널
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="background:#ffffff;border-radius:14px;padding:20px 24px 16px;
-            border:1.5px solid rgba(41,121,200,0.15);
-            box-shadow:0 2px 12px rgba(26,84,153,0.08);margin-bottom:16px;">
+<div style="background:#ffffff;border-radius:14px;padding:18px 22px 14px;
+            border:1.5px solid rgba(41,121,200,0.12);
+            box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:14px;">
+    <div style="font-size:0.72rem;font-weight:800;color:#7aadcc;
+                letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;">
+        ⚙️ 검색 조건 설정
+    </div>
 """, unsafe_allow_html=True)
 
 col_left, col_right = st.columns([1, 1.7])
@@ -564,8 +568,14 @@ RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", to
 # ══════════════════════════════════════════════════════════════════════════
 # 메인 레이아웃: 지도 ＋ 상세 정보
 # ══════════════════════════════════════════════════════════════════════════
-col_map, col_info = st.columns([1.6, 1])
+st.markdown("""
+<div style="font-size:0.72rem;font-weight:800;color:#7aadcc;
+            letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;">
+    🗺️ 지역 탐색
+</div>
+""", unsafe_allow_html=True)
 
+col_map, col_info = st.columns([1.6, 1])
 # ─────────────────────────────────────────────── 지도 ──────────────────────
 with col_map:
     st.markdown('<p style="font-size:1.0rem;font-weight:800;color:#1a5499;margin:0 0 6px;letter-spacing:-0.2px;">📍 서울 자치구 추천 지도</p>', unsafe_allow_html=True)
@@ -919,12 +929,17 @@ with col_info:
 # 하단: TOP 5 추천 카드
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="display:flex;align-items:center;gap:12px;margin:24px 0 14px;">
-    <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.15),transparent);"></div>
-    <div style="font-size:1.0rem;font-weight:800;color:#1a5499;letter-spacing:-0.2px;white-space:nowrap;">
-        🏆 우선순위 기반 추천 지역 TOP 5
+<div style="margin:20px 0 14px;">
+    <div style="font-size:0.72rem;font-weight:800;color:#7aadcc;
+                letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">
+        🏆 Rankings
     </div>
-    <div style="flex:1;height:1.5px;background:linear-gradient(90deg,transparent,rgba(41,121,200,0.15));"></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:1.05rem;font-weight:800;color:#1a5499;letter-spacing:-0.3px;">
+            우선순위 기반 추천 지역 TOP 5
+        </span>
+        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.15),transparent);"></div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
