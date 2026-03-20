@@ -6,15 +6,12 @@ import requests
 import json
 
 # ══════════════════════════════════════════════════════════════════════════
-# 페이지 설정
+# 페이지 설정 및 데이터 로드
 # ══════════════════════════════════════════════════════════════════════════
 st.set_page_config(page_title="서울 스타터 v3.0", layout="wide", page_icon="🏠")
 
-# ══════════════════════════════════════════════════════════════════════════
-# 데이터 로드 및 전처리
-# ══════════════════════════════════════════════════════════════════════════
 @st.cache_data
-def load_data():
+def load_all_data():
     data = {
         '자치구': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', 
                   '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', 
@@ -30,7 +27,7 @@ def load_data():
         '한줄평': [
             "화려한 인프라와 일자리, 높은 비용만큼 확실한 가치.", "한강 공원과 저렴한 물가, 쾌적한 주거의 정석.", "북한산 자락의 맑은 공기, 정겨운 동네 풍경.",
             "서울 식물원과 마곡의 성장, 녹지 부자 동네.", "청년들의 성지, 활발한 자취 생태계와 높은 가성비.", "대학가와 건대 상권, 활기찬 2030의 주거지.",
-            "사통팔달 교통의 요지, 실속 있는 역세권 생활권.", "G밸리 직장인을 위한 가성비 끝판왕 자취 명당.", "깔끔한 아파트 단지와 치안, 안전한 주거 환경.",
+            "사통팔달 교통의 허브, 실속 있는 역세권 생활권.", "G밸리 직장인을 위한 가성비 끝판왕 자취 명당.", "깔끔한 아파트 단지와 치안, 안전한 주거 환경.",
             "서울에서 가장 착한 월세, 조용한 삶을 위한 선택.", "전통시장과 대학 상권의 조화, 먹거리 천국.", "사당과 노량진 사이, 직장인들의 스테디셀러.",
             "연남, 망원 핫플레이스가 내 집 앞마당인 곳.", "신촌의 활기와 연희동의 고즈넉함이 공존.", "강남의 편리함에 예술적 품격을 더한 주거지.",
             "서울의 브루클린, 성수동 카페거리를 내 집처럼.", "독립서점과 예술가들이 사랑하는 감성 동네.", "석촌호수와 올림픽공원, 완벽한 주말 보장.",
@@ -41,15 +38,10 @@ def load_data():
     df = pd.DataFrame(data)
     df['기타문화공간'] = df['전체문화공간'] - df['도서관수']
     
-    # 서울시 전체 평균 계산
-    means = {
-        '평균월세': df['평균월세'].mean(),
-        '공원수': df['공원수'].mean(),
-        '도서관수': df['도서관수'].mean(),
-        '기타문화공간': df['기타문화공간'].mean()
-    }
+    # 서울시 전체 평균치 미리 계산
+    means = df[['평균월세', '공원수', '도서관수', '기타문화공간']].mean()
     
-    # 정규화 점수 (0~1)
+    # 정규화 (0~1)
     for col, high_is_good in [('평균월세', False), ('생활물가', False), ('전체문화공간', True), ('공원수', True)]:
         mn, mx = df[col].min(), df[col].max()
         df[f'norm_{col}'] = (df[col] - mn) / (mx - mn) if high_is_good else (mx - df[col]) / (mx - mn)
@@ -61,15 +53,14 @@ def load_geojson():
     url = "https://raw.githubusercontent.com/southkorea/seoul-maps/master/juso/2015/json/seoul_municipalities_geo_simple.json"
     return requests.get(url).json()
 
-df, seoul_means = load_data()
+df, seoul_avg = load_all_data()
 seoul_geo = load_geojson()
 
-# 세션 상태 초기화
 if 'selected_gu' not in st.session_state:
     st.session_state.selected_gu = '종로구'
 
 # ══════════════════════════════════════════════════════════════════════════
-# 1. 상단 설정 창
+# 상단 설정 창
 # ══════════════════════════════════════════════════════════════════════════
 st.title("🚀 서울 스타터 v3.0: 랭킹 기반 지역 큐레이션")
 
@@ -87,7 +78,7 @@ with st.container(border=True):
         r3 = p_cols[2].selectbox("3순위 (2점)", criteria, index=2)
         r4 = p_cols[3].selectbox("4순위 (1점)", criteria, index=3)
 
-# 추천 로직 계산
+# 랭킹 로직
 weights = {r1: 4, r2: 3, r3: 2, r4: 1}
 df['total_score'] = (df['norm_평균월세'] * weights.get("저렴한 월세", 0) + 
                      df['norm_생활물가'] * weights.get("생활 물가", 0) + 
@@ -98,19 +89,9 @@ display_df = df.copy()
 if selected_line != "전체":
     display_df = display_df[display_df['지하철호선'].str.contains(selected_line)]
 
-# 추천 상위 3개 선정
-top_3_df = display_df.sort_values('total_score', ascending=False).head(3)
-top_3 = top_3_df['자치구'].tolist()
-
+top_3 = display_df.sort_values('total_score', ascending=False).head(3)['자치구'].tolist()
 display_df['recommendation'] = display_df['자치구'].apply(
     lambda x: f"{top_3.index(x)+1}위 추천" if x in top_3 else "기타 지역"
 )
 
-# ══════════════════════════════════════════════════════════════════════════
-# 2. 메인 대시보드 (지도 및 상세 리포트)
-# ══════════════════════════════════════════════════════════════════════════
-col_map, col_info = st.columns([1.5, 1])
-
-with col_map:
-    st.subheader("🗺️ 서울시 지역구별 추천 맵")
-    st.caption("지도 위의 자치구를 클릭하여 상세 리포트를 확인하세요
+# ════════════════
