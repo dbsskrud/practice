@@ -664,15 +664,22 @@ with col_map:
             name=RANK_LABEL[rgu]
         ))
 
-    # ── Layer 3: TOP3 — 동그라미 없이 텍스트만 ──────────────────────────────────
+    # ── Layer 3: TOP3 — 진한 색 마커 위에 흰색 텍스트 ──────────────────────────
+    top3_marker_col = {top3_gu[0]: "#1a4fa0", top3_gu[1]: "#1a7aaa", top3_gu[2]: "#6a5aaa"}
     for rgu in top3_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
-            mode="text",
+            mode="markers+text",
+            marker=dict(
+                size=1,
+                color=top3_marker_col[rgu],
+                opacity=0,
+                allowoverlap=True
+            ),
             text=[f"{RANK_ICON[rgu]} {rgu}"],
             textposition="middle center",
-           textfont=dict(size=14, color="#ffffff", family="Noto Sans KR"),
+            textfont=dict(size=15, color="#1a2a5a", family="Noto Sans KR"),
             hovertemplate=(
                 f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
                 f"추천점수: {row_d['total_score']:.2f}<br>"
@@ -684,7 +691,6 @@ with col_map:
             showlegend=False,
             name=rgu
         ))
-
     # ── Layer 4: 나머지 22개 구 — 동그라미 없이 텍스트만 ───────────────────────
     for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
         gn = row_d['자치구']
