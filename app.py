@@ -664,25 +664,45 @@ with col_map:
             name=RANK_LABEL[rgu]
         ))
 
-    # 나머지 22개 구 — 각각 개별 trace로 추가해 customdata가 정확히 전달되도록
+    # ── Layer 3: TOP3 — 동그라미 없이 텍스트만 ──────────────────────────────────
+    rank_text_col = {top3_gu[0]: "#1a4fa0", top3_gu[1]: "#1a7aaa", top3_gu[2]: "#5a4aaa"}
+    for rgu in top3_gu:
+        row_d = df[df['자치구'] == rgu].iloc[0]
+        fig.add_trace(go.Scattermapbox(
+            lat=[row_d['lat']], lon=[row_d['lon']],
+            mode="text",
+            text=[f"{RANK_ICON[rgu]} {rgu}"],
+            textposition="middle center",
+            textfont=dict(size=13, color=rank_text_col[rgu], family="Noto Sans KR"),
+            hovertemplate=(
+                f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
+                f"추천점수: {row_d['total_score']:.2f}<br>"
+                f"월세: {int(row_d['평균월세'])}만원<br>"
+                f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
+                f"문화공간: {int(row_d['기타문화공간수'])}개<extra></extra>"
+            ),
+            customdata=[[rgu]],
+            showlegend=False,
+            name=rgu
+        ))
+
+    # ── Layer 4: 나머지 22개 구 — 동그라미 없이 텍스트만 ───────────────────────
     for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
         gn = row_d['자치구']
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
-            mode="markers+text",
-            marker=dict(size=10, color="#607080", opacity=0.60, allowoverlap=True),
+            mode="text",
             text=[gn],
-            textposition="top center",
-            textfont=dict(size=8, color="#444444", family="Noto Sans KR"),
-            customdata=[[gn]],    # ← [[구명]] 형태: pt["customdata"][0] == 구명
+            textposition="middle center",
+            textfont=dict(size=9, color="#555566", family="Noto Sans KR"),
+            customdata=[[gn]],
             hovertemplate=(
                 f"<b>{gn}</b><br>"
                 f"월세: {int(row_d['평균월세'])}만원 | 공원: {int(row_d['공원수'])}개<extra></extra>"
             ),
             showlegend=False,
-            name=gn,
+            name=gn
         ))
-
     fig.update_layout(
         mapbox=dict(
             style="carto-positron",
