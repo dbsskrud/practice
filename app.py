@@ -626,6 +626,7 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
 
         # 이 구가 현재 선택된 구인지 확인
         is_selected = r['자치구'] == st.session_state.selected_gu
+        shadow_style = "box-shadow:0 0 12px rgba(79,172,254,0.25);" if is_selected else ""
 
         st.markdown(f"""
         <div style="
@@ -634,7 +635,7 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
             border-radius:14px;
             padding:16px 12px;
             text-align:center;
-            {'box-shadow:0 0 12px rgba(79,172,254,0.25);' if is_selected else ''}
+            {shadow_style}
         ">
           <div style="font-size:1.5rem; margin-bottom:4px;">{medal_emojis[i]}</div>
           <div style="font-size:1.05rem; font-weight:800; color:{name_color}; margin-bottom:8px;">{r['자치구']}</div>
