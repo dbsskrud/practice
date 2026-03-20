@@ -423,13 +423,74 @@ if 'selected_gu' not in st.session_state:
 # ══════════════════════════════════════════════════════════════════════════
 # 헤더
 # ══════════════════════════════════════════════════════════════════════════
-st.title("🚀 서울 스타터: 자취 가이드")
-st.caption("20~30대를 위한 서울 자취 지역 추천 가이드 | 실측 공공데이터 기반")
 st.markdown("""
-<div style="padding: 10px 4px 18px; color: #5a5a8a; font-size: 0.92rem; line-height: 1.8;">
-    🏠 처음 자취를 시작하는 분들을 위한 <b>서울 25개 자치구 비교 가이드</b>입니다.<br>
-    월세, 공원, 도서관, 문화공간 등 실생활 데이터를 기반으로 <b>나에게 맞는 동네</b>를 찾아보세요.<br>
-    <span style="font-size:0.80rem; color:#8fb8ed;">※ 좌측 슬라이더로 나만의 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다.</span>
+<div style="
+    background: linear-gradient(135deg, #2a6dc4 0%, #3590f3 40%, #62bfed 80%, #c2bbf0 100%);
+    border-radius: 20px;
+    padding: 32px 36px 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+">
+    <!-- 배경 장식 원 -->
+    <div style="
+        position:absolute; top:-30px; right:-30px;
+        width:160px; height:160px; border-radius:50%;
+        background:rgba(255,255,255,0.08);
+    "></div>
+    <div style="
+        position:absolute; bottom:-40px; right:80px;
+        width:100px; height:100px; border-radius:50%;
+        background:rgba(255,255,255,0.06);
+    "></div>
+
+    <!-- 뱃지 -->
+    <div style="
+        display:inline-block;
+        background:rgba(255,255,255,0.18);
+        border:1px solid rgba(255,255,255,0.35);
+        border-radius:20px;
+        padding:4px 14px;
+        font-size:0.75rem;
+        color:#fff;
+        font-weight:600;
+        margin-bottom:12px;
+        letter-spacing:0.5px;
+    ">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
+
+    <!-- 타이틀 -->
+    <div style="
+        font-size:2.1rem;
+        font-weight:900;
+        color:#ffffff;
+        line-height:1.2;
+        margin-bottom:10px;
+        letter-spacing:-0.5px;
+    ">🏠 서울 스타터<br>
+    <span style="font-size:1.2rem; font-weight:500; opacity:0.92;">서울시 자취 가이드</span>
+    </div>
+
+    <!-- 설명 -->
+    <div style="
+        font-size:0.90rem;
+        color:rgba(255,255,255,0.90);
+        line-height:1.85;
+        margin-bottom:14px;
+    ">
+        처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>
+        월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터를 기반으로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.
+    </div>
+
+    <!-- 안내 칩 -->
+    <div style="
+        display:inline-block;
+        background:rgba(255,255,255,0.15);
+        border:1px solid rgba(255,255,255,0.30);
+        border-radius:12px;
+        padding:6px 16px;
+        font-size:0.78rem;
+        color:rgba(255,255,255,0.95);
+    ">💡 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다</div>
 </div>
 """, unsafe_allow_html=True)
 
