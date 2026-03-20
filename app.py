@@ -404,17 +404,9 @@ with st.container(border=True):
             key="line_select"
         )
         if selected_line != "선택 안 함":
-            selected_station = st.selectbox(
-                "역을 선택하세요",
-                ["선택 안 함"] + LINE_STATIONS[selected_line],
-                key="station_select"
-            )
-            if selected_station != "선택 안 함" and selected_station in STATION_TO_GU:
-                found_gu = STATION_TO_GU[selected_station]
-                if found_gu != st.session_state.selected_gu:
-                    st.session_state.selected_gu = found_gu
-                    st.rerun()
-                st.success(f"📍 **{selected_station}역** → **{found_gu}** 정보 표시 중")
+            st.info(f"🚇 **{selected_line}** 경유 자치구를 우선 추천합니다")
+        else:
+            st.caption("호선을 선택하면 해당 노선 경유 자치구를 우선 추천합니다")
 
     # 우선순위 설정
     with col_right:
@@ -448,6 +440,21 @@ if len(priority_order) == 4:
 else:
     df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
 
+# ── 호선 선택 보너스: 해당 호선이 경유하는 자치구에 가중치 추가 ────────────
+if selected_line != "선택 안 함":
+    # 선택 호선의 역들이 속한 자치구 목록 추출
+    line_stations = LINE_STATIONS.get(selected_line, [])
+    line_gu_set = set()
+    for st_name in line_stations:
+        if st_name in STATION_TO_GU:
+            line_gu_set.add(STATION_TO_GU[st_name])
+    # 해당 자치구에 보너스 점수(현재 점수의 30%) 부여
+    bonus = df['total_score'].max() * 0.3
+    df['total_score'] = df.apply(
+        lambda r: r['total_score'] + bonus if r['자치구'] in line_gu_set else r['total_score'],
+        axis=1
+    )
+
 rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
 top5_df = rec_df.head(5)
@@ -470,8 +477,9 @@ col_map, col_info = st.columns([1.6, 1])
 # ─────────────────────────────────────────────── 지도 ──────────────────────
 with col_map:
     st.subheader("📍 서울 자치구 추천 지도")
+    hint_line = f" · {selected_line} 경유 자치구 우선 반영" if selected_line != "선택 안 함" else ""
     st.markdown(
-        '<div class="map-hint">🥇🥈🥉 지도에서 <b>추천 1~3위 자치구</b>를 클릭하면 우측 상세정보가 바뀝니다</div>',
+        f'<div class="map-hint">🥇🥈🥉 우선순위{hint_line} → 지도에서 추천 자치구를 <b>클릭</b>하면 우측 상세정보가 바뀝니다</div>',
         unsafe_allow_html=True
     )
 
@@ -651,14 +659,14 @@ with col_map:
             pass
 
     # 범례
-    st.markdown("""
-    <div style='display:flex;gap:18px;padding:5px 2px;font-size:0.75rem;
-                color:#666;flex-wrap:wrap;align-items:center;'>
-        <span style='font-weight:700;'>추천순위:</span>
-        <span>🔴 1위 추천</span>
-        <span>🟠 2위 추천</span>
-        <span>🟡 3위 추천</span>
-        <span style='color:#aaa;'>⚫ 그 외 자치구</span>
+    st.markdown(f"""
+    <div style='display:flex;gap:14px;padding:6px 2px;font-size:0.76rem;
+                color:#444;flex-wrap:wrap;align-items:center;'>
+        <span style='font-weight:700;color:#555;'>추천:</span>
+        <span style='color:#E8002D;font-weight:700;'>🥇 {top3_gu[0]}</span>
+        <span style='color:#FF6B00;font-weight:700;'>🥈 {top3_gu[1]}</span>
+        <span style='color:#FFB800;font-weight:700;'>🥉 {top3_gu[2]}</span>
+        <span style='color:#aaa;margin-left:4px;'>⚫ 그 외 자치구</span>
     </div>
     """, unsafe_allow_html=True)
 
