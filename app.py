@@ -359,88 +359,33 @@ st.markdown(
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# ② 컨트롤 패널 — 2개 독립 카드
+# ② 컨트롤 패널 — 세련된 카드 그룹화
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">⚙️ 맞춤형 주거 필터링</div>', unsafe_allow_html=True)
 
-col_a, col_b, col_c = st.columns([1, 1, 1.6])
+# 전체를 하나의 밝은 카드 영역으로 감싸 시선 분산을 방지
+with st.container():
+    st.markdown('<div class="input-container">', unsafe_allow_html=True)
+    
+    c1, c2, c3 = st.columns([1, 1, 1])
+    
+    with c1:
+        st.markdown("##### 📍 어디로 가시나요?")
+        university = st.selectbox("학교 선택", list(UNI_TO_GU.keys()), help="인근 지역에 가중치를 부여합니다.")
+        work_place = st.selectbox("직장/주요지", list(WORK_TO_GU.keys()))
 
-with col_a:
-    st.markdown(
-        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
-        'border:1.5px solid rgba(41,121,200,0.12);'
-        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
-        'border-top:3px solid #2979c8;">'
-        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
-        'letter-spacing:0.5px;margin-bottom:10px;">🎓 통학 · 🏢 통근 조건</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-    university = st.selectbox(
-        "재학 중인 대학교",
-        list(UNI_TO_GU.keys()),
-        key="university_select"
-    )
-    work_place = st.selectbox(
-        "근무지 / 자주 가는 업무지구",
-        list(WORK_TO_GU.keys()),
-        key="work_select"
-    )
+    with c2:
+        st.markdown("##### 💰 예산 및 교통")
+        rent_band = st.select_slider("희망 월세 범위", options=list(RENT_BAND.keys()), value="상관없음")
+        selected_lines = st.multiselect("선호 호선", list(LINE_STATIONS.keys()), max_selections=3)
 
-with col_b:
-    st.markdown(
-        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
-        'border:1.5px solid rgba(41,121,200,0.12);'
-        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
-        'border-top:3px solid #4a9de0;">'
-        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
-        'letter-spacing:0.5px;margin-bottom:10px;">🚉 지하철 · 💸 월세 조건</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-    selected_lines = st.multiselect(
-        "희망 지하철 호선 (최대 3개)",
-        list(LINE_STATIONS.keys()),
-        max_selections=3,
-        key="line_select"
-    )
-    rent_band = st.selectbox(
-        "희망 월세 가격대",
-        list(RENT_BAND.keys()),
-        index=0,
-        key="rent_band_select"
-    )
+    with c3:
+        st.markdown("##### 🌟 나의 라이프스타일")
+        # 우선순위를 드래그 앤 드롭 느낌의 멀티셀렉트로 간소화하거나 칩 형태로 변형 가능
+        prio_1 = st.selectbox("가장 중요한 가치", list(PRIORITY_ITEMS.keys()), index=0)
+        prio_2 = st.selectbox("두 번째 가치", [k for k in PRIORITY_ITEMS.keys() if k != prio_1], index=0)
 
-with col_c:
-    st.markdown(
-        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
-        'border:1.5px solid rgba(41,121,200,0.12);'
-        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
-        'border-top:3px solid #7eb5e8;">'
-        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
-        'letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
-        unsafe_allow_html=True
-    )
-    p_cols = st.columns(4)
-    priority_keys = list(PRIORITY_ITEMS.keys())
-    used, priority_order = [], []
-    for rank in range(1, 5):
-        with p_cols[rank - 1]:
-            st.markdown(f"**{rank}순위**")
-            remaining = [k for k in priority_keys if k not in used]
-            choice = st.selectbox(
-                f"#{rank}", options=["선택"] + remaining,
-                key=f"prio_{rank}", label_visibility="collapsed"
-            )
-            if choice != "선택":
-                used.append(choice)
-                priority_order.append(choice)
-
+    st.markdown('</div>', unsafe_allow_html=True)
 # ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
     w = {0: 4, 1: 3, 2: 2, 3: 1}
