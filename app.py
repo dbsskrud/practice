@@ -642,62 +642,98 @@ with col_map:
         showlegend=False,
     )
 
-    # 지도 표시 (시각화 전용 — 클릭 이벤트 없음)
-    st.plotly_chart(fig, use_container_width=True, key="main_map")
+    # ── 지도 클릭 이벤트 (streamlit-plotly-events) ────────────────────────────
+    try:
+        from streamlit_plotly_events import plotly_events
+        clicked = plotly_events(
+            fig,
+            click_event=True,
+            hover_event=False,
+            select_event=False,
+            key="map_click",
+            override_height=490,
+        )
+        # 클릭된 포인트에서 구명 추출
+        if clicked:
+            pt = clicked[0]
+            clicked_gu = None
 
-    # ── 지도 바로 아래: 자치구 선택 버튼 ─────────────────────────────────────
-    # 추천 TOP3 탭 스타일 버튼 (지도와 통합된 인터랙션)
-    sel_gu = st.session_state.selected_gu
+            # customdata[0] — [[구명]] 형태
+            cd = pt.get("customdata")
+            if cd is not None:
+                val = cd[0] if isinstance(cd, (list, tuple)) else cd
+                if str(val) in gu_list:
+                    clicked_gu = str(val)
 
-    RANK_COLORS_BTN = ["#E8002D", "#FF6B00", "#FFB800"]
-    RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
+            # Choropleth: location 키
+            if not clicked_gu:
+                loc = pt.get("location", "")
+                if loc in gu_list:
+                    clicked_gu = loc
 
-    st.markdown("""
-    <div style='font-size:0.78rem;color:#666;margin:4px 0 6px;font-weight:600;'>
-        👇 자치구를 선택하면 우측 상세정보가 바뀝니다
-    </div>""", unsafe_allow_html=True)
+            # text 파싱 폴백
+            if not clicked_gu:
+                raw = str(pt.get("text") or pt.get("hovertext") or "")
+                for gn in gu_list:
+                    if gn in raw:
+                        clicked_gu = gn
+                        break
 
-    # TOP3 + 나머지 전체를 두 행으로 표시
-    # 1행: TOP3 (강조 버튼)
-    cols3 = st.columns(3)
-    for i, rgu in enumerate(top3_gu):
-        with cols3[i]:
-            is_active = (sel_gu == rgu)
-            label = f"{RANK_ICONS_BTN[i]} {rgu}"
-            if is_active:
-                st.markdown(
-                    f'<div style="border:2.5px solid {RANK_COLORS_BTN[i]};'
-                    f'background:{RANK_COLORS_BTN[i]};color:white;'
-                    f'border-radius:10px;padding:9px 4px;text-align:center;'
-                    f'font-size:0.82rem;font-weight:900;">{label} ✓</div>',
-                    unsafe_allow_html=True
-                )
-            else:
-                if st.button(label, key=f"sel_top_{i}", use_container_width=True):
-                    st.session_state.selected_gu = rgu
-                    st.rerun()
+            if clicked_gu and clicked_gu != st.session_state.selected_gu:
+                st.session_state.selected_gu = clicked_gu
+                st.rerun()
 
-    # 2행: 나머지 22개 구 (접이식 그리드)
-    others_gu = [g for g in gu_list if g not in top3_gu]
-    with st.expander("➕ 다른 자치구 보기", expanded=False):
-        n_cols = 5
-        rows = [others_gu[i:i+n_cols] for i in range(0, len(others_gu), n_cols)]
-        for row_items in rows:
-            cols_o = st.columns(n_cols)
-            for j, g in enumerate(row_items):
-                with cols_o[j]:
-                    is_active = (sel_gu == g)
-                    if is_active:
-                        st.markdown(
-                            f'<div style="background:#1a1a2e;color:white;border-radius:8px;'
-                            f'padding:6px 2px;text-align:center;font-size:0.72rem;'
-                            f'font-weight:700;border:1px solid #1a1a2e;">{g} ✓</div>',
-                            unsafe_allow_html=True
-                        )
-                    else:
-                        if st.button(g, key=f"sel_other_{g}", use_container_width=True):
-                            st.session_state.selected_gu = g
-                            st.rerun()
+    except ImportError:
+        # streamlit-plotly-events 미설치 시 — 기존 버튼 방식으로 폴백
+        st.plotly_chart(fig, use_container_width=True, key="main_map")
+        st.markdown("""
+        <div style='font-size:0.75rem;color:#e67e22;background:#fff8e1;
+                    border-radius:8px;padding:6px 12px;border-left:3px solid #f0c040;margin-bottom:6px;'>
+        ⚠️ 지도 직접 클릭을 사용하려면 <b>requirements.txt</b>에
+        <code>streamlit-plotly-events</code>를 추가하고 앱을 재시작하세요.
+        </div>""", unsafe_allow_html=True)
+
+        # 폴백 버튼 UI
+        sel_gu = st.session_state.selected_gu
+        RANK_COLORS_BTN = ["#E8002D", "#FF6B00", "#FFB800"]
+        RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
+        st.markdown("<div style='font-size:0.78rem;color:#666;margin:4px 0 6px;font-weight:600;'>👇 자치구를 선택하세요</div>", unsafe_allow_html=True)
+        cols3 = st.columns(3)
+        for i, rgu in enumerate(top3_gu):
+            with cols3[i]:
+                is_active = (sel_gu == rgu)
+                label = f"{RANK_ICONS_BTN[i]} {rgu}"
+                if is_active:
+                    st.markdown(
+                        f'<div style="border:2.5px solid {RANK_COLORS_BTN[i]};background:{RANK_COLORS_BTN[i]};'
+                        f'color:white;border-radius:10px;padding:9px 4px;text-align:center;'
+                        f'font-size:0.82rem;font-weight:900;">{label} ✓</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    if st.button(label, key=f"sel_top_{i}", use_container_width=True):
+                        st.session_state.selected_gu = rgu
+                        st.rerun()
+        others_gu = [g for g in gu_list if g not in top3_gu]
+        with st.expander("➕ 다른 자치구 보기", expanded=False):
+            n_cols = 5
+            rows_o = [others_gu[k:k+n_cols] for k in range(0, len(others_gu), n_cols)]
+            for row_items in rows_o:
+                cols_o = st.columns(n_cols)
+                for j, g in enumerate(row_items):
+                    with cols_o[j]:
+                        is_active = (sel_gu == g)
+                        if is_active:
+                            st.markdown(
+                                f'<div style="background:#1a1a2e;color:white;border-radius:8px;'
+                                f'padding:6px 2px;text-align:center;font-size:0.72rem;'
+                                f'font-weight:700;border:1px solid #1a1a2e;">{g} ✓</div>',
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            if st.button(g, key=f"sel_other_{g}", use_container_width=True):
+                                st.session_state.selected_gu = g
+                                st.rerun()
 
     # 범례
     st.markdown(f"""
