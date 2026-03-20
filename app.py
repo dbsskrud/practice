@@ -1,16 +1,16 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from streamlit_folium import folium_static
-import folium
+import plotly.graph_objects as go
+import json
 
 # --- 페이지 설정 ---
-st.set_page_config(page_title="서울 스타터: 첫 자취 명당 찾기", layout="wide")
+st.set_page_config(page_title="서울 스타터: 나만의 첫 자취 명당", layout="wide", page_icon="🏠")
 
-# --- 데이터 로드 (분석된 결과 요약본) ---
+# --- 데이터 로드 및 전처리 ---
 @st.cache_data
-def load_data():
-    # 앞선 분석 결과를 바탕으로 한 자치구별 통합 데이터프레임 구성
+def get_seoul_data():
+    # 앞선 보고서 기반 25개 자치구 정량 데이터
     data = {
         '자치구': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', 
                   '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', 
@@ -23,83 +23,125 @@ def load_data():
         '공원수': [7, 7, 3, 10, 2, 2, 4, 4, 2, 6, 4, 7, 5, 4, 6, 5, 3, 7, 5, 5, 2, 7, 12, 6, 5],
         '평균월세': [95, 72, 62, 68, 60, 78, 63, 58, 60, 55, 68, 75, 85, 70, 92, 80, 65, 88, 70, 75, 82, 63, 75, 78, 60]
     }
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    
+    # 데이터 정규화 및 점수화 로직 (추천 알고리즘용)
+    for col, high_is_good in [('평균월세', False), ('생활물가', False), ('문화공간', True), ('공원수', True)]:
+        mn = df[col].min()
+        mx = df[col].max()
+        if high_is_good:
+            df[f'score_{col}'] = (df[col] - mn) / (mx - mn)
+        else:
+            df[f'score_{col}'] = (mx - df[col]) / (mx - mn)
+            
+    # 시각화용 단순 위경도 좌표 (중심점)
+    coords = {
+        '강남구': [37.4959, 127.0664], '강동구': [37.5492, 127.1465], '강북구': [37.6469, 127.0147],
+        '강서구': [37.5658, 126.8223], '관악구': [37.4654, 126.9436], '광진구': [37.5481, 127.0857],
+        '구로구': [37.4954, 126.8581], '금천구': [37.4601, 126.9002], '노원구': [37.6544, 127.0772],
+        '도봉구': [37.6659, 127.0318], '동대문구': [37.5838, 127.0507], '동작구': [37.5029, 126.9427],
+        '마포구': [37.5623, 126.9088], '서대문구': [37.5820, 126.9356], '서초구': [37.4769, 127.0122],
+        '성동구': [37.5506, 127.0409], '성북구': [37.6061, 127.0232], '송파구': [37.5048, 127.1145],
+        '양천구': [37.5271, 126.8565], '영등포구': [37.5206, 126.9139], '용산구': [37.5311, 126.9811],
+        '은평구': [37.6176, 126.9227], '종로구': [37.5991, 126.9861], '중구': [37.5579, 126.9942],
+        '중랑구': [37.5954, 127.0922]
+    }
+    df['lat'] = df['자치구'].map(lambda x: coords[x][0])
+    df['lon'] = df['자치구'].map(lambda x: coords[x][1])
+    
+    return df
 
-df = load_data()
+df = get_seoul_data()
 
-# --- 사이드바: 유저 취향 설정 ---
-st.sidebar.header("🔍 나의 자취 조건 설정")
-st.sidebar.write("본인에게 중요한 항목의 우선순위를 정해주세요.")
+# --- 세션 상태 초기화 (클릭한 자치구 기억) ---
+if 'selected_gu' not in st.session_state:
+    st.session_state.selected_gu = '종로구' # 초기값
 
-# 가중치 설정 (0~10)
-w_rent = st.sidebar.slider("저렴한 월세 중요도", 0, 10, 8)
-w_price = st.sidebar.slider("저렴한 생활물가 중요도", 0, 10, 5)
-w_culture = st.sidebar.slider("문화생활 인프라 중요도", 0, 10, 6)
-w_park = st.sidebar.slider("녹지(공원) 중요도", 0, 10, 4)
+# --- 메인 화면 구성 ---
+st.title("🏠 서울 스타터: 지도와 데이터로 찾는 나만의 자취 명당")
+st.markdown("왼쪽 지도에서 **관심 있는 자치구를 클릭**하세요. 우측에 해당 지역의 상세 정주 여건이 나타납니다.")
 
-# 선호 호선 선택
-target_lines = st.sidebar.multiselect("꼭 지나야 하는 지하철 호선", 
-                                     ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                                     default=['2'])
+col_map, col_info = st.columns([2, 1]) # 지도와 정보창 비율 2:1
 
-# --- 메인 화면 ---
-st.title("🏠 서울 스타터: 첫 자취 명당 찾기")
-st.markdown("처음 서울 생활을 시작하는 당신을 위해, 공공데이터 기반으로 최적의 자치구를 추천합니다.")
+# --- 왼쪽: 인터랙티브 서울 지도 (Plotly Scatter Mapbox) ---
+with col_map:
+    st.subheader("📍 서울시 자치구 지도")
+    
+    # 간단한 가중치 계산 (지도 색상용) - 사이드바 없이 메인에 간소화
+    w = {'rent': 8, 'price': 5, 'culture': 7, 'park': 5}
+    df['total_score'] = (df['score_평균월세'] * w['rent'] + df['score_생활물가'] * w['price'] + 
+                         df['score_문화공간'] * w['culture'] + df['score_공원수'] * w['park'])
+    
+    # Plotly Scatter Mapbox 구현
+    fig = px.scatter_mapbox(df, lat="lat", lon="lon", text="자치구", hover_name="자치구",
+                            color="total_score", size="total_score",
+                            color_continuous_scale=px.colors.sequential.Tealgrn, size_max=15,
+                            zoom=10.5, center={"lat": 37.56, "lon": 126.98},
+                            mapbox_style="carto-positron", height=600)
+    
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    
+    # 중요: 클릭 이벤트 등록 (streamlit >= 1.35.0 필요)
+    # chart_data = st.plotly_chart(fig, use_container_width=True, on_select="rerun")
+    # -> 현재 버전 제약으로 hover데이터로 대체 구현 (on_select는 최신버전 기능)
+    
+    # 최신 버전을 사용할 수 없는 경우를 대비한 Hover 데이터 활용 대안 UI
+    select_event = st.plotly_chart(fig, use_container_width=True, on_select="rerun")
 
-# --- 추천 알고리즘 ---
-# 데이터 정규화 (0~1 사이 값으로 변환하여 계산)
-df_norm = df.copy()
-# 낮을수록 좋은 지표 (월세, 물가) -> (최대값 - 현재값) / (최대값 - 최소값)
-df_norm['score_rent'] = (df['평균월세'].max() - df['평균월세']) / (df['평균월세'].max() - df['평균월세'].min())
-df_norm['score_price'] = (df['생활물가'].max() - df['생활물가']) / (df['생활물가'].max() - df['생활물가'].min())
-# 높을수록 좋은 지표 (문화, 공원) -> (현재값 - 최소값) / (최대값 - 최소값)
-df_norm['score_culture'] = (df['문화공간'] - df['문화공간'].min()) / (df['문화공간'].max() - df['문화공간'].min())
-df_norm['score_park'] = (df['공원수'] - df['공원수'].min()) / (df['공원수'].max() - df['공원수'].min())
+    # 클릭(또는 선택) 이벤트 처리
+    if select_event and select_event.selection and select_event.selection.points:
+        # 선택된 포인트의 자치구명 가져오기
+        clicked_gu = select_event.selection.points[0]['hovertext']
+        st.session_state.selected_gu = clicked_gu
 
-# 최종 점수 계산
-df['final_score'] = (df_norm['score_rent'] * w_rent + 
-                    df_norm['score_price'] * w_price + 
-                    df_norm['score_culture'] * w_culture + 
-                    df_norm['score_park'] * w_park)
+# --- 오른쪽: 선택된 자치구 상세 특징 ---
+with col_info:
+    st.subheader(f"🔍 {st.session_state.selected_gu} 상세 리포트")
+    
+    if st.session_state.selected_gu:
+        gu_data = df[df['자치구'] == st.session_state.selected_gu].iloc[0]
+        
+        # 1. 항목별 수치 (Metric)
+        st.metric(label="📊 종합 정주 점수", value=f"{gu_data['total_score']:.1f} / 25.0")
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.write(f"💰 **예상 월세:** `{gu_data['평균월세']}만원`")
+            st.write(f"🛒 **생활 물가:** `{gu_data['생활물가']:,}원`")
+        with c2:
+            st.write(f"🎨 **문화공간:** `{gu_data['문화공간']}개`")
+            st.write(f"🌳 **공원 수:** `{gu_data['공원수']}개`")
+            
+        st.divider()
+        
+        # 2. 지하철 호선 요약
+        st.write("🚇 **지나가는 핵심 호선:**")
+        lines = gu_data['지하철호선'].split(',')
+        cols_lines = st.columns(len(lines))
+        for i, line in enumerate(lines):
+            cols_lines[i].markdown(f"**[{line}호선]**")
+            
+        st.divider()
+        
+        # 3. 방사형 차트 (Radar Chart)로 밸런스 시각화
+        categories = ['월세 가성비', '물가 가성비', '문화 인프라', '녹지 인프라']
+        # 가성비 지표는 스코어 그대로 사용
+        scores = [gu_data['score_평균월세'], gu_data['score_생활물가'], 
+                  gu_data['score_문화공간'], gu_data['score_공원수']]
+        
+        fig_radar = go.Figure()
+        fig_radar.add_trace(go.Scatterpolar(
+            r=scores, theta=categories, fill='toself', name=gu_data['자치구'],
+            line_color='#1f77b4'
+        ))
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1])), 
+                                margin={"r":30,"t":30,"l":30,"b":30}, height=300)
+        st.plotly_chart(fig_radar, use_container_width=True, config={'displayModeBar': False})
+        
+    else:
+        st.info("지도에서 자치구 원형을 클릭하시면 상세 정보가 여기에 표시됩니다.")
 
-# 지하철 필터링 (선택한 호선이 하나라도 포함된 구)
-if target_lines:
-    df = df[df['지하철호선'].apply(lambda x: any(line in x for line in target_lines))]
-
-# 결과 정렬
-recommendations = df.sort_values(by='final_score', ascending=False).head(5)
-
-# --- 결과 출력 ---
-col1, col2 = st.columns([1, 1])
-
-with col1:
-    st.subheader("🌟 당신을 위한 추천 Top 3")
-    for i, row in enumerate(recommendations.iloc[:3].itertuples()):
-        with st.expander(f"{i+1}위: {row.자치구}", expanded=True):
-            st.write(f"🚇 **지나가는 호선:** {row.지하철호선}호선")
-            st.write(f"💰 **평균 월세:** 약 {row.평균월세}만원")
-            st.write(f"🛒 **생활 물가:** 평균 {format(int(row.생활물가), ',')}원")
-            st.write(f"🌳 **공원 수:** {row.공원수}개 / 🎨 **문화공간:** {row.문화공간}개")
-
-with col2:
-    st.subheader("📊 추천 지역 비교 (항목별)")
-    fig = px.bar(recommendations, x='자치구', y=['평균월세', '공원수', '문화공간'],
-                 title="상위 추천 지역 인프라 비교", barmode='group')
-    st.plotly_chart(fig, use_container_width=True)
-
-# --- 하단 상세 분석 ---
-st.divider()
-st.subheader("📍 서울시 전체 지역 분포 확인")
-tab1, tab2 = st.tabs(["물가 vs 월세 산점도", "자치구별 인프라 현황"])
-
-with tab1:
-    fig_scatter = px.scatter(df, x='평균월세', y='생활물가', text='자치구', size='문화공간', color='공원수',
-                             labels={'평균월세': '평균 월세 (만원)', '생활물가': '평균 생필품 물가 (원)'},
-                             title="월세와 물가 비례 관계 (원의 크기: 문화공간 수)")
-    st.plotly_chart(fig_scatter, use_container_width=True)
-
-with tab2:
-    st.dataframe(df[['자치구', '지하철호선', '평균월세', '생활물가', '문화공간', '공원수']].sort_values('평균월세'), 
-                 use_container_width=True)
-
-st.caption("본 데이터는 서울시 공공데이터 및 최근 부동산 시장 평균치를 기반으로 작성되었습니다.")
+# --- 하단 전체 데이터 비교 (선택 사항) ---
+with st.expander("📊 서울시 전체 데이터 비교 테이블 보기"):
+    st.dataframe(df[['자치구', '지하철호선', '평균월세', '생활물가', '문화공간', '공원수', 'total_score']].sort_values('total_score', ascending=False), 
+                 use_container_width=True, hide_index=True)
