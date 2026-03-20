@@ -70,39 +70,31 @@ h1 {
 .price-badge.low  { background:#e8f8f0; color:#1e8449; border:1px solid #27ae6040; }
 
 /* ── 메트릭 그리드 ── */
-.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 11px; }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 .metric-card {
-    border-radius: 12px; padding: 13px 15px;
-    border-left: 4px solid var(--col-main);
-    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
+    border-radius: 14px; padding: 14px 14px 12px;
+    border: 1.5px solid rgba(194,187,240,0.5);
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(53,144,243,0.07);
+    transition: box-shadow 0.2s;
 }
-.metric-card.green  {
-    background: linear-gradient(135deg, #dff0fb, #c2e8f7);
-    border-left-color: var(--col-bright);
-}
-.metric-card.orange {
-    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
-    border-left-color: var(--col-lavender);
-}
-.metric-card.purple {
-    background: linear-gradient(135deg, #e8eeff, #d4e4fb);
-    border-left-color: var(--col-sky);
-}
+.metric-card.green  { border-color: rgba(98,191,237,0.45); }
+.metric-card.orange { border-color: rgba(194,187,240,0.55); }
+.metric-card.purple { border-color: rgba(143,184,237,0.45); }
 
-.metric-card .mlabel { font-size:0.70rem; color:var(--col-subtext); font-weight:700; margin-bottom:3px; text-align:center; }
-.metric-card .mvalue { font-size:1.30rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
-.metric-card .msub   { font-size:0.66rem; color:var(--col-subtext); margin-top:3px; line-height:1.45; text-align:center; }
+.metric-card .mlabel { font-size:0.69rem; color:var(--col-subtext); font-weight:700; margin-bottom:5px; text-align:center; letter-spacing:0.3px; }
+.metric-card .mvalue { font-size:1.35rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
+.metric-card .msub   { font-size:0.64rem; color:#8888aa; margin-top:4px; line-height:1.5; text-align:center; }
 /* ── 비교 배지 ── */
 .mcomp {
-    display: block; margin-top: 6px; margin-left: auto; margin-right: auto;
-    padding: 3px 9px; border-radius: 20px;
-    font-size: 0.67rem; font-weight: 700; line-height: 1.4;
+    display: block; margin-top: 7px; margin-left: auto; margin-right: auto;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 0.66rem; font-weight: 700; line-height: 1.4;
     text-align: center; width: fit-content;
 }
-
-.mcomp.better  { background:#dff0fb; color:#1a6a9a; }
-.mcomp.worse   { background:#fde8e8; color:#c0392b; }
-.mcomp.neutral { background:#ede8f8; color:var(--col-subtext); }
+.mcomp.better  { background:#e6f4ff; color:#1a6a9a; }
+.mcomp.worse   { background:#fff0f0; color:#c0392b; }
+.mcomp.neutral { background:#f3f0fb; color:var(--col-subtext); }
 
 /* ── 점수 바 ── */
 .score-bar-wrap {
@@ -798,9 +790,10 @@ with col_info:
 
     # ── 헤더 카드 (자치구명 가운데 정렬) ──────────────────────────────────────
     rl = RANK_LABEL.get(gu, "")
+    rank_col = "#ff3c3c" if rank_pos == 1 else "#ffa500" if rank_pos == 2 else "#ffdc00" if rank_pos == 3 else "rgba(255,255,255,0.6)"
     st.markdown(f"""
     <div class="gu-header">
-        <div class="rank-badge-text">{rl}</div>
+        {f'<div style="display:inline-block;background:{rank_col};color:#333;border-radius:20px;padding:3px 14px;font-size:0.75rem;font-weight:800;margin-bottom:8px;">{rl}</div>' if rl else ''}
         <h2>{gu}</h2>
         <div class="gu-tagline">「 {row['한줄평']} 」</div>
     </div>
@@ -922,15 +915,19 @@ with col_info:
     st.markdown(score_price_html, unsafe_allow_html=True)
     
     # ── 주변 역 태그 ────────────────────────────────────────────────────────────
-    st.markdown("**🚉 주변 주요역**")
     tags_html = "".join(
         f'<span class="station-tag">{s.strip()}</span>'
         for s in row['지하철역_예시'].split(',')
     )
-    st.markdown(f'<div class="station-tags">{tags_html}</div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
+    st.markdown(f"""
+    <div style="background:#ffffff;border-radius:14px;padding:13px 15px;
+                border:1.5px solid rgba(194,187,240,0.5);
+                box-shadow:0 2px 8px rgba(53,144,243,0.07);margin-bottom:8px;">
+        <div style="font-size:0.69rem;color:var(--col-subtext);font-weight:700;
+                    margin-bottom:8px;letter-spacing:0.3px;">🚉 주변 주요역</div>
+        <div class="station-tags">{tags_html}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════
 # 하단: TOP 5 추천 카드
