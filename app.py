@@ -646,6 +646,9 @@ with col_map:
         if clicked_gu and clicked_gu in top3_gu and clicked_gu != st.session_state.selected_gu:
             st.session_state.selected_gu = clicked_gu
             st.rerun()
+        elif clicked_gu and clicked_gu in top3_gu:
+            # 이미 선택된 구를 다시 클릭한 경우 — 변경 없음
+            pass
 
     # 범례
     st.markdown("""
@@ -787,31 +790,6 @@ with col_info:
     st.markdown("<br>", unsafe_allow_html=True)
 
 
-    # ── 추천 TOP3 자치구 선택 버튼 ─────────────────────────────────────────────
-    st.markdown("**📍 추천 자치구 선택**")
-    btn_cols = st.columns(3)
-    rank_emojis = ["🥇", "🥈", "🥉"]
-    btn_colors  = ["#E8002D", "#FF6B00", "#FFB800"]
-    for idx, rgu in enumerate(top3_gu):
-        with btn_cols[idx]:
-            is_active = (gu == rgu)
-            border_w  = "3px" if is_active else "2px"
-            fw        = "900" if is_active else "600"
-            label     = f"{rank_emojis[idx]} {rgu}"
-            # 선택 상태를 시각적으로 표시하는 카드
-            st.markdown(
-                f'<div style="border:{border_w} solid {btn_colors[idx]};'
-                f'border-radius:10px;padding:8px 4px;'
-                f'text-align:center;font-size:0.82rem;font-weight:{fw};">'
-                f'{label}</div>',
-                unsafe_allow_html=True
-            )
-            # 버튼은 label만 사용 (label_visibility 제거)
-            if st.button(label, key=f"top3_btn_{idx}", use_container_width=True):
-                st.session_state.selected_gu = rgu
-                st.rerun()
-
-
 # ══════════════════════════════════════════════════════════════════════════
 # 하단: TOP 5 추천 카드
 # ══════════════════════════════════════════════════════════════════════════
@@ -857,10 +835,6 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-        if st.button("자세히 보기", key=f"btn_top_{i}", use_container_width=True):
-            st.session_state.selected_gu = r['자치구']
-            st.rerun()
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.caption(
