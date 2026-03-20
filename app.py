@@ -913,12 +913,6 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-        if st.button("✓ 선택됨" if is_sel else "상세보기", key=f"top5_btn_{i}", use_container_width=True):
-            st.session_state.selected_gu = r['자치구']
-            st.rerun()
-
-
 # ══════════════════════════════════════════════════════════════════════════
 # 데이터 출처
 # ══════════════════════════════════════════════════════════════════════════
