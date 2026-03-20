@@ -1,9 +1,4 @@
 streamlit
 pandas
-numpy
 plotly
-folium
-streamlit-folium
-openpyxl
 requests
-scikit-learn
