@@ -13,172 +13,124 @@ st.set_page_config(page_title="서울 스타터: 서울시 자취 가이드", la
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap');
 
+/* ── 팔레트 변수 ──
+   #f1e3f3  연보라핑크   (가장 연한 베이스)
+   #c2bbf0  라벤더       (서브 강조)
+   #8fb8ed  스카이블루   (일반 강조)
+   #62bfed  밝은 블루    (액센트)
+   #3590f3  진한 블루    (메인/버튼)
+── */
 :root {
-    --bg-page:    #f0f6ff;
-    --col-lightest:#e8f1fd;
-    --col-lavender:#b8d0f0;
-    --col-sky:    #7eb5e8;
-    --col-bright: #4a9de0;
-    --col-main:   #2979c8;
-    --col-dark:   #1a5499;
-    --col-text:   #162640;
-    --col-subtext:#3d6490;
-    --col-card:   #ffffff;
-    --col-border: rgba(41,121,200,0.15);
-    --shadow-sm:  0 2px 10px rgba(26,84,153,0.08);
-    --shadow-md:  0 4px 20px rgba(26,84,153,0.13);
-    --radius-md:  14px;
-    --radius-lg:  18px;
+    --col-lightest: #f1e3f3;
+    --col-lavender: #c2bbf0;
+    --col-sky:      #8fb8ed;
+    --col-bright:   #62bfed;
+    --col-main:     #3590f3;
+    --col-dark:     #2a6dc4;
+    --col-text:     #2c2c54;
+    --col-subtext:  #5a5a8a;
 }
 
-html, body, [class*="css"] {
-    font-family: 'Noto Sans KR', sans-serif;
-    background-color: var(--bg-page) !important;
+html, body, [class*="css"] { font-family: 'Noto Sans KR', sans-serif; }
+.block-container { padding-top: 1.4rem; padding-bottom: 2rem; }
+h1 {
+    font-family: 'Bebas Neue', 'Noto Sans KR', sans-serif;
+    letter-spacing: 2px; font-size: 2.5rem !important;
+    color: var(--col-dark) !important;
 }
-.block-container {
-    padding-top: 1.6rem; padding-bottom: 2.5rem;
-    background-color: var(--bg-page);
-}
-h1, h2, h3 { color: var(--col-dark) !important; }
-
-/* ── 전체 배경 ── */
-[data-testid="stAppViewContainer"] { background: var(--bg-page) !important; }
-[data-testid="stSidebar"]          { background: #e4eef9 !important; }
-section[data-testid="stSidebar"] > div { background: #e4eef9 !important; }
 
 /* ── 헤더 카드 ── */
 .gu-header {
-    background: linear-gradient(135deg, var(--col-dark) 0%, var(--col-main) 55%, var(--col-bright) 100%);
-    border-radius: var(--radius-lg); padding: 22px 26px 20px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, var(--col-main) 0%, var(--col-sky) 60%, var(--col-lavender) 100%);
+    border-radius: 16px; padding: 20px 24px 18px; color: white;
+    margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.25);
     text-align: center;
 }
 .gu-header h2 {
-    font-size: 1.9rem; font-weight: 900; margin: 0 0 6px 0;
+    font-size: 2rem; font-weight: 900; margin: 0 0 6px 0;
     color: #fff; text-align: center;
 }
 .gu-tagline {
-    font-size: 0.86rem; color: rgba(255,255,255,0.85);
-    line-height: 1.6; font-style: italic; text-align: center;
+    font-size: 0.88rem; color: rgba(255,255,255,0.88); line-height: 1.5;
+    font-style: italic; text-align: center;
 }
 .rank-badge-text {
-    font-size: 0.78rem; color: rgba(255,255,255,0.75);
-    margin-bottom: 7px; text-align: center; font-weight: 700; letter-spacing: 0.5px;
+    font-size: 0.84rem; color: var(--col-lightest);
+    margin-bottom: 6px; text-align: center; font-weight: 600;
 }
 
 /* ── 물가 배지 ── */
 .price-badge {
-    display: inline-block; padding: 5px 16px; border-radius: 20px;
-    font-weight: 700; font-size: 0.81rem; margin-bottom: 10px;
+    display: inline-block; padding: 5px 14px; border-radius: 20px;
+    font-weight: 700; font-size: 0.82rem; margin-bottom: 10px;
 }
-.price-badge.high { background:#fdecea; color:#b03a2e; border:1px solid #e57a7040; }
-.price-badge.low  { background:#eaf4f0; color:#1a6e45; border:1px solid #4caf7040; }
+.price-badge.high { background:#fde8e8; color:#c0392b; border:1px solid #e74c3c40; }
+.price-badge.low  { background:#e8f8f0; color:#1e8449; border:1px solid #27ae6040; }
 
 /* ── 메트릭 그리드 ── */
 .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 .metric-card {
-    border-radius: var(--radius-md); padding: 15px 14px 13px;
-    border: 1.5px solid var(--col-border);
-    background: var(--col-card);
-    box-shadow: var(--shadow-sm);
+    border-radius: 14px; padding: 14px 14px 12px;
+    border: 1.5px solid rgba(194,187,240,0.5);
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(53,144,243,0.07);
+    transition: box-shadow 0.2s;
 }
-.metric-card.green  { border-color: rgba(74,157,224,0.30); background: #f5faff; }
-.metric-card.orange { border-color: rgba(41,121,200,0.20); background: #f7f9fd; }
-.metric-card.purple { border-color: rgba(126,181,232,0.35); background: #f2f7fc; }
+.metric-card.green  { border-color: rgba(98,191,237,0.45); }
+.metric-card.orange { border-color: rgba(194,187,240,0.55); }
+.metric-card.purple { border-color: rgba(143,184,237,0.45); }
 
-.metric-card .mlabel {
-    font-size:0.68rem; color:var(--col-subtext); font-weight:700;
-    margin-bottom:5px; text-align:center; letter-spacing:0.4px;
-}
-.metric-card .mvalue {
-    font-size:1.32rem; font-weight:900; color:var(--col-text);
-    line-height:1.2; text-align:center;
-}
-.metric-card .msub {
-    font-size:0.63rem; color:#6a8ab0; margin-top:5px;
-    line-height:1.55; text-align:center;
-}
-
+.metric-card .mlabel { font-size:0.69rem; color:var(--col-subtext); font-weight:700; margin-bottom:5px; text-align:center; letter-spacing:0.3px; }
+.metric-card .mvalue { font-size:1.35rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
+.metric-card .msub   { font-size:0.64rem; color:#8888aa; margin-top:4px; line-height:1.5; text-align:center; }
 /* ── 비교 배지 ── */
 .mcomp {
     display: block; margin-top: 7px; margin-left: auto; margin-right: auto;
-    padding: 3px 11px; border-radius: 20px;
-    font-size: 0.65rem; font-weight: 700; line-height: 1.4;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 0.66rem; font-weight: 700; line-height: 1.4;
     text-align: center; width: fit-content;
 }
-.mcomp.better  { background:#e6f3ff; color:#1a5499; }
-.mcomp.worse   { background:#fdf0ee; color:#b03a2e; }
-.mcomp.neutral { background:#eef4fb; color:var(--col-subtext); }
+.mcomp.better  { background:#e6f4ff; color:#1a6a9a; }
+.mcomp.worse   { background:#fff0f0; color:#c0392b; }
+.mcomp.neutral { background:#f3f0fb; color:var(--col-subtext); }
+
+/* ── 점수 바 ── */
+.score-bar-wrap {
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
+    border-radius:12px; padding:13px 15px; margin-bottom:11px;
+    border: 1px solid var(--col-lavender);
+}
+.score-bar-label { font-size:0.76rem; color:var(--col-subtext); font-weight:700; margin-bottom:6px; }
+.score-bar-bg { background: rgba(194,187,240,0.35); border-radius:6px; height:11px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:6px; transition: width 0.4s ease; }
+.score-bar-val {
+    text-align:right; font-size:0.80rem;
+    color:var(--col-dark); font-weight:900; margin-top:4px;
+}
 
 /* ── 역 태그 ── */
-.station-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.station-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
 .station-tag {
-    background: var(--col-lightest);
-    color: var(--col-dark);
-    padding:4px 12px; border-radius:20px;
-    font-size:0.68rem; font-weight:600;
-    border:1px solid var(--col-lavender);
+    background: var(--col-main);
+    color: #fff;
+    padding:3px 10px; border-radius:20px;
+    font-size:0.69rem; font-weight:500;
+    border:1px solid rgba(255,255,255,0.3);
 }
 
 /* ── 힌트 박스 ── */
 .priority-hint {
-    background: linear-gradient(90deg, #e8f1fd, #f0f6ff);
-    border-radius:10px; padding:8px 14px;
-    font-size:0.77rem; color:var(--col-subtext); margin-top:5px;
-    border-left:3px solid var(--col-sky);
+    background: linear-gradient(90deg, #ede8f8, var(--col-lightest));
+    border-radius:10px; padding:7px 13px;
+    font-size:0.78rem; color:var(--col-subtext); margin-top:5px;
+    border-left:3px solid var(--col-lavender);
 }
 .map-hint {
-    background: linear-gradient(90deg, #e4eef9, #edf4fd);
-    border-radius:8px; padding:7px 13px; font-size:0.75rem;
-    color:var(--col-dark); border-left:3px solid var(--col-bright); margin-bottom:8px;
-}
-
-/* ── 점수 바 ── */
-.score-bar-wrap {
-    background: linear-gradient(135deg, var(--col-lightest), #ddeeff);
-    border-radius:var(--radius-md); padding:13px 15px; margin-bottom:11px;
-    border: 1px solid var(--col-lavender);
-}
-.score-bar-label { font-size:0.76rem; color:var(--col-subtext); font-weight:700; margin-bottom:6px; }
-.score-bar-bg { background: rgba(126,181,232,0.25); border-radius:6px; height:11px; overflow:hidden; }
-.score-bar-fill { height:100%; border-radius:6px; }
-.score-bar-val { text-align:right; font-size:0.80rem; color:var(--col-dark); font-weight:900; margin-top:4px; }
-
-/* ── 버튼 ── */
-.stButton > button {
-    border-radius: 10px !important;
-    border: 1.5px solid var(--col-lavender) !important;
-    background: var(--col-card) !important;
-    color: var(--col-text) !important;
-    font-weight: 600 !important;
-    font-size: 0.78rem !important;
-    box-shadow: var(--shadow-sm) !important;
-    transition: all 0.2s ease !important;
-}
-.stButton > button:hover {
-    border-color: var(--col-main) !important;
-    color: var(--col-main) !important;
-    box-shadow: var(--shadow-md) !important;
-    background: var(--col-lightest) !important;
-}
-
-/* ── Expander ── */
-div[data-testid="stExpander"] {
-    border: 1.5px solid var(--col-border) !important;
-    border-radius: var(--radius-md) !important;
-    background: var(--col-card) !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-
-/* ── Container border ── */
-div[data-testid="stVerticalBlockBorderWrapper"] > div {
-    border-radius: var(--radius-md) !important;
-    border-color: var(--col-border) !important;
-    background: var(--col-card) !important;
-    box-shadow: var(--shadow-sm) !important;
+    background: linear-gradient(90deg, #e8eeff, #dff0fb);
+    border-radius:8px; padding:6px 12px; font-size:0.76rem;
+    color:var(--col-dark); border-left:3px solid var(--col-bright); margin-bottom:6px;
 }
 
 /* ── 버튼 래퍼 ── */
