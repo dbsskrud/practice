@@ -16,130 +16,125 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Inter:wght@400;600;700&display=swap');
 
 :root {
-    --bg:         #f4f7fc;
-    --surface:    #ffffff;
-    --border:     rgba(42,109,196,0.12);
-    --col-main:   #2979c8;
-    --col-dark:   #1a5499;
-    --col-light:  #e8f1fd;
-    --col-mid:    #7eb5e8;
-    --col-text:   #0f2744;
-    --col-sub:    #4a6d96;
-    --col-muted:  #8aadcc;
-    --shadow-s:   0 1px 6px rgba(26,84,153,0.07);
-    --shadow-m:   0 4px 16px rgba(26,84,153,0.11);
-    --r-sm: 10px; --r-md: 14px; --r-lg: 18px;
+    --bg:        #f0f5fb;
+    --surface:   #ffffff;
+    --border:    rgba(42,109,196,0.11);
+    --col-main:  #2979c8;
+    --col-dark:  #1a5499;
+    --col-light: #e8f1fd;
+    --col-mid:   #7eb5e8;
+    --col-text:  #0d2137;
+    --col-sub:   #4a6d96;
+    --col-muted: #8aadcc;
+    --sh-s: 0 2px 8px rgba(26,84,153,0.07);
+    --sh-m: 0 6px 22px rgba(26,84,153,0.12);
+    --sh-l: 0 12px 40px rgba(26,84,153,0.16);
+    --r-sm:10px; --r-md:14px; --r-lg:20px;
 }
 
 html, body, [class*="css"] {
-    font-family: 'Noto Sans KR', 'Inter', sans-serif;
-    background: var(--bg) !important;
-    color: var(--col-text);
+    font-family:'Noto Sans KR','Inter',sans-serif;
+    background:#ffffff !important; color:var(--col-text);
 }
-[data-testid="stAppViewContainer"] { background: var(--bg) !important; }
-[data-testid="stSidebar"] > div    { background: #e4eef9 !important; }
-.block-container { padding-top:1.8rem; padding-bottom:3rem; max-width:1200px; }
+[data-testid="stAppViewContainer"] { background:#ffffff !important; }
+[data-testid="stSidebar"] > div    { background:#f0f5fb !important; }
+.block-container { padding-top:2rem; padding-bottom:4rem; max-width:1240px; }
+hr { border:none; border-top:1.5px solid var(--border); margin:24px 0; }
 
-/* ── 섹션 구분선 대신 여백 ── */
-hr { border: none; border-top: 1.5px solid var(--border); margin: 20px 0; }
+/* ── 섹션 레이블 ── */
+.section-label {
+    font-size:0.68rem; font-weight:800; color:var(--col-muted);
+    letter-spacing:1.4px; text-transform:uppercase; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+}
+.section-label::after {
+    content:''; flex:1; height:1px;
+    background:linear-gradient(90deg,var(--border),transparent);
+}
 
 /* ── 우측 자치구 헤더 ── */
 .gu-header {
-    background: linear-gradient(135deg, var(--col-dark) 0%, var(--col-main) 60%, var(--col-mid) 100%);
-    border-radius: var(--r-lg); padding: 22px 24px 18px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow-m);
-    text-align: center;
+    background:linear-gradient(135deg,var(--col-dark) 0%,var(--col-main) 60%,var(--col-mid) 100%);
+    border-radius:var(--r-lg); padding:24px 22px 20px;
+    margin-bottom:14px; box-shadow:var(--sh-m); text-align:center;
 }
-.gu-header h2 { font-size:1.8rem; font-weight:900; margin:0 0 5px; color:#fff; }
-.gu-tagline   { font-size:0.84rem; color:rgba(255,255,255,0.82); font-style:italic; line-height:1.55; }
-.rank-badge-text { font-size:0.75rem; color:rgba(255,255,255,0.70); margin-bottom:6px; font-weight:700; letter-spacing:0.5px; }
+.gu-header h2 { font-size:1.75rem; font-weight:900; margin:0 0 5px; color:#fff; letter-spacing:-0.5px; }
+.gu-tagline   { font-size:0.83rem; color:rgba(255,255,255,0.80); font-style:italic; line-height:1.6; }
+.rank-badge-text { font-size:0.72rem; color:rgba(255,255,255,0.65); margin-bottom:6px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; }
 
-/* ── 메트릭 그리드 ── */
-.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+/* ── 메트릭 그리드: 가로 4열 ── */
+.metric-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
 .metric-card {
-    border-radius: var(--r-md); padding:14px 13px 12px;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    box-shadow: var(--shadow-s);
+    border-radius:var(--r-sm); padding:12px 10px 10px;
+    background:var(--surface); border:1.5px solid var(--border);
+    box-shadow:var(--sh-s); border-top:3px solid var(--col-main);
 }
-.metric-card.green  { border-left: 3px solid #4a9de0; }
-.metric-card.orange { border-left: 3px solid #7eb5e8; }
-.metric-card.purple { border-left: 3px solid #a8c8e8; }
-.metric-card        { border-left: 3px solid var(--col-main); }
-
-.metric-card .mlabel { font-size:0.67rem; color:var(--col-sub); font-weight:700; margin-bottom:4px; text-align:center; letter-spacing:0.3px; text-transform:uppercase; }
-.metric-card .mvalue { font-size:1.28rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
-.metric-card .msub   { font-size:0.62rem; color:var(--col-muted); margin-top:4px; line-height:1.5; text-align:center; }
+.metric-card.green  { border-top-color:#4a9de0; }
+.metric-card.orange { border-top-color:#7eb5e8; }
+.metric-card.purple { border-top-color:#a8c8e8; }
+.metric-card .mlabel { font-size:0.62rem; color:var(--col-sub); font-weight:700; margin-bottom:4px; text-align:center; letter-spacing:0.3px; text-transform:uppercase; }
+.metric-card .mvalue { font-size:1.15rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
+.metric-card .msub   { font-size:0.58rem; color:var(--col-muted); margin-top:3px; line-height:1.5; text-align:center; }
 
 /* ── 비교 배지 ── */
 .mcomp {
-    display:block; margin:7px auto 0; padding:3px 10px; border-radius:20px;
-    font-size:0.64rem; font-weight:700; text-align:center; width:fit-content;
+    display:block; margin:6px auto 0; padding:2px 8px; border-radius:20px;
+    font-size:0.60rem; font-weight:700; text-align:center; width:fit-content;
 }
 .mcomp.better  { background:#e6f3ff; color:#1a5499; }
 .mcomp.worse   { background:#fff0f0; color:#c0392b; }
 .mcomp.neutral { background:#eef4fb; color:var(--col-sub); }
 
 /* ── 역 태그 ── */
-.station-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.station-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
 .station-tag  {
-    background: var(--col-light); color: var(--col-dark);
-    padding:4px 12px; border-radius:20px;
-    font-size:0.67rem; font-weight:600; border:1px solid var(--border);
+    background:var(--col-light); color:var(--col-dark);
+    padding:3px 10px; border-radius:20px;
+    font-size:0.65rem; font-weight:600; border:1px solid var(--border);
 }
 
 /* ── 힌트 박스 ── */
 .priority-hint {
-    background: var(--col-light); border-left:3px solid var(--col-main);
-    border-radius:var(--r-sm); padding:8px 14px;
-    font-size:0.76rem; color:var(--col-sub); margin-top:5px;
+    background:var(--col-light); border-left:3px solid var(--col-main);
+    border-radius:var(--r-sm); padding:7px 13px;
+    font-size:0.74rem; color:var(--col-sub); margin-top:5px;
 }
 .map-hint {
-    background: var(--col-light); border-left:3px solid var(--col-mid);
-    border-radius:var(--r-sm); padding:7px 13px;
-    font-size:0.74rem; color:var(--col-dark); margin-bottom:8px;
+    background:var(--col-light); border-left:3px solid var(--col-mid);
+    border-radius:var(--r-sm); padding:6px 13px;
+    font-size:0.73rem; color:var(--col-dark); margin-bottom:8px;
 }
 
 /* ── 점수 바 ── */
-.score-bar-wrap  { background:var(--col-light); border-radius:var(--r-md); padding:13px 15px; margin-bottom:11px; border:1px solid var(--border); }
-.score-bar-label { font-size:0.74rem; color:var(--col-sub); font-weight:700; margin-bottom:6px; }
-.score-bar-bg    { background:rgba(126,181,232,0.25); border-radius:6px; height:10px; overflow:hidden; }
+.score-bar-wrap  { background:var(--col-light); border-radius:var(--r-md); padding:13px 15px; margin-bottom:10px; border:1px solid var(--border); }
+.score-bar-label { font-size:0.72rem; color:var(--col-sub); font-weight:700; margin-bottom:5px; }
+.score-bar-bg    { background:rgba(126,181,232,0.22); border-radius:6px; height:9px; overflow:hidden; }
 .score-bar-fill  { height:100%; border-radius:6px; }
-.score-bar-val   { text-align:right; font-size:0.78rem; color:var(--col-dark); font-weight:900; margin-top:4px; }
+.score-bar-val   { text-align:right; font-size:0.76rem; color:var(--col-dark); font-weight:900; margin-top:4px; }
 
-/* ── Streamlit 버튼 ── */
+/* ── 버튼 ── */
 .stButton > button {
-    border-radius: var(--r-sm) !important;
-    border: 1.5px solid var(--border) !important;
-    background: var(--surface) !important;
-    color: var(--col-text) !important;
-    font-weight: 600 !important; font-size: 0.77rem !important;
-    box-shadow: var(--shadow-s) !important;
-    transition: all 0.18s ease !important;
-    padding: 6px 8px !important;
+    border-radius:var(--r-sm) !important; border:1.5px solid var(--border) !important;
+    background:var(--surface) !important; color:var(--col-text) !important;
+    font-weight:600 !important; font-size:0.76rem !important;
+    box-shadow:var(--sh-s) !important; transition:all 0.18s ease !important;
+    padding:6px 8px !important;
 }
 .stButton > button:hover {
-    border-color: var(--col-main) !important;
-    color: var(--col-main) !important;
-    background: var(--col-light) !important;
-    box-shadow: var(--shadow-m) !important;
+    border-color:var(--col-main) !important; color:var(--col-main) !important;
+    background:var(--col-light) !important; box-shadow:var(--sh-m) !important;
 }
 
 /* ── Expander ── */
 div[data-testid="stExpander"] {
-    border: 1.5px solid var(--border) !important;
-    border-radius: var(--r-md) !important;
-    background: var(--surface) !important;
-    box-shadow: var(--shadow-s) !important;
+    border:1.5px solid var(--border) !important; border-radius:var(--r-md) !important;
+    background:var(--surface) !important; box-shadow:var(--sh-s) !important;
 }
 
 /* ── Container ── */
 div[data-testid="stVerticalBlockBorderWrapper"] > div {
-    border-radius: var(--r-md) !important;
-    border-color: var(--border) !important;
-    background: var(--surface) !important;
-    box-shadow: var(--shadow-s) !important;
+    border-radius:var(--r-md) !important; border-color:var(--border) !important;
+    background:var(--surface) !important; box-shadow:var(--sh-s) !important;
 }
 
 .gu-btn-wrap { position:relative; margin-bottom:4px; }
@@ -148,12 +143,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════
-# 서울 자치구 GeoJSON (인라인 내장 — 네트워크 불필요)
-# 각 구의 실제 경계를 polygon으로 근사화한 데이터
+# 서울 자치구 GeoJSON
 # ══════════════════════════════════════════════════════════════════════════
 @st.cache_data
 def build_geojson():
-    """서울 25개 자치구 실제 행정경계 polygon (WGS84, 간략화 버전)"""
     features = [
       {"type":"Feature","id":"강남구","properties":{"name":"강남구"},"geometry":{"type":"Polygon","coordinates":[[[127.0635,37.5172],[127.0531,37.4938],[127.0531,37.4792],[127.0707,37.4679],[127.0865,37.4679],[127.1054,37.4877],[127.1054,37.5023],[127.0865,37.5172],[127.0635,37.5172]]]}},
       {"type":"Feature","id":"강동구","properties":{"name":"강동구"},"geometry":{"type":"Polygon","coordinates":[[[127.1054,37.5023],[127.1054,37.4877],[127.1243,37.4795],[127.1710,37.4959],[127.1710,37.5413],[127.1243,37.5413],[127.1054,37.5310],[127.1054,37.5023]]]}},
@@ -189,15 +182,6 @@ def build_geojson():
 # ══════════════════════════════════════════════════════════════════════════
 @st.cache_data
 def load_data():
-    """
-    데이터 출처:
-      도서관수        — 서울시_공공도서관_현황정보.csv (215개)
-      기타문화공간수  — 서울시_문화공간_정보.csv 도서관 제외 (862개)
-      공원수          — 서울시_주요_공원현황_2026_상반기_.xlsx (130개)
-      평균물가        — 생필품_농수축산물_가격_정보_2024년_.csv (98,053건)
-      지하철역        — 서울교통공사_역주소_및_전화번호.csv (289개)
-      평균월세        — 추정치 (전월세 실거래 데이터 미수신)
-    """
     data = {
         '자치구': [
             '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구',
@@ -207,11 +191,9 @@ def load_data():
         '도서관수':       [17,10, 7, 9, 5, 8,13, 4,10,10,10, 9, 6, 4, 9, 7,14,12,10, 6, 4, 8, 9, 8, 6],
         '기타문화공간수': [80, 7,11,13,13,18,15,11,17,15,18,12,42,29,48,23,38,38,12,17,57,18,229,73, 8],
         '공원수':         [ 7, 7, 3,10, 2, 2, 4, 4, 2, 6, 4, 7, 5, 4, 6, 5, 3, 7, 5, 5, 2, 7,12, 6, 5],
-        '평균물가':       [
-            4979,4124,5138,5124,4791,6413,4645,5259,5022,5038,
-            4208,4515,5330,5761,4685,5775,5120,6027,5401,4031,
-            5010,4312,4995,5421,6218
-        ],
+        '평균물가':       [4979,4124,5138,5124,4791,6413,4645,5259,5022,5038,
+                          4208,4515,5330,5761,4685,5775,5120,6027,5401,4031,
+                          5010,4312,4995,5421,6218],
         '평균월세': [95,72,62,68,60,78,63,58,60,55,68,75,85,70,92,80,65,88,70,75,82,63,75,78,60],
         '지하철역_예시': [
             '삼성(2호선), 선릉(2호선), 역삼(2호선), 강남(2호선)',
@@ -287,18 +269,17 @@ def load_data():
     return df
 
 
-df       = load_data()
-geojson  = build_geojson()
+df      = load_data()
+geojson = build_geojson()
 
-# 서울 전체 평균 (비교 기준)
-AVG_RENT    = df['평균월세'].mean()         # ≈ 71.8만원
-AVG_PARK    = df['공원수'].mean()            # ≈ 5.2개
-AVG_LIB     = df['도서관수'].mean()          # ≈ 8.6개
-AVG_CULTURE = df['기타문화공간수'].mean()    # ≈ 34.5개
+AVG_RENT    = df['평균월세'].mean()
+AVG_PARK    = df['공원수'].mean()
+AVG_LIB     = df['도서관수'].mean()
+AVG_CULTURE = df['기타문화공간수'].mean()
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 호선 / 역 데이터 (서울교통공사 실측)
+# 호선 / 역 데이터
 # ══════════════════════════════════════════════════════════════════════════
 LINE_STATIONS = {
     "1호선": ['서울','시청','종각','종로3가','종로5가','동대문','신설동','제기동','청량리','동묘앞'],
@@ -338,10 +319,8 @@ LINE_STATIONS = {
 }
 
 STATION_TO_GU = {
-    # 1호선
     '서울':'중구','시청':'중구','종각':'종로구','종로3가':'종로구','종로5가':'종로구',
     '동대문':'종로구','신설동':'동대문구','제기동':'동대문구','청량리':'동대문구','동묘앞':'종로구',
-    # 2호선
     '을지로입구':'중구','을지로3가':'중구','을지로4가':'중구','동대문역사문화공원':'중구',
     '신당':'중구','상왕십리':'성동구','왕십리':'성동구','한양대':'성동구','뚝섬':'성동구',
     '성수':'성동구','건대입구':'광진구','구의':'광진구','강변':'광진구',
@@ -353,7 +332,6 @@ STATION_TO_GU = {
     '합정':'마포구','홍대입구':'마포구','신촌':'마포구','이대':'마포구','아현':'마포구',
     '충정로':'서대문구','용답':'성동구','신답':'성동구','도림천':'구로구',
     '양천구청':'양천구','신정네거리':'양천구','용두':'동대문구',
-    # 3호선
     '구파발':'은평구','연신내':'은평구','불광':'은평구','녹번':'은평구','홍제':'서대문구',
     '무악재':'서대문구','독립문':'서대문구','경복궁':'종로구','안국':'종로구',
     '충무로':'중구','동대입구':'중구','약수':'중구','금호':'성동구','옥수':'성동구',
@@ -361,13 +339,11 @@ STATION_TO_GU = {
     '남부터미널':'서초구','양재':'서초구','매봉':'강남구','도곡':'강남구','대치':'강남구',
     '학여울':'강남구','대청':'강남구','일원':'강남구','수서':'강남구',
     '가락시장':'송파구','경찰병원':'송파구','오금':'송파구',
-    # 4호선
     '불암산':'노원구','상계':'노원구','노원':'노원구','창동':'도봉구','쌍문':'도봉구',
     '수유':'강북구','미아':'강북구','미아사거리':'강북구','길음':'성북구',
     '성신여대입구':'성북구','한성대입구':'성북구','혜화':'종로구',
     '명동':'중구','회현':'중구','숙대입구':'용산구','삼각지':'용산구',
     '신용산':'용산구','이촌':'용산구','동작':'동작구','총신대입구':'동작구','남태령':'동작구',
-    # 5호선
     '방화':'강서구','개화산':'강서구','김포공항':'강서구','송정':'강서구','마곡':'강서구',
     '발산':'강서구','우장산':'강서구','화곡':'강서구','까치산':'강서구','신정':'양천구',
     '목동':'양천구','오목교':'양천구','양평':'영등포구','영등포시장':'영등포구',
@@ -378,7 +354,6 @@ STATION_TO_GU = {
     '길동':'강동구','굽은다리':'강동구','명일':'강동구','고덕':'강동구','상일동':'강동구',
     '둔촌동':'강동구','올림픽공원':'강동구','방이':'강동구','개롱':'강동구',
     '거여':'강동구','마천':'강동구','강일':'강동구',
-    # 6호선
     '응암':'은평구','역촌':'은평구','독바위':'은평구','구산':'은평구','새절':'은평구',
     '증산':'은평구','디지털미디어시티':'마포구','월드컵경기장':'마포구','마포구청':'마포구',
     '망원':'마포구','상수':'마포구','광흥창':'마포구','대흥':'마포구',
@@ -386,7 +361,6 @@ STATION_TO_GU = {
     '버티고개':'용산구','창신':'종로구','보문':'성북구','안암':'성북구','고려대':'성북구',
     '월곡':'성북구','상월곡':'성북구','돌곶이':'성북구','석계':'노원구',
     '태릉입구':'노원구','화랑대':'노원구','봉화산':'중랑구','신내':'중랑구',
-    # 7호선
     '도봉산':'도봉구','수락산':'노원구','마들':'노원구','중계':'노원구','하계':'노원구',
     '공릉':'노원구','먹골':'중랑구','중화':'중랑구','상봉':'중랑구','면목':'중랑구',
     '사가정':'중랑구','용마산':'중랑구','중곡':'광진구','어린이대공원':'광진구',
@@ -395,10 +369,8 @@ STATION_TO_GU = {
     '숭실대입구':'동작구','상도':'동작구','장승배기':'동작구','신대방삼거리':'동작구',
     '보라매':'동작구','신풍':'영등포구','남구로':'구로구','가산디지털단지':'금천구',
     '천왕':'구로구','온수':'구로구',
-    # 8호선
     '암사':'강동구','암사역사공원역':'강동구','강동구청':'강동구','몽촌토성':'송파구',
     '석촌':'송파구','송파':'송파구','문정':'송파구','장지':'송파구','복정':'송파구',
-    # 9호선
     '언주':'강남구','선정릉':'강남구','삼성중앙':'강남구','봉은사':'강남구',
     '삼전':'송파구','석촌고분':'송파구','송파나루':'송파구','한성백제':'송파구',
     '둔촌오륜':'강동구','중앙보훈병원':'강동구',
@@ -411,76 +383,84 @@ PRIORITY_ITEMS = {
     "🌳 녹지/공원":  "norm_공원수",
 }
 
-# ── 세션 상태 초기화 ──────────────────────────────────────────────────────
 if 'selected_gu' not in st.session_state:
-    st.session_state.selected_gu = None   # 점수 계산 후 top1으로 덮어씀
+    st.session_state.selected_gu = None
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 헤더
+# ① 타이틀 배너 — 좌우 분할
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown("""
+st.markdown(f"""
 <div style="
-    background: linear-gradient(135deg, #2a6dc4 0%, #3590f3 40%, #62bfed 80%, #c2bbf0 100%);
-    border-radius: 20px;
-    padding: 32px 36px 28px;
-    margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
+    background:linear-gradient(120deg,#1a5499 0%,#2979c8 50%,#4a9de0 100%);
+    border-radius:20px; padding:28px 36px 26px;
+    margin-bottom:20px; position:relative; overflow:hidden;
+    box-shadow:0 8px 32px rgba(26,84,153,0.18);
+    display:flex; align-items:center; justify-content:space-between; gap:32px;
 ">
-    <div style="
-        position:absolute; top:-30px; right:-30px;
-        width:160px; height:160px; border-radius:50%;
-        background:rgba(255,255,255,0.08);
-    "></div>
-    <div style="
-        position:absolute; bottom:-40px; right:80px;
-        width:100px; height:100px; border-radius:50%;
-        background:rgba(255,255,255,0.06);
-    "></div>
-    <div style="
-        display:inline-block;
-        background:rgba(255,255,255,0.18);
-        border:1px solid rgba(255,255,255,0.35);
-        border-radius:20px; padding:4px 14px;
-        font-size:0.75rem; color:#fff;
-        font-weight:600; margin-bottom:12px; letter-spacing:0.5px;
-    ">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
-    <div style="
-        font-size:2.8rem; font-weight:900; color:#ffffff;
-        line-height:1.2; margin-bottom:10px; letter-spacing:-0.5px;
-    ">🏠 서울 스타터<br>
-    <span style="font-size:1.6rem; font-weight:500; opacity:0.92;">서울시 자취 가이드</span>
+    <div style="position:absolute;top:-40px;right:220px;width:200px;height:200px;
+                border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+    <div style="position:absolute;bottom:-60px;right:60px;width:180px;height:180px;
+                border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+
+    <div style="flex:1;position:relative;z-index:1;">
+        <div style="display:inline-flex;align-items:center;gap:6px;
+                    background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);
+                    border-radius:20px;padding:3px 13px;
+                    font-size:0.70rem;color:rgba(255,255,255,0.88);
+                    font-weight:600;margin-bottom:12px;letter-spacing:0.5px;">
+            🏙️ 서울시 공공데이터 기반 · 2024~2026
+        </div>
+        <div style="font-size:2.6rem;font-weight:900;color:#fff;
+                    line-height:1.1;margin-bottom:6px;letter-spacing:-1px;">
+            🏠 서울 스타터
+        </div>
+        <div style="font-size:1.1rem;font-weight:400;color:rgba(255,255,255,0.78);
+                    margin-bottom:14px;">서울시 자취 가이드</div>
+        <div style="font-size:0.86rem;color:rgba(255,255,255,0.82);line-height:1.8;">
+            처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>
+            월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.
+        </div>
     </div>
-    <div style="
-        font-size:0.90rem; color:rgba(255,255,255,0.90);
-        line-height:1.85; margin-bottom:14px;
-    ">
-        처음 자취를 시작하는 분들을 위한 <b style="color:#fff;">서울 25개 자치구 비교 가이드</b>입니다.<br>
-        월세 · 공원 · 도서관 · 문화공간 등 실생활 데이터를 기반으로 <b style="color:#fff;">나에게 맞는 동네</b>를 찾아보세요.
+
+    <div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0;position:relative;z-index:1;">
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);
+                    border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">25</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">자치구 비교</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);
+                    border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">4</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">생활 지표</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);
+                    border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">실측</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">공공데이터</div>
+        </div>
     </div>
-    <div style="
-        display:inline-block;
-        background:rgba(255,255,255,0.15);
-        border:1px solid rgba(255,255,255,0.30);
-        border-radius:12px; padding:6px 16px;
-        font-size:0.78rem; color:rgba(255,255,255,0.95);
-    ">💡 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다</div>
 </div>
 """, unsafe_allow_html=True)
+
+
 # ══════════════════════════════════════════════════════════════════════════
-# 상단 컨트롤 패널
+# ② 컨트롤 패널 — 2개 독립 카드
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown("""
-<div style="background:#ffffff;border-radius:14px;padding:20px 24px 16px;
-            border:1.5px solid rgba(41,121,200,0.15);
-            box-shadow:0 2px 12px rgba(26,84,153,0.08);margin-bottom:16px;">
-""", unsafe_allow_html=True)
+st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
 
 col_left, col_right = st.columns([1, 1.7])
 
 with col_left:
-    st.markdown("**🚉 지하철 호선으로 찾기**")
+    st.markdown("""
+    <div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;
+                border:1.5px solid rgba(41,121,200,0.12);
+                box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;
+                border-top:3px solid #2979c8;">
+        <div style="font-size:0.72rem;font-weight:800;color:#2979c8;
+                    letter-spacing:0.5px;margin-bottom:10px;">🚉 지하철 호선으로 찾기</div>
+    </div>
+    """, unsafe_allow_html=True)
     selected_lines = st.multiselect(
         "호선을 선택하세요 (최대 3개)",
         list(LINE_STATIONS.keys()),
@@ -493,9 +473,17 @@ with col_left:
         st.caption("호선 선택 시 해당 노선 경유 자치구를 우선 추천합니다")
 
 with col_right:
-    st.markdown("**⚖️ 주거 우선순위 설정 — 1순위가 가장 중요합니다**")
+    st.markdown("""
+    <div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;
+                border:1.5px solid rgba(41,121,200,0.12);
+                box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;
+                border-top:3px solid #4a9de0;">
+        <div style="font-size:0.72rem;font-weight:800;color:#2979c8;
+                    letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown(
-        '<div class="priority-hint">💡 중복 선택 불가 · 선택하지 않으면 균등 가중치가 적용됩니다.</div>',
+        '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
         unsafe_allow_html=True
     )
     p_cols = st.columns(4)
@@ -513,7 +501,6 @@ with col_right:
                 used.append(choice)
                 priority_order.append(choice)
 
-st.markdown("</div>", unsafe_allow_html=True)
 
 # ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
@@ -524,7 +511,6 @@ if len(priority_order) == 4:
 else:
     df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
 
-# ── 호선 선택 보너스: 해당 호선이 경유하는 자치구에 가중치 추가 ────────────
 if selected_lines:
     line_gu_set = set()
     for line in selected_lines:
@@ -541,44 +527,39 @@ rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
 top5_df = rec_df.head(5)
 
-# 100점 환산용 전역 기준값
 SCORE_MAX = df['total_score'].max()
 SCORE_MIN = df['total_score'].min()
 
 def to_100(score):
-    """raw score → 100점 만점 환산"""
     if SCORE_MAX > SCORE_MIN:
         return (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN) * 100
     return 100.0
 
-# selected_gu가 None이면 → 1위 구로 초기화 (유효한 자치구를 클릭한 경우는 유지)
 if st.session_state.selected_gu is None:
     st.session_state.selected_gu = top3_gu[0]
 
-# 상위 3개 강조색
-RANK_COLOR = {top3_gu[0]: "#3590f3", top3_gu[1]: "#62bfed", top3_gu[2]: "#8fb8ed"}
+RANK_COLOR = {top3_gu[0]: "#2979c8", top3_gu[1]: "#4a9de0", top3_gu[2]: "#7eb5e8"}
 RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
 RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", top3_gu[2]: "🥉 추천 3위"}
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 메인 레이아웃: 지도 ＋ 상세 정보
+# ③ 메인 레이아웃: 지도 + 상세 정보
 # ══════════════════════════════════════════════════════════════════════════
+st.markdown('<div class="section-label" style="margin-top:8px;">🗺️ 지역 탐색</div>', unsafe_allow_html=True)
+
 col_map, col_info = st.columns([1.6, 1])
 
-# ─────────────────────────────────────────────── 지도 ──────────────────────
 with col_map:
-    st.markdown('<p style="font-size:1.0rem;font-weight:800;color:#1a5499;margin:0 0 6px;letter-spacing:-0.2px;">📍 서울 자치구 추천 지도</p>', unsafe_allow_html=True)
-    hint_line = f" · {', '.join(selected_lines)} 경유 자치구 우선 반영" if selected_lines else ""
+    hint_line = f" · {', '.join(selected_lines)} 경유 우선 반영" if selected_lines else ""
     st.markdown(
-        f'<div class="map-hint">🥇🥈🥉 우선순위{hint_line} → 지도에서 추천 자치구를 <b>클릭</b>하면 우측 상세정보가 바뀝니다</div>',
+        f'<div class="map-hint">🥇🥈🥉 추천 순위{hint_line} — 자치구를 선택하면 우측 상세정보가 바뀝니다</div>',
         unsafe_allow_html=True
     )
 
     score_map = dict(zip(df['자치구'], df['total_score']))
     gu_list   = df['자치구'].tolist()
 
-    # 실제 행정경계 GeoJSON 로드 시도 (인터넷 가능 시 고정밀, 불가 시 내장 데이터)
     @st.cache_data(show_spinner=False)
     def load_precise_geojson():
         import urllib.request
@@ -590,7 +571,6 @@ with col_map:
             try:
                 with urllib.request.urlopen(url, timeout=5) as r:
                     gj = json.loads(r.read().decode())
-                # 서울 25개 자치구 feature만 필터
                 gu_names = set(df['자치구'].tolist())
                 filtered = []
                 for f in gj.get('features', []):
@@ -605,20 +585,19 @@ with col_map:
                     return {"type": "FeatureCollection", "features": filtered}
             except Exception:
                 continue
-        return None  # 실패 시 내장 사용
+        return None
 
     precise = load_precise_geojson()
     active_geojson = precise if precise else geojson
 
     fig = go.Figure()
 
-   # ── Layer 1: 비우선순위 구 — 외곽선만, 매우 옅은 배경 ──────────────────────
+    # Layer 1: 비우선순위 구 — 흰색 배경
     others_df = df[~df['자치구'].isin(top3_gu)].copy()
-    others_z = [1] * len(others_df)
     fig.add_trace(go.Choroplethmapbox(
         geojson=active_geojson,
         locations=list(others_df['자치구']),
-        z=others_z,
+        z=[1] * len(others_df),
         featureidkey="properties.name",
         colorscale=[[0, "rgba(255,255,255,0.85)"], [1, "rgba(255,255,255,0.85)"]],
         showscale=False,
@@ -628,13 +607,13 @@ with col_map:
         name="기타구"
     ))
 
-    # ── Layer 2: 상위 3개 구 강조 — 홈페이지 블루 팔레트 ────────────────────────
-    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.80)",
-                  top3_gu[1]: "rgba(53,144,243,0.50)",
-                  top3_gu[2]: "rgba(53,144,243,0.28)"}
-    border_col = {top3_gu[0]: "rgba(42,109,196,1.0)",
-                  top3_gu[1]: "rgba(42,109,196,0.80)",
-                  top3_gu[2]: "rgba(42,109,196,0.55)"}
+    # Layer 2: 상위 3개 구 — 블루 팔레트, 순위별 농도
+    fill_alpha = {top3_gu[0]: "rgba(41,121,200,0.80)",
+                  top3_gu[1]: "rgba(41,121,200,0.50)",
+                  top3_gu[2]: "rgba(41,121,200,0.28)"}
+    border_col = {top3_gu[0]: "rgba(26,84,153,1.0)",
+                  top3_gu[1]: "rgba(41,121,200,0.85)",
+                  top3_gu[2]: "rgba(74,157,224,0.70)"}
 
     for rgu in top3_gu:
         sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
@@ -651,22 +630,16 @@ with col_map:
             name=RANK_LABEL[rgu]
         ))
 
-# ── Layer 3: TOP3 — 진한 색 마커 위에 흰색 텍스트 ──────────────────────────
-    top3_marker_col = {top3_gu[0]: "#1a4fa0", top3_gu[1]: "#1a7aaa", top3_gu[2]: "#6a5aaa"}
+    # Layer 3: TOP3 텍스트
     for rgu in top3_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
             mode="markers+text",
-            marker=dict(
-                size=1,
-                color=top3_marker_col[rgu],
-                opacity=0,
-                allowoverlap=True
-            ),
+            marker=dict(size=1, color="#1a5499", opacity=0, allowoverlap=True),
             text=[f"{RANK_ICON[rgu]} {rgu}"],
             textposition="middle center",
-            textfont=dict(size=15, color="#1a2a5a", family="Noto Sans KR"),
+            textfont=dict(size=14, color="#ffffff", family="Noto Sans KR"),
             hovertemplate=(
                 f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
                 f"추천점수: {row_d['total_score']:.2f}<br>"
@@ -678,7 +651,8 @@ with col_map:
             showlegend=False,
             name=rgu
         ))
-    # ── Layer 4: 나머지 22개 구 — 동그라미 없이 텍스트만 ───────────────────────
+
+    # Layer 4: 나머지 22개 구 텍스트
     for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
         gn = row_d['자치구']
         fig.add_trace(go.Scattermapbox(
@@ -686,7 +660,7 @@ with col_map:
             mode="text",
             text=[gn],
             textposition="middle center",
-            textfont=dict(size=9, color="#555566", family="Noto Sans KR"),
+            textfont=dict(size=9, color="#4a6d96", family="Noto Sans KR"),
             customdata=[[gn]],
             hovertemplate=(
                 f"<b>{gn}</b><br>"
@@ -695,12 +669,9 @@ with col_map:
             showlegend=False,
             name=gn
         ))
+
     fig.update_layout(
-        mapbox=dict(
-            style="carto-positron",
-            center={"lat": 37.5635, "lon": 126.987},
-            zoom=10.3,
-        ),
+        mapbox=dict(style="carto-positron", center={"lat": 37.5635, "lon": 126.987}, zoom=10.3),
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         height=490,
         paper_bgcolor="rgba(0,0,0,0)",
@@ -708,75 +679,75 @@ with col_map:
         showlegend=False,
     )
 
-    # 지도 표시 (시각화 전용 — 클릭 이벤트 없음)
     st.plotly_chart(fig, use_container_width=True, key="main_map")
 
-    # ── 지도 바로 아래: 자치구 선택 버튼 ─────────────────────────────────────
-    # 추천 TOP3 탭 스타일 버튼 (지도와 통합된 인터랙션)
+    # 자치구 선택 버튼
     sel_gu = st.session_state.selected_gu
-
-    RANK_COLORS_BTN = ["#3590f3", "#62bfed", "#8fb8ed"]
+    RANK_COLORS_BTN = ["#1a5499", "#2979c8", "#4a9de0"]
     RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
-    RANK_LABELS_BTN = ["1위 추천", "2위 추천", "3위 추천"]
 
-    # ── 안내 문구 ──────────────────────────────────────────────────────────────
     st.markdown(f"""
-    <div style="
-        background:linear-gradient(135deg,#2a6dc4,#3590f3);
-        border-radius:10px; padding:9px 16px; margin:8px 0 10px;
-        display:flex; align-items:center; justify-content:space-between;
-    ">
-        <span style="font-size:0.78rem;color:rgba(255,255,255,0.95);font-weight:600;">
+    <div style="background:linear-gradient(135deg,#1a5499,#2979c8);
+                border-radius:10px;padding:9px 16px;margin:8px 0 10px;
+                display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.77rem;color:rgba(255,255,255,0.95);font-weight:600;">
             📍 자치구를 선택하면 우측 상세정보가 바뀝니다
         </span>
-        <span style="font-size:0.70rem;color:rgba(255,255,255,0.70);">
-            추천 1위 <b style="color:#fff;">{top3_gu[0]}</b> &nbsp;
+        <span style="font-size:0.68rem;color:rgba(255,255,255,0.70);">
+            1위 <b style="color:#fff;">{top3_gu[0]}</b> &nbsp;
             2위 <b style="color:#fff;">{top3_gu[1]}</b> &nbsp;
             3위 <b style="color:#fff;">{top3_gu[2]}</b>
         </span>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── TOP3 버튼 ──────────────────────────────────────────────────────────────
     cols3 = st.columns(3)
     for i, rgu in enumerate(top3_gu):
         with cols3[i]:
             is_active = (sel_gu == rgu)
             if is_active:
                 st.markdown(
-                    f'<div style="'
-                    f'background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
+                    f'<div style="background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
                     f'color:white;border-radius:10px;padding:10px 4px;text-align:center;'
                     f'font-size:0.78rem;font-weight:900;height:38px;line-height:18px;'
                     f'box-shadow:0 3px 10px {RANK_COLORS_BTN[i]}55;">'
-                    f'{RANK_ICONS_BTN[i]} {rgu} ✓'
-                    f'</div>',
+                    f'{RANK_ICONS_BTN[i]} {rgu} ✓</div>',
                     unsafe_allow_html=True
                 )
             else:
-                if st.button(
-                    f"{RANK_ICONS_BTN[i]} {rgu}",
-                    key=f"sel_top_{i}",
-                    use_container_width=True
-                ):
+                if st.button(f"{RANK_ICONS_BTN[i]} {rgu}", key=f"sel_top_{i}", use_container_width=True):
                     st.session_state.selected_gu = rgu
                     st.rerun()
 
-    # ── 나머지 22개 구 ─────────────────────────────────────────────────────────
     others_gu = [g for g in gu_list if g not in top3_gu]
     with st.expander("🔍 다른 자치구 보기", expanded=False):
         n_cols = 5
+        rows = [others_gu[i:i+n_cols] for i in range(0, len(others_gu), n_cols)]
+        for row_items in rows:
+            cols_o = st.columns(n_cols)
+            for j, g in enumerate(row_items):
+                with cols_o[j]:
+                    is_active = (sel_gu == g)
+                    if is_active:
+                        st.markdown(
+                            f'<div style="background:linear-gradient(135deg,#1a5499,#2979c8);'
+                            f'color:white;border-radius:8px;padding:6px 2px;text-align:center;'
+                            f'font-size:0.72rem;font-weight:700;">{g} ✓</div>',
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        if st.button(g, key=f"sel_other_{g}", use_container_width=True):
+                            st.session_state.selected_gu = g
+                            st.rerun()
 
-# ──────────────────────────────────────── 우측 상세 정보 ────────────────────
+
+# ── 우측 상세 정보 ────────────────────────────────────────────────────────
 with col_info:
     gu       = st.session_state.selected_gu
     row      = df[df['자치구'] == gu].iloc[0]
     rank_pos = top3_gu.index(gu) + 1 if gu in top3_gu else None
 
-    # ── 헤더 카드 (자치구명 가운데 정렬) ──────────────────────────────────────
     rl = RANK_LABEL.get(gu, "")
-    rank_col = "#ff3c3c" if rank_pos == 1 else "#ffa500" if rank_pos == 2 else "#ffdc00" if rank_pos == 3 else "rgba(255,255,255,0.6)"
-    rank_col = "#ff3c3c" if rank_pos == 1 else "#ffa500" if rank_pos == 2 else "#ffdc00" if rank_pos == 3 else "rgba(255,255,255,0.6)"
     st.markdown(f"""
     <div class="gu-header">
         <div class="rank-badge-text">{rl}</div>
@@ -785,67 +756,58 @@ with col_info:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── 비교 퍼센트 계산 (순수 숫자만) ──────────────────────────────────────────
     def _pct(val, avg):
         return (val - avg) / avg * 100 if avg != 0 else 0
 
-    rent_pct    = _pct(row['평균월세'],         AVG_RENT)
-    park_pct    = _pct(row['공원수'],            AVG_PARK)
-    lib_pct     = _pct(row['도서관수'],          AVG_LIB)
-    culture_pct = _pct(row['기타문화공간수'],    AVG_CULTURE)
+    rent_pct    = _pct(row['평균월세'],      AVG_RENT)
+    park_pct    = _pct(row['공원수'],         AVG_PARK)
+    lib_pct     = _pct(row['도서관수'],       AVG_LIB)
+    culture_pct = _pct(row['기타문화공간수'], AVG_CULTURE)
 
     def _badge_rent(pct):
-        if pct < -2:
-            cls, txt = "better", f"서울 평균보다 {abs(pct):.0f}% 저렴 ▼"
-        elif pct > 2:
-            cls, txt = "worse",  f"서울 평균보다 +{pct:.0f}% 비쌈 ▲"
-        else:
-            cls, txt = "neutral", "서울 평균과 비슷"
-        return cls, txt
+        if pct < -2:   return "better",  f"서울 평균보다 {abs(pct):.0f}% 저렴 ▼"
+        elif pct > 2:  return "worse",   f"서울 평균보다 +{pct:.0f}% 비쌈 ▲"
+        else:          return "neutral", "서울 평균과 비슷"
 
     def _badge_more(pct):
-        if pct > 2:
-            cls, txt = "better", f"서울 평균 대비 +{pct:.0f}% 많음 ▲"
-        elif pct < -2:
-            cls, txt = "worse",  f"서울 평균 대비 {pct:.0f}% 적음 ▼"
-        else:
-            cls, txt = "neutral", "서울 평균과 비슷"
-        return cls, txt
+        if pct > 2:    return "better",  f"서울 평균 대비 +{pct:.0f}% 많음 ▲"
+        elif pct < -2: return "worse",   f"서울 평균 대비 {pct:.0f}% 적음 ▼"
+        else:          return "neutral", "서울 평균과 비슷"
 
-    rc, rt = _badge_rent(rent_pct)
+    rc, rt   = _badge_rent(rent_pct)
     pc, pt_txt = _badge_more(park_pct)
-    lc, lt = _badge_more(lib_pct)
-    cc, ct = _badge_more(culture_pct)
+    lc, lt   = _badge_more(lib_pct)
+    cc, ct   = _badge_more(culture_pct)
 
-    # ── 메트릭 그리드: 완전한 HTML을 단일 문자열로 구성 후 렌더링 ──────────────
+    # 메트릭 그리드 — 4열 가로 배치
     metric_html = (
         '<div class="metric-grid">'
 
         '<div class="metric-card">'
         '<div class="mlabel">🏠 평균 월세</div>'
         f'<div class="mvalue">{int(row["평균월세"])}만원</div>'
-        f'<div class="msub">원룸 기준 추정<br>서울 전체 평균 <b>{AVG_RENT:.0f}만원</b></div>'
+        f'<div class="msub">원룸 기준<br>평균 <b>{AVG_RENT:.0f}만원</b></div>'
         f'<span class="mcomp {rc}">{rt}</span>'
         '</div>'
 
         '<div class="metric-card green">'
         '<div class="mlabel">🌳 공원 수</div>'
-        f'<div class="mvalue">{int(row["공원수"])}개소</div>'
-        f'<div class="msub">서울시 주요공원 기준<br>서울 전체 평균 <b>{AVG_PARK:.1f}개</b></div>'
+        f'<div class="mvalue">{int(row["공원수"])}개</div>'
+        f'<div class="msub">주요공원 기준<br>평균 <b>{AVG_PARK:.1f}개</b></div>'
         f'<span class="mcomp {pc}">{pt_txt}</span>'
         '</div>'
 
         '<div class="metric-card orange">'
-        '<div class="mlabel">📚 공공도서관</div>'
+        '<div class="mlabel">📚 도서관</div>'
         f'<div class="mvalue">{int(row["도서관수"])}개</div>'
-        f'<div class="msub">구립·시립 포함<br>서울 전체 평균 <b>{AVG_LIB:.1f}개</b></div>'
+        f'<div class="msub">구립·시립 포함<br>평균 <b>{AVG_LIB:.1f}개</b></div>'
         f'<span class="mcomp {lc}">{lt}</span>'
         '</div>'
 
         '<div class="metric-card purple">'
-        '<div class="mlabel">🎨 기타 문화공간</div>'
+        '<div class="mlabel">🎨 문화공간</div>'
         f'<div class="mvalue">{int(row["기타문화공간수"])}개</div>'
-        f'<div class="msub">미술관·공연장·박물관 등<br>서울 전체 평균 <b>{AVG_CULTURE:.1f}개</b></div>'
+        f'<div class="msub">미술관·공연장 등<br>평균 <b>{AVG_CULTURE:.1f}개</b></div>'
         f'<span class="mcomp {cc}">{ct}</span>'
         '</div>'
 
@@ -853,13 +815,13 @@ with col_info:
     )
     st.markdown(metric_html, unsafe_allow_html=True)
 
-   # ── 종합 추천 점수 + 생활물가 (메트릭 카드 동일 양식) ──────────────────────
+    # 종합 추천 점수 + 생활물가
     score     = row['total_score']
     score_100 = to_100(score)
     arc_col   = (
         "#ff3c3c" if rank_pos == 1 else
         "#ffa500" if rank_pos == 2 else
-        "#ffdc00" if rank_pos == 3 else "#c2bbf0"
+        "#ffdc00" if rank_pos == 3 else "#7eb5e8"
     )
 
     pr = row['물가비율']
@@ -876,18 +838,18 @@ with col_info:
     score_price_html = (
         '<div class="metric-grid">'
 
-        f'<div class="metric-card" style="background:linear-gradient(135deg,#e8eeff,#d4e4fb);border-left-color:{arc_col};">'
+        f'<div class="metric-card" style="background:linear-gradient(135deg,#e8f1fd,#d4e8fb);border-top-color:{arc_col};grid-column:span 2;">'
         '<div class="mlabel">✨ 종합 추천 점수</div>'
         f'<svg width="100%" height="80" viewBox="0 0 160 90" style="margin-top:2px;">'
-        f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="12" stroke-linecap="round"/>'
+        f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="rgba(180,210,240,0.5)" stroke-width="12" stroke-linecap="round"/>'
         f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="{arc_col}" stroke-width="12" stroke-linecap="round"'
         f' stroke-dasharray="{fill_len*1.3:.1f} {circumference*1.3:.1f}" stroke-dashoffset="0"/>'
         f'<text x="80" y="68" text-anchor="middle" font-size="24" font-weight="900" fill="{arc_col}" font-family="Noto Sans KR">{score_100:.0f}</text>'
-        f'<text x="80" y="82" text-anchor="middle" font-size="10" fill="#5a5a8a" font-family="Noto Sans KR">/ 100점</text>'
+        f'<text x="80" y="82" text-anchor="middle" font-size="10" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>'
         '</svg>'
         '</div>'
-       
-        f'<div class="metric-card" style="background:{price_bg};border-left-color:{price_border}40;">'
+
+        f'<div class="metric-card" style="background:{price_bg};border-top-color:{price_border}80;grid-column:span 2;">'
         '<div class="mlabel">💸 생활물가</div>'
         f'<div class="mvalue" style="color:{price_col};">{price_txt}</div>'
         f'<div class="msub">서울 평균 대비<br><b>{price_label}</b></div>'
@@ -899,87 +861,102 @@ with col_info:
         '</div>'
     )
     st.markdown(score_price_html, unsafe_allow_html=True)
-    
-    # ── 주변 역 태그 ────────────────────────────────────────────────────────────
+
+    # 주변 주요역
     tags_html = "".join(
         f'<span class="station-tag">{s.strip()}</span>'
         for s in row['지하철역_예시'].split(',')
     )
     st.markdown(f"""
-    <div style="background:#ffffff;border-radius:14px;padding:13px 15px;
-                border:1.5px solid rgba(194,187,240,0.5);
-                box-shadow:0 2px 8px rgba(53,144,243,0.07);margin-bottom:8px;">
-        <div style="font-size:0.69rem;color:var(--col-subtext);font-weight:700;
-                    margin-bottom:8px;letter-spacing:0.3px;">🚉 주변 주요역</div>
+    <div style="background:#ffffff;border-radius:12px;padding:12px 14px;
+                border:1.5px solid var(--border);box-shadow:var(--sh-s);
+                border-top:3px solid #7eb5e8;">
+        <div style="font-size:0.66rem;color:var(--col-sub);font-weight:700;
+                    margin-bottom:7px;letter-spacing:0.3px;text-transform:uppercase;">
+            🚉 주변 주요역
+        </div>
         <div class="station-tags">{tags_html}</div>
     </div>
     """, unsafe_allow_html=True)
 
+
 # ══════════════════════════════════════════════════════════════════════════
-# 하단: TOP 5 추천 카드
+# ④ TOP5 — 1위 강조 계층 디자인
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="display:flex;align-items:center;gap:12px;margin:24px 0 14px;">
-    <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.15),transparent);"></div>
-    <div style="font-size:1.0rem;font-weight:800;color:#1a5499;letter-spacing:-0.2px;white-space:nowrap;">
-        🏆 우선순위 기반 추천 지역 TOP 5
+<div style="margin:24px 0 14px;">
+    <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
+                letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;">
+        🏆 Rankings
     </div>
-    <div style="flex:1;height:1.5px;background:linear-gradient(90deg,transparent,rgba(41,121,200,0.15));"></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:1.05rem;font-weight:800;color:#1a5499;letter-spacing:-0.3px;">
+            우선순위 기반 추천 지역 TOP 5
+        </span>
+        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.2),transparent);"></div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-CARD_BORDER = ["#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0", "#d4e4f7"]
-CARD_RANK_BG = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
-CARD_EMOJI  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+CARD_RANK_BG  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
+CARD_BORDER   = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
+CARD_EMOJI    = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+CARD_HEIGHT   = ["auto", "auto", "auto", "auto", "auto"]
 
-cols_top = st.columns(5)
+cols_top = st.columns([1.15, 1.05, 1, 0.95, 0.90])
 for i, (_, r) in enumerate(top5_df.iterrows()):
     with cols_top[i]:
         is_sel  = r['자치구'] == st.session_state.selected_gu
-        shadow  = f"0 4px 18px rgba(41,121,200,0.22)" if is_sel else "0 1px 6px rgba(26,84,153,0.07)"
-        outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,0.15)"
+        shadow  = f"0 6px 24px rgba(26,84,153,0.22)" if is_sel else f"0 2px 10px rgba(26,84,153,{0.10 - i*0.01})"
+        outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,{0.18 - i*0.02})"
         rd      = r['평균월세'] - AVG_RENT
         rs, rc  = ("▲", "#c0392b") if rd > 0 else ("▼", "#1a6e45")
         p_diff  = r['공원수'] - AVG_PARK
         l_diff  = r['도서관수'] - AVG_LIB
         s100    = to_100(r['total_score'])
+        # 1위일수록 진하고 큰 폰트
+        name_size = 1.08 - i * 0.04
 
         st.markdown(f"""
-        <div style="background:#ffffff;border:{outline};border-radius:13px;
-                    padding:14px 10px 12px;text-align:center;box-shadow:{shadow};">
+        <div style="background:#ffffff;border:{outline};border-radius:14px;
+                    padding:{16 - i}px 10px {14 - i}px;text-align:center;
+                    box-shadow:{shadow};border-top:3px solid {CARD_RANK_BG[i]};">
             <div style="background:{CARD_RANK_BG[i]};color:#fff;border-radius:8px;
-                        padding:3px 0;font-size:0.68rem;font-weight:800;
-                        margin-bottom:8px;letter-spacing:0.3px;">
-                {CARD_EMOJI[i]} {i+1}위 추천
+                        padding:3px 0;font-size:{0.70 - i*0.02:.2f}rem;font-weight:800;
+                        margin-bottom:7px;letter-spacing:0.3px;">
+                {CARD_EMOJI[i]} {i+1}위
             </div>
-            <div style="font-size:1.05rem;font-weight:900;color:#162640;margin-bottom:8px;">
+            <div style="font-size:{name_size:.2f}rem;font-weight:900;color:#0d2137;
+                        margin-bottom:8px;letter-spacing:-0.3px;">
                 {r['자치구']}
             </div>
-            <div style="font-size:0.71rem;color:#3d6490;line-height:1.85;text-align:left;padding:0 4px;">
-                🏠 월세 <b style="color:#162640;">{int(r['평균월세'])}만원</b>
-                <span style="color:{rc};font-size:0.65rem;">({rs}{abs(rd):.0f}만)</span><br>
-                🌳 공원 <b style="color:#162640;">{int(r['공원수'])}개</b>
-                <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.63rem;">
-                ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span><br>
-                📚 도서관 <b style="color:#162640;">{int(r['도서관수'])}개</b>
-                <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.63rem;">
+            <div style="font-size:{0.70 - i*0.01:.2f}rem;color:#4a6d96;line-height:1.85;text-align:left;padding:0 3px;">
+                🏠 <b style="color:#0d2137;">{int(r['평균월세'])}만원</b>
+                <span style="color:{rc};font-size:0.62rem;">({rs}{abs(rd):.0f}만)</span><br>
+                🌳 <b style="color:#0d2137;">{int(r['공원수'])}개</b>
+                <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.60rem;">
+                ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
+                📚 <b style="color:#0d2137;">{int(r['도서관수'])}개</b>
+                <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.60rem;">
                 ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
-                🎨 문화공간 <b style="color:#162640;">{int(r['기타문화공간수'])}개</b>
+                🎨 <b style="color:#0d2137;">{int(r['기타문화공간수'])}개</b>
             </div>
-            <div style="margin-top:10px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
+            <div style="margin-top:9px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
                         border-radius:8px;padding:4px 0;
-                        font-size:0.72rem;font-weight:800;color:#1a5499;">
-                추천점수 {s100:.0f}점
+                        font-size:{0.72 - i*0.01:.2f}rem;font-weight:800;color:#1a5499;">
+                {s100:.0f}점
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════════════════════
+# 데이터 출처
+# ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="margin-top:20px;padding:12px 18px;background:#ffffff;border-radius:10px;
-            border:1.5px solid rgba(42,109,196,0.10);
-            font-size:0.68rem;color:#7a9ab8;line-height:1.9;">
+<div style="margin-top:24px;padding:12px 18px;background:#f8fafd;border-radius:10px;
+            border:1.5px solid rgba(42,109,196,0.09);
+            font-size:0.67rem;color:#7a9ab8;line-height:1.9;">
     ※ 도서관: 서울시 공공도서관 현황(2024, 215개) &nbsp;|&nbsp;
     문화공간: 서울시 문화공간 정보(1,036개, 도서관 제외 862개) &nbsp;|&nbsp;
     공원: 서울시 주요공원현황(2026 상반기, 130개) &nbsp;|&nbsp;
