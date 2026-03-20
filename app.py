@@ -62,13 +62,13 @@ if 'selected_gu' not in st.session_state:
     st.session_state.selected_gu = '종로구'
 
 # --- 1. 상단 설정 창 (Control Panel) ---
-st.title("🚀 서울 스타터 v3.0: 랭킹 기반 지역 큐레이션")
+st.title("🚀 서울 스타터: 지역 큐레이션")
 
 with st.container(border=True):
     c_line, c_rank = st.columns([1, 2.5])
     
     with c_line:
-        st.subheader("🚇 호선 선택")
+        st.subheader("🚇 지하철 호선 선택")
         all_lines = [str(i) for i in range(1, 10)]
         selected_line = st.selectbox("주요 이용 호선을 선택하세요.", ["전체"] + all_lines)
 
