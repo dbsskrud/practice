@@ -634,12 +634,12 @@ with col_map:
     ))
 
     # ── Layer 2: 상위 3개 구 강조 — 홈페이지 블루 팔레트 ────────────────────────
-    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.75)",
-                  top3_gu[1]: "rgba(98,191,237,0.62)",
-                  top3_gu[2]: "rgba(194,187,240,0.58)"}
+    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.80)",
+                  top3_gu[1]: "rgba(53,144,243,0.50)",
+                  top3_gu[2]: "rgba(53,144,243,0.28)"}
     border_col = {top3_gu[0]: "rgba(42,109,196,1.0)",
-                  top3_gu[1]: "rgba(53,144,243,1.0)",
-                  top3_gu[2]: "rgba(143,184,237,1.0)"}
+                  top3_gu[1]: "rgba(42,109,196,0.80)",
+                  top3_gu[2]: "rgba(42,109,196,0.55)"}
 
     for rgu in top3_gu:
         sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
@@ -791,9 +791,10 @@ with col_info:
     # ── 헤더 카드 (자치구명 가운데 정렬) ──────────────────────────────────────
     rl = RANK_LABEL.get(gu, "")
     rank_col = "#ff3c3c" if rank_pos == 1 else "#ffa500" if rank_pos == 2 else "#ffdc00" if rank_pos == 3 else "rgba(255,255,255,0.6)"
+    rank_col = "#ff3c3c" if rank_pos == 1 else "#ffa500" if rank_pos == 2 else "#ffdc00" if rank_pos == 3 else "rgba(255,255,255,0.6)"
     st.markdown(f"""
     <div class="gu-header">
-        {f'<div style="display:inline-block;background:{rank_col};color:#333;border-radius:20px;padding:3px 14px;font-size:0.75rem;font-weight:800;margin-bottom:8px;">{rl}</div>' if rl else ''}
+        <div class="rank-badge-text">{rl}</div>
         <h2>{gu}</h2>
         <div class="gu-tagline">「 {row['한줄평']} 」</div>
     </div>
@@ -935,7 +936,7 @@ with col_info:
 st.markdown("---")
 st.subheader("🌟 우선순위 기반 추천 지역 TOP 5")
 
-CARD_BG     = ["#e8eeff", "#dff0fb", "#ede8f8", "#f1e3f3", "#f1e3f3"]
+CARD_BG     = ["#f0f5ff", "#f0f5ff", "#f0f5ff", "#f0f5ff", "#f0f5ff"]
 CARD_BORDER = ["#3590f3", "#62bfed", "#8fb8ed", "#c2bbf0", "#c2bbf0"]
 CARD_EMOJI  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
