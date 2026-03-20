@@ -891,7 +891,7 @@ with col_info:
     price_txt    = f"+{abs(pr):.1f}%" if pr > 0 else f"-{abs(pr):.1f}%"
     price_label  = "높음" if pr > 0 else "낮음"
 
-    circumference = 3.14159 * 60
+    circumference = 3.14159 * 50
     fill_len = score_100 / 100 * circumference
 
     score_price_html = (
@@ -899,12 +899,12 @@ with col_info:
 
         f'<div class="metric-card" style="background:linear-gradient(135deg,#e8eeff,#d4e4fb);border-left-color:{arc_col};">'
         '<div class="mlabel">✨ 종합 추천 점수</div>'
-        f'<svg width="100%" height="80" viewBox="0 0 160 90" style="margin-top:2px;">'
-        f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="12" stroke-linecap="round"/>'
-        f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="{arc_col}" stroke-width="12" stroke-linecap="round"'
-        f' stroke-dasharray="{fill_len*1.3:.1f} {circumference*1.3:.1f}" stroke-dashoffset="0"/>'
-        f'<text x="80" y="68" text-anchor="middle" font-size="24" font-weight="900" fill="{arc_col}" font-family="Noto Sans KR">{score_100:.0f}</text>'
-        f'<text x="80" y="82" text-anchor="middle" font-size="10" fill="#5a5a8a" font-family="Noto Sans KR">/ 100점</text>'
+        f'<div class="mvalue" style="color:{arc_col};">{score_100:.0f}점</div>'
+        '<div class="msub">100점 만점 기준</div>'
+        f'<svg width="100%" height="44" viewBox="0 0 160 50" style="margin-top:4px;">'
+        f'<path d="M 10 45 A 70 70 0 0 1 150 45" fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="10" stroke-linecap="round"/>'
+        f'<path d="M 10 45 A 70 70 0 0 1 150 45" fill="none" stroke="{arc_col}" stroke-width="10" stroke-linecap="round"'
+        f' stroke-dasharray="{fill_len*1.4:.1f} {circumference*1.4:.1f}" stroke-dashoffset="0"/>'
         '</svg>'
         '</div>'
 
