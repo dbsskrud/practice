@@ -521,6 +521,14 @@ with col_info:
         for l in lines
     ])
 
+    # 점수 프로그레스바 계산
+    score_max = df['total_score'].max()
+    score_pct = int(row['total_score'] / score_max * 100)
+
+    rank_badge_html = ""
+    if rank_label:
+        rank_badge_html = f"<div style='background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;color:#FFD700;text-align:center;'>{rank_label}</div>"
+
     st.markdown(f"""
     <div class="info-panel">
       <div class="info-header">
@@ -533,7 +541,7 @@ with col_info:
               {gu}
             </div>
           </div>
-          {"<div style='background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;color:#FFD700;text-align:center;'>" + rank_label + "</div>" if rank_label else ""}
+          {rank_badge_html}
         </div>
         <div class="quote-box" style="margin-top:14px; margin-bottom:0;">
           {row['한줄평']}
@@ -573,14 +581,9 @@ with col_info:
 
         <div class="section-title">추천 점수</div>
         <div style="background:rgba(74,144,217,0.08); border-radius:10px; padding:10px 14px; border:1px solid rgba(74,144,217,0.2);">
-    """, unsafe_allow_html=True)
-
-    # 점수 프로그레스바
-    score_max = df['total_score'].max()
-    score_pct = int(row['total_score'] / score_max * 100)
-    st.markdown(f"""
           <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:#7a8fa8; margin-bottom:5px;">
-            <span>종합 추천 점수</span><span style="color:#4facfe; font-weight:700;">{row['total_score']:.2f}점</span>
+            <span>종합 추천 점수</span>
+            <span style="color:#4facfe; font-weight:700;">{row['total_score']:.2f}점</span>
           </div>
           <div style="background:#1a2a3a; border-radius:6px; height:8px; overflow:hidden;">
             <div style="width:{score_pct}%; height:100%; background:linear-gradient(90deg,#4facfe,#00f2fe); border-radius:6px;"></div>
