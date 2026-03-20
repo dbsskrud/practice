@@ -486,6 +486,7 @@ if selected_lines:
 
 rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
+top5_gu = rec_df.head(5)['자치구'].tolist()
 top5_df = rec_df.head(5)
 
 SCORE_MAX = df['total_score'].max()
@@ -554,7 +555,7 @@ with col_map:
     fig = go.Figure()
 
     # Layer 1: 비우선순위 구 — 흰색 배경
-    others_df = df[~df['자치구'].isin(top3_gu)].copy()
+    others_df = df[~df['자치구'].isin(top5_gu)].copy()
     fig.add_trace(go.Choroplethmapbox(
         geojson=active_geojson,
         locations=list(others_df['자치구']),
@@ -568,15 +569,21 @@ with col_map:
         name="기타구"
     ))
 
-    # Layer 2: 상위 3개 구 — 블루 팔레트, 순위별 농도
-    fill_alpha = {top3_gu[0]: "rgba(41,121,200,0.80)",
-                  top3_gu[1]: "rgba(41,121,200,0.50)",
-                  top3_gu[2]: "rgba(41,121,200,0.28)"}
-    border_col = {top3_gu[0]: "rgba(26,84,153,1.0)",
-                  top3_gu[1]: "rgba(41,121,200,0.85)",
-                  top3_gu[2]: "rgba(74,157,224,0.70)"}
+    # Layer 2: 상위 5개 구 — 블루 팔레트, 순위별 농도
+    fill_alpha = {top5_gu[0]: "rgba(41,121,200,0.80)",
+                  top5_gu[1]: "rgba(41,121,200,0.55)",
+                  top5_gu[2]: "rgba(41,121,200,0.33)",
+                  top5_gu[3]: "rgba(41,121,200,0.20)",
+                  top5_gu[4]: "rgba(41,121,200,0.12)"}
+    border_col = {top5_gu[0]: "rgba(26,84,153,1.0)",
+                  top5_gu[1]: "rgba(41,121,200,0.85)",
+                  top5_gu[2]: "rgba(74,157,224,0.70)",
+                  top5_gu[3]: "rgba(126,181,232,0.60)",
+                  top5_gu[4]: "rgba(184,208,240,0.50)"}
+    rank_label_map = {top5_gu[0]: "🥇 1위", top5_gu[1]: "🥈 2위", top5_gu[2]: "🥉 3위",
+                      top5_gu[3]: "4️⃣ 4위", top5_gu[4]: "5️⃣ 5위"}
 
-    for rgu in top3_gu:
+    for rgu in top5_gu:
         sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
         fig.add_trace(go.Choroplethmapbox(
             geojson=active_geojson,
@@ -588,21 +595,26 @@ with col_map:
             marker_line_width=3.0,
             marker_line_color=border_col[rgu],
             hoverinfo="skip",
-            name=RANK_LABEL[rgu]
+            name=rank_label_map[rgu]
         ))
 
-    # Layer 3: TOP3 텍스트
-    for rgu in top3_gu:
+    # Layer 3: TOP5 텍스트
+    rank_icons_map = {top5_gu[0]: "🥇", top5_gu[1]: "🥈", top5_gu[2]: "🥉",
+                      top5_gu[3]: "4️⃣", top5_gu[4]: "5️⃣"}
+    for rgu in top5_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
+        is_top3 = rgu in top3_gu
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
             mode="markers+text",
             marker=dict(size=1, color="#1a5499", opacity=0, allowoverlap=True),
-            text=[f"{RANK_ICON[rgu]} {rgu}"],
+            text=[f"{rank_icons_map[rgu]} {rgu}"],
             textposition="middle center",
-            textfont=dict(size=14, color="#ffffff", family="Noto Sans KR"),
+            textfont=dict(size=14 if is_top3 else 11,
+                          color="#ffffff" if is_top3 else "#1a5499",
+                          family="Noto Sans KR"),
             hovertemplate=(
-                f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
+                f"<b>{rank_icons_map[rgu]} {rgu}</b><br>"
                 f"추천점수: {row_d['total_score']:.2f}<br>"
                 f"월세: {int(row_d['평균월세'])}만원<br>"
                 f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
@@ -613,8 +625,8 @@ with col_map:
             name=rgu
         ))
 
-    # Layer 4: 나머지 22개 구 텍스트
-    for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
+    # Layer 4: 나머지 20개 구 텍스트
+    for _, row_d in df[~df['자치구'].isin(top5_gu)].iterrows():
         gn = row_d['자치구']
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
@@ -647,17 +659,11 @@ with col_map:
     RANK_COLORS_BTN = ["#1a5499", "#2979c8", "#4a9de0"]
     RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
 
-    st.markdown(f"""
+    st.markdown("""
     <div style="background:linear-gradient(135deg,#1a5499,#2979c8);
-                border-radius:10px;padding:9px 16px;margin:8px 0 10px;
-                display:flex;align-items:center;justify-content:space-between;">
+                border-radius:10px;padding:9px 16px;margin:8px 0 10px;">
         <span style="font-size:0.77rem;color:rgba(255,255,255,0.95);font-weight:600;">
             📍 자치구를 선택하면 우측 상세정보가 바뀝니다
-        </span>
-        <span style="font-size:0.68rem;color:rgba(255,255,255,0.70);">
-            1위 <b style="color:#fff;">{top3_gu[0]}</b> &nbsp;
-            2위 <b style="color:#fff;">{top3_gu[1]}</b> &nbsp;
-            3위 <b style="color:#fff;">{top3_gu[2]}</b>
         </span>
     </div>
     """, unsafe_allow_html=True)
