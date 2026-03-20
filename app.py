@@ -6,7 +6,7 @@ import json
 # ══════════════════════════════════════════════════════════════════════════
 # 페이지 설정
 # ══════════════════════════════════════════════════════════════════════════
-st.set_page_config(page_title="서울 스타터 v2.0", layout="wide", page_icon="🏠")
+st.set_page_config(page_title="서울 스타터: 서울시 자취 가이드", layout="wide", page_icon="🏠")
 
 # ══════════════════════════════════════════════════════════════════════════
 # 커스텀 CSS
@@ -89,10 +89,9 @@ h1 {
     border-left-color: var(--col-sky);
 }
 
-.metric-card .mlabel { font-size:0.70rem; color:var(--col-subtext); font-weight:700; margin-bottom:3px; }
-.metric-card .mvalue { font-size:1.30rem; font-weight:900; color:var(--col-text); line-height:1.2; }
-.metric-card .msub   { font-size:0.66rem; color:var(--col-subtext); margin-top:3px; line-height:1.45; }
-
+.metric-card .mlabel { font-size:0.70rem; color:var(--col-subtext); font-weight:700; margin-bottom:3px; text-align:center; }
+.metric-card .mvalue { font-size:1.30rem; font-weight:900; color:var(--col-text); line-height:1.2; text-align:center; }
+.metric-card .msub   { font-size:0.66rem; color:var(--col-subtext); margin-top:3px; line-height:1.45; text-align:center; }
 /* ── 비교 배지 ── */
 .mcomp {
     display: inline-block; margin-top: 6px;
@@ -148,6 +147,14 @@ h1 {
     pointer-events: none;
 }
 </style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div style="padding: 10px 4px 18px; color: #5a5a8a; font-size: 0.92rem; line-height: 1.8;">
+    🏠 처음 자취를 시작하는 분들을 위한 <b>서울 25개 자치구 비교 가이드</b>입니다.<br>
+    월세, 공원, 도서관, 문화공간 등 실생활 데이터를 기반으로 <b>나에게 맞는 동네</b>를 찾아보세요.<br>
+    <span style="font-size:0.80rem; color:#8fb8ed;">※ 좌측 슬라이더로 나만의 우선순위를 조절하면 추천 순위가 실시간으로 바뀝니다.</span>
+</div>
 """, unsafe_allow_html=True)
 
 
@@ -436,16 +443,17 @@ with st.container(border=True):
     # 호선 선택
     with col_left:
         st.subheader("🚉 지하철 호선으로 찾기")
-        selected_line = st.selectbox(
-            "호선을 선택하세요",
-            ["선택 안 함"] + list(LINE_STATIONS.keys()),
+        selected_lines = st.multiselect(
+            "호선을 선택하세요 (최대 3개)",
+            list(LINE_STATIONS.keys()),
+            max_selections=3,
             key="line_select"
         )
-        if selected_line != "선택 안 함":
-            st.info(f"🚇 **{selected_line}** 경유 자치구를 우선 추천합니다")
+        if selected_lines:
+            st.info(f"🚇 **{', '.join(selected_lines)}** 경유 자치구를 우선 추천합니다")
         else:
             st.caption("호선을 선택하면 해당 노선 경유 자치구를 우선 추천합니다")
-
+           
     # 우선순위 설정
     with col_right:
         st.subheader("⚖️ 주거 우선순위 설정 (1순위 → 4순위)")
@@ -479,14 +487,12 @@ else:
     df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
 
 # ── 호선 선택 보너스: 해당 호선이 경유하는 자치구에 가중치 추가 ────────────
-if selected_line != "선택 안 함":
-    # 선택 호선의 역들이 속한 자치구 목록 추출
-    line_stations = LINE_STATIONS.get(selected_line, [])
+if selected_lines:
     line_gu_set = set()
-    for st_name in line_stations:
-        if st_name in STATION_TO_GU:
-            line_gu_set.add(STATION_TO_GU[st_name])
-    # 해당 자치구에 보너스 점수(현재 점수의 30%) 부여
+    for line in selected_lines:
+        for st_name in LINE_STATIONS.get(line, []):
+            if st_name in STATION_TO_GU:
+                line_gu_set.add(STATION_TO_GU[st_name])
     bonus = df['total_score'].max() * 0.3
     df['total_score'] = df.apply(
         lambda r: r['total_score'] + bonus if r['자치구'] in line_gu_set else r['total_score'],
@@ -525,7 +531,7 @@ col_map, col_info = st.columns([1.6, 1])
 # ─────────────────────────────────────────────── 지도 ──────────────────────
 with col_map:
     st.subheader("📍 서울 자치구 추천 지도")
-    hint_line = f" · {selected_line} 경유 자치구 우선 반영" if selected_line != "선택 안 함" else ""
+    hint_line = f" · {', '.join(selected_lines)} 경유 자치구 우선 반영" if selected_lines else ""
     st.markdown(
         f'<div class="map-hint">🥇🥈🥉 우선순위{hint_line} → 지도에서 추천 자치구를 <b>클릭</b>하면 우측 상세정보가 바뀝니다</div>',
         unsafe_allow_html=True
@@ -588,12 +594,12 @@ with col_map:
     ))
 
     # ── Layer 2: 상위 3개 구 강조 오버레이 ────────────────────────────────────
-    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.45)",
-                  top3_gu[1]: "rgba(98,191,237,0.42)",
-                  top3_gu[2]: "rgba(143,184,237,0.40)"}
-    border_col = {top3_gu[0]: "rgba(255,255,255,0.95)",
-                  top3_gu[1]: "rgba(255,255,255,0.90)",
-                  top3_gu[2]: "rgba(255,255,255,0.85)"}
+    fill_alpha = {top3_gu[0]: "rgba(255,60,60,0.72)",
+                  top3_gu[1]: "rgba(255,165,0,0.58)",
+                  top3_gu[2]: "rgba(255,220,0,0.48)"}
+    border_col = {top3_gu[0]: "rgba(200,0,0,1.0)",
+                  top3_gu[1]: "rgba(200,110,0,1.0)",
+                  top3_gu[2]: "rgba(180,160,0,1.0)"}
 
     for rgu in top3_gu:
         sub = df[df['자치구'] == rgu][['자치구','total_score']]
