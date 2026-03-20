@@ -408,19 +408,6 @@ st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
-        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);
-                    border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
-            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">4</div>
-            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">생활 지표</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.20);
-                    border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;">
-            <div style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1;">실측</div>
-            <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);margin-top:3px;font-weight:600;">공공데이터</div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
