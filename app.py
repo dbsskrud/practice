@@ -665,7 +665,6 @@ with col_map:
         ))
 
     # ── Layer 3: TOP3 — 동그라미 없이 텍스트만 ──────────────────────────────────
-    rank_text_col = {top3_gu[0]: "#1a4fa0", top3_gu[1]: "#1a7aaa", top3_gu[2]: "#5a4aaa"}
     for rgu in top3_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
         fig.add_trace(go.Scattermapbox(
@@ -673,7 +672,7 @@ with col_map:
             mode="text",
             text=[f"{RANK_ICON[rgu]} {rgu}"],
             textposition="middle center",
-            textfont=dict(size=13, color=rank_text_col[rgu], family="Noto Sans KR"),
+           textfont=dict(size=14, color="#ffffff", family="Noto Sans KR"),
             hovertemplate=(
                 f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
                 f"추천점수: {row_d['total_score']:.2f}<br>"
