@@ -625,32 +625,29 @@ with col_map:
 
     fig = go.Figure()
 
-    # ── Layer 1: 전체 구 Choropleth (서울 경계 + 구 분리선) ─────────────────
+    # ── Layer 1: 비우선순위 구 — 외곽선만, 매우 옅은 배경 ──────────────────────
+    others_df = df[~df['자치구'].isin(top3_gu)]
     fig.add_trace(go.Choroplethmapbox(
         geojson=active_geojson,
-        locations=df['자치구'],
-        z=df['total_score'],
+        locations=others_df['자치구'],
+        z=[1] * len(others_df),
         featureidkey="properties.name",
-        colorscale=[
-            [0.00, "rgba(241,227,243,0.55)"],
-            [0.40, "rgba(143,184,237,0.65)"],
-            [1.00, "rgba( 53,144,243,0.72)"],
-        ],
+        colorscale=[[0, "rgba(220,225,235,0.25)"], [1, "rgba(220,225,235,0.25)"]],
         showscale=False,
-        marker_line_width=1.6,
-        marker_line_color="rgba(90,110,140,0.70)",
-        hovertemplate="<b>%{location}</b><br>추천점수: %{z:.2f}<extra></extra>",
-        name="전체구",
+        marker_line_width=1.4,
+        marker_line_color="rgba(100,120,160,0.45)",
+        hovertemplate="<b>%{location}</b><extra></extra>",
+        name="기타구",
         below="",
     ))
 
-    # ── Layer 2: 상위 3개 구 강조 오버레이 ────────────────────────────────────
-    fill_alpha = {top3_gu[0]: "rgba(255,60,60,0.72)",
-                  top3_gu[1]: "rgba(255,165,0,0.58)",
-                  top3_gu[2]: "rgba(255,220,0,0.48)"}
-    border_col = {top3_gu[0]: "rgba(200,0,0,1.0)",
-                  top3_gu[1]: "rgba(200,110,0,1.0)",
-                  top3_gu[2]: "rgba(180,160,0,1.0)"}
+    # ── Layer 2: 상위 3개 구 강조 — 홈페이지 팔레트 색상 ────────────────────────
+    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.75)",
+                  top3_gu[1]: "rgba(98,191,237,0.62)",
+                  top3_gu[2]: "rgba(194,187,240,0.58)"}
+    border_col = {top3_gu[0]: "rgba(42,109,196,1.0)",
+                  top3_gu[1]: "rgba(53,144,243,1.0)",
+                  top3_gu[2]: "rgba(143,184,237,1.0)"}
 
     for rgu in top3_gu:
         sub = df[df['자치구'] == rgu][['자치구','total_score']]
@@ -660,12 +657,6 @@ with col_map:
             z=sub['total_score'],
             featureidkey="properties.name",
             colorscale=[[0, fill_alpha[rgu]], [1, fill_alpha[rgu]]],
-            showscale=False,
-            marker_line_width=3.0,
-            marker_line_color=border_col[rgu],
-            hoverinfo="skip",
-            name=RANK_LABEL[rgu],
-        ))
 
     # ── Layer 3: 마커 (클릭 이벤트 + 레이블) ─────────────────────────────────
     # 상위 3개 — 눈에 띄게, customdata를 [[구명]] 형태로 감싸야 pt["customdata"][0] == 구명
