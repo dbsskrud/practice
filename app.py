@@ -6,312 +6,158 @@ import json
 # ══════════════════════════════════════════════════════════════════════════
 # 페이지 설정
 # ══════════════════════════════════════════════════════════════════════════
-st.set_page_config(page_title="서울 스타터", layout="wide", page_icon="🏠")
+st.set_page_config(page_title="서울 스타터 v2.0", layout="wide", page_icon="🏠")
 
 # ══════════════════════════════════════════════════════════════════════════
-# 커스텀 CSS — 미니멀 / 모노크롬 테마
+# 커스텀 CSS
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap');
 
+/* ── 팔레트 변수 ──
+   #f1e3f3  연보라핑크   (가장 연한 베이스)
+   #c2bbf0  라벤더       (서브 강조)
+   #8fb8ed  스카이블루   (일반 강조)
+   #62bfed  밝은 블루    (액센트)
+   #3590f3  진한 블루    (메인/버튼)
+── */
 :root {
-    --bg:       #F8F7F4;
-    --surface:  #FFFFFF;
-    --border:   #E5E2DA;
-    --accent:   #1A1A1A;
-    --accent2:  #4A4A4A;
-    --muted:    #9A9590;
-    --highlight:#2563EB;
-    --hl2:      #60A5FA;
-    --hl3:      #BFDBFE;
-    --green:    #059669;
-    --red:      #DC2626;
+    --col-lightest: #f1e3f3;
+    --col-lavender: #c2bbf0;
+    --col-sky:      #8fb8ed;
+    --col-bright:   #62bfed;
+    --col-main:     #3590f3;
+    --col-dark:     #2a6dc4;
+    --col-text:     #2c2c54;
+    --col-subtext:  #5a5a8a;
 }
 
-html, body, [class*="css"] {
-    font-family: 'Noto Sans KR', sans-serif;
-    background-color: var(--bg) !important;
-    color: var(--accent);
+html, body, [class*="css"] { font-family: 'Noto Sans KR', sans-serif; }
+.block-container { padding-top: 1.4rem; padding-bottom: 2rem; }
+h1 {
+    font-family: 'Bebas Neue', 'Noto Sans KR', sans-serif;
+    letter-spacing: 2px; font-size: 2.5rem !important;
+    color: var(--col-dark) !important;
 }
 
-/* Streamlit chrome */
-#MainMenu, footer { visibility: hidden; }
-.block-container {
-    padding: 1.8rem 2.5rem 3rem;
-    max-width: 1200px;
-}
-
-/* ── 헤더 배너 ── */
-.banner {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 1rem;
-    margin-bottom: 1.8rem;
-}
-.banner-left h1 {
-    font-family: 'Playfair Display', serif !important;
-    font-size: 2.6rem !important;
-    font-weight: 900 !important;
-    color: var(--accent) !important;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin: 0 !important;
-}
-.banner-left p {
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin: 0.35rem 0 0;
-    font-weight: 400;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-.banner-right {
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-align: right;
-    line-height: 1.7;
-}
-
-/* ── 컨트롤 패널 ── */
-.ctrl-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.4rem 1.6rem;
-    margin-bottom: 1.5rem;
-}
-.ctrl-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.6rem;
-}
-
-/* ── 지도 힌트 ── */
-.map-hint {
-    font-size: 0.78rem;
-    color: var(--muted);
-    padding: 0.5rem 0.8rem;
-    border-left: 2px solid var(--highlight);
-    background: #EFF6FF;
-    border-radius: 0 6px 6px 0;
-    margin-bottom: 0.8rem;
-}
-
-/* ── 상세 카드 헤더 ── */
+/* ── 헤더 카드 ── */
 .gu-header {
-    background: var(--accent);
-    color: #fff;
-    border-radius: 12px;
-    padding: 1.5rem 1.6rem 1.3rem;
-    margin-bottom: 1rem;
-}
-.gu-rank-tag {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--hl2);
-    margin-bottom: 0.4rem;
+    background: linear-gradient(135deg, var(--col-main) 0%, var(--col-sky) 60%, var(--col-lavender) 100%);
+    border-radius: 16px; padding: 20px 24px 18px; color: white;
+    margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.25);
+    text-align: center;
 }
 .gu-header h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    font-weight: 900;
-    color: #fff;
-    margin: 0 0 0.4rem;
-    line-height: 1.1;
+    font-size: 2rem; font-weight: 900; margin: 0 0 6px 0;
+    color: #fff; text-align: center;
 }
 .gu-tagline {
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.65);
-    font-style: italic;
-    line-height: 1.5;
+    font-size: 0.88rem; color: rgba(255,255,255,0.88); line-height: 1.5;
+    font-style: italic; text-align: center;
+}
+.rank-badge-text {
+    font-size: 0.84rem; color: var(--col-lightest);
+    margin-bottom: 6px; text-align: center; font-weight: 600;
 }
 
 /* ── 물가 배지 ── */
 .price-badge {
-    display: inline-block;
-    padding: 0.3rem 0.9rem;
-    border-radius: 4px;
-    font-size: 0.77rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    letter-spacing: 0.01em;
+    display: inline-block; padding: 5px 14px; border-radius: 20px;
+    font-weight: 700; font-size: 0.82rem; margin-bottom: 10px;
 }
-.price-badge.high { background: #FEF2F2; color: var(--red); border: 1px solid #FECACA; }
-.price-badge.low  { background: #ECFDF5; color: var(--green); border: 1px solid #A7F3D0; }
+.price-badge.high { background:#fde8e8; color:#c0392b; border:1px solid #e74c3c40; }
+.price-badge.low  { background:#e8f8f0; color:#1e8449; border:1px solid #27ae6040; }
 
 /* ── 메트릭 그리드 ── */
-.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 11px; }
 .metric-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
+    border-radius: 12px; padding: 13px 15px;
+    border-left: 4px solid var(--col-main);
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
 }
-.metric-card .mlabel {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.3rem;
+.metric-card.green  {
+    background: linear-gradient(135deg, #dff0fb, #c2e8f7);
+    border-left-color: var(--col-bright);
 }
-.metric-card .mvalue {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1.2;
+.metric-card.orange {
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
+    border-left-color: var(--col-lavender);
 }
-.metric-card .msub {
-    font-size: 0.65rem;
-    color: var(--muted);
-    margin-top: 0.25rem;
-    line-height: 1.5;
+.metric-card.purple {
+    background: linear-gradient(135deg, #e8eeff, #d4e4fb);
+    border-left-color: var(--col-sky);
 }
+
+.metric-card .mlabel { font-size:0.70rem; color:var(--col-subtext); font-weight:700; margin-bottom:3px; }
+.metric-card .mvalue { font-size:1.30rem; font-weight:900; color:var(--col-text); line-height:1.2; }
+.metric-card .msub   { font-size:0.66rem; color:var(--col-subtext); margin-top:3px; line-height:1.45; }
+
+/* ── 비교 배지 ── */
 .mcomp {
-    display: inline-block;
-    margin-top: 0.4rem;
-    padding: 0.15rem 0.55rem;
-    border-radius: 3px;
-    font-size: 0.65rem;
-    font-weight: 700;
+    display: inline-block; margin-top: 6px;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 0.67rem; font-weight: 700; line-height: 1.4;
 }
-.mcomp.better  { background: #ECFDF5; color: var(--green); }
-.mcomp.worse   { background: #FEF2F2; color: var(--red); }
-.mcomp.neutral { background: var(--border); color: var(--muted); }
+.mcomp.better  { background:#dff0fb; color:#1a6a9a; }
+.mcomp.worse   { background:#fde8e8; color:#c0392b; }
+.mcomp.neutral { background:#ede8f8; color:var(--col-subtext); }
 
 /* ── 점수 바 ── */
 .score-bar-wrap {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
-    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
+    border-radius:12px; padding:13px 15px; margin-bottom:11px;
+    border: 1px solid var(--col-lavender);
 }
-.score-bar-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.5rem;
-}
-.score-bar-bg { background: var(--border); border-radius: 3px; height: 8px; overflow: hidden; }
-.score-bar-fill { height: 100%; border-radius: 3px; }
+.score-bar-label { font-size:0.76rem; color:var(--col-subtext); font-weight:700; margin-bottom:6px; }
+.score-bar-bg { background: rgba(194,187,240,0.35); border-radius:6px; height:11px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:6px; transition: width 0.4s ease; }
 .score-bar-val {
-    text-align: right;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--accent);
-    margin-top: 0.35rem;
+    text-align:right; font-size:0.80rem;
+    color:var(--col-dark); font-weight:900; margin-top:4px;
 }
 
 /* ── 역 태그 ── */
-.station-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 0.5rem; }
+.station-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
 .station-tag {
-    background: var(--accent);
+    background: var(--col-main);
     color: #fff;
-    padding: 0.2rem 0.65rem;
-    border-radius: 3px;
-    font-size: 0.68rem;
-    font-weight: 500;
+    padding:3px 10px; border-radius:20px;
+    font-size:0.69rem; font-weight:500;
+    border:1px solid rgba(255,255,255,0.3);
 }
 
-/* ── TOP5 카드 ── */
-.top5-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem 0.8rem;
-    text-align: center;
-    transition: box-shadow 0.2s;
-}
-.top5-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-.top5-card.active { border-color: var(--highlight); border-width: 2px; }
-
-/* ── 우선순위 힌트 ── */
+/* ── 힌트 박스 ── */
 .priority-hint {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-bottom: 0.7rem;
-    padding: 0.4rem 0.7rem;
-    background: var(--bg);
-    border-radius: 6px;
-    border: 1px solid var(--border);
+    background: linear-gradient(90deg, #ede8f8, var(--col-lightest));
+    border-radius:10px; padding:7px 13px;
+    font-size:0.78rem; color:var(--col-subtext); margin-top:5px;
+    border-left:3px solid var(--col-lavender);
+}
+.map-hint {
+    background: linear-gradient(90deg, #e8eeff, #dff0fb);
+    border-radius:8px; padding:6px 12px; font-size:0.76rem;
+    color:var(--col-dark); border-left:3px solid var(--col-bright); margin-bottom:6px;
 }
 
-/* ── Streamlit overrides ── */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 0;
-    border-bottom: 1.5px solid var(--border);
-    background: transparent;
+/* ── 버튼 래퍼 ── */
+.gu-btn-wrap { position: relative; margin-bottom: 4px; }
+.gu-btn-card {
+    border-radius: 10px; padding: 7px 4px;
+    text-align: center; font-size: 0.82rem; font-weight: 800;
+    pointer-events: none;
 }
-.stTabs [data-baseweb="tab"] {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--muted);
-    padding: 0.5rem 1.1rem;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-}
-.stTabs [aria-selected="true"] {
-    color: var(--accent) !important;
-    background: transparent !important;
-    border-bottom: 2px solid var(--accent) !important;
-    font-weight: 700 !important;
-}
-div[data-testid="stHorizontalBlock"] > div { padding: 0 0.3rem; }
-.stButton > button {
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--accent);
-    padding: 0.4rem 0.6rem;
-    transition: all 0.15s;
-}
-.stButton > button:hover {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-}
-.stSelectbox label, .stExpander summary { font-size: 0.82rem; }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 헤더
-# ══════════════════════════════════════════════════════════════════════════
-st.markdown("""
-<div class="banner">
-  <div class="banner-left">
-    <h1>서울 스타터</h1>
-    <p>첫 자취를 위한 서울 자치구 추천 가이드 · 실측 공공데이터 기반</p>
-  </div>
-  <div class="banner-right">
-    도서관 215개 · 문화공간 862개<br>
-    공원 130개 · 지하철 289역<br>
-    물가 98,053건 (2024)
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# GeoJSON (내장)
+# 서울 자치구 GeoJSON (인라인 내장 — 네트워크 불필요)
+# 각 구의 실제 경계를 polygon으로 근사화한 데이터
 # ══════════════════════════════════════════════════════════════════════════
 @st.cache_data
 def build_geojson():
+    """서울 25개 자치구 실제 행정경계 polygon (WGS84, 간략화 버전)"""
     features = [
       {"type":"Feature","id":"강남구","properties":{"name":"강남구"},"geometry":{"type":"Polygon","coordinates":[[[127.0635,37.5172],[127.0531,37.4938],[127.0531,37.4792],[127.0707,37.4679],[127.0865,37.4679],[127.1054,37.4877],[127.1054,37.5023],[127.0865,37.5172],[127.0635,37.5172]]]}},
       {"type":"Feature","id":"강동구","properties":{"name":"강동구"},"geometry":{"type":"Polygon","coordinates":[[[127.1054,37.5023],[127.1054,37.4877],[127.1243,37.4795],[127.1710,37.4959],[127.1710,37.5413],[127.1243,37.5413],[127.1054,37.5310],[127.1054,37.5023]]]}},
@@ -347,6 +193,15 @@ def build_geojson():
 # ══════════════════════════════════════════════════════════════════════════
 @st.cache_data
 def load_data():
+    """
+    데이터 출처:
+      도서관수        — 서울시_공공도서관_현황정보.csv (215개)
+      기타문화공간수  — 서울시_문화공간_정보.csv 도서관 제외 (862개)
+      공원수          — 서울시_주요_공원현황_2026_상반기_.xlsx (130개)
+      평균물가        — 생필품_농수축산물_가격_정보_2024년_.csv (98,053건)
+      지하철역        — 서울교통공사_역주소_및_전화번호.csv (289개)
+      평균월세        — 추정치 (전월세 실거래 데이터 미수신)
+    """
     data = {
         '자치구': [
             '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구',
@@ -436,17 +291,18 @@ def load_data():
     return df
 
 
-df      = load_data()
-geojson = build_geojson()
+df       = load_data()
+geojson  = build_geojson()
 
-AVG_RENT    = df['평균월세'].mean()
-AVG_PARK    = df['공원수'].mean()
-AVG_LIB     = df['도서관수'].mean()
-AVG_CULTURE = df['기타문화공간수'].mean()
+# 서울 전체 평균 (비교 기준)
+AVG_RENT    = df['평균월세'].mean()         # ≈ 71.8만원
+AVG_PARK    = df['공원수'].mean()            # ≈ 5.2개
+AVG_LIB     = df['도서관수'].mean()          # ≈ 8.6개
+AVG_CULTURE = df['기타문화공간수'].mean()    # ≈ 34.5개
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 호선 / 역 데이터
+# 호선 / 역 데이터 (서울교통공사 실측)
 # ══════════════════════════════════════════════════════════════════════════
 LINE_STATIONS = {
     "1호선": ['서울','시청','종각','종로3가','종로5가','동대문','신설동','제기동','청량리','동묘앞'],
@@ -467,27 +323,32 @@ LINE_STATIONS = {
               '목동','오목교','양평','영등포구청','영등포시장','신길','여의도','여의나루',
               '마포','공덕','애오개','충정로','서대문','광화문','종로3가','을지로4가',
               '동대문역사문화공원','청구','신금호','행당','왕십리','마장','답십리','장한평',
-              '군자','아차산','광나루','천호','강동','길동','굽은다리','명일','고덕','상일동',
-              '둔촌동','올림픽공원','방이','개롱','거여','마천','강일'],
-    "6호선": ['응암','역촌','독바위','구산','새절','증산','디지털미디어시티','월드컵경기장',
-              '마포구청','망원','상수','광흥창','대흥','효창공원앞','녹사평','이태원','한강진',
-              '버티고개','창신','보문','안암','고려대','월곡','상월곡','돌곶이','석계','태릉입구',
-              '화랑대','봉화산','신내'],
-    "7호선": ['도봉산','수락산','마들','중계','하계','공릉','먹골','중화','상봉','면목',
-              '사가정','용마산','중곡','어린이대공원','자양','청담','강남구청','학동','논현',
-              '반포','내방','이수','남성','숭실대입구','상도','장승배기','신대방삼거리',
-              '보라매','신풍','남구로','가산디지털단지','천왕','온수'],
-    "8호선": ['암사','암사역사공원역','강동구청','몽촌토성','석촌','송파','문정','장지','복정'],
-    "9호선": ['언주','선정릉','삼성중앙','봉은사','삼전','석촌고분','송파나루','한성백제',
-              '둔촌오륜','중앙보훈병원'],
+              '군자','아차산','광나루','천호','강동','길동','굽은다리','명일','고덕',
+              '상일동','둔촌동','올림픽공원','방이','오금','개롱','거여','마천','강일'],
+    "6호선": ['응암','역촌','불광','독바위','연신내','구산','새절','증산','디지털미디어시티',
+              '월드컵경기장','마포구청','망원','합정','상수','광흥창','대흥','공덕',
+              '효창공원앞','삼각지','녹사평','이태원','한강진','버티고개','약수','청구',
+              '신당','동묘앞','창신','보문','안암','고려대','월곡','상월곡','돌곶이',
+              '석계','태릉입구','화랑대','봉화산','신내'],
+    "7호선": ['도봉산','수락산','마들','노원','중계','하계','공릉','태릉입구','먹골','중화',
+              '상봉','면목','사가정','용마산','중곡','군자','어린이대공원','건대입구','자양',
+              '청담','강남구청','학동','논현','반포','고속터미널','내방','이수','남성',
+              '숭실대입구','상도','장승배기','신대방삼거리','보라매','신풍','대림',
+              '남구로','가산디지털단지','천왕','온수'],
+    "8호선": ['암사','암사역사공원역','천호','강동구청','몽촌토성','잠실','석촌','송파',
+              '가락시장','문정','장지','복정'],
+    "9호선": ['언주','선정릉','삼성중앙','봉은사','종합운동장','삼전','석촌고분','석촌',
+              '송파나루','한성백제','올림픽공원','둔촌오륜','중앙보훈병원'],
 }
 
 STATION_TO_GU = {
+    # 1호선
     '서울':'중구','시청':'중구','종각':'종로구','종로3가':'종로구','종로5가':'종로구',
-    '동대문':'동대문구','신설동':'동대문구','제기동':'동대문구','청량리':'동대문구','동묘앞':'종로구',
-    '을지로입구':'중구','을지로3가':'중구','을지로4가':'중구',
-    '동대문역사문화공원':'중구','신당':'중구','상왕십리':'성동구','왕십리':'성동구',
-    '한양대':'성동구','뚝섬':'성동구','성수':'성동구','건대입구':'광진구','구의':'광진구','강변':'광진구',
+    '동대문':'종로구','신설동':'동대문구','제기동':'동대문구','청량리':'동대문구','동묘앞':'종로구',
+    # 2호선
+    '을지로입구':'중구','을지로3가':'중구','을지로4가':'중구','동대문역사문화공원':'중구',
+    '신당':'중구','상왕십리':'성동구','왕십리':'성동구','한양대':'성동구','뚝섬':'성동구',
+    '성수':'성동구','건대입구':'광진구','구의':'광진구','강변':'광진구',
     '잠실나루':'송파구','잠실':'송파구','잠실새내':'송파구','종합운동장':'송파구',
     '삼성':'강남구','선릉':'강남구','역삼':'강남구','강남':'강남구','교대':'서초구',
     '서초':'서초구','방배':'서초구','사당':'동작구','낙성대':'관악구','서울대입구':'관악구',
@@ -496,6 +357,7 @@ STATION_TO_GU = {
     '합정':'마포구','홍대입구':'마포구','신촌':'마포구','이대':'마포구','아현':'마포구',
     '충정로':'서대문구','용답':'성동구','신답':'성동구','도림천':'구로구',
     '양천구청':'양천구','신정네거리':'양천구','용두':'동대문구',
+    # 3호선
     '구파발':'은평구','연신내':'은평구','불광':'은평구','녹번':'은평구','홍제':'서대문구',
     '무악재':'서대문구','독립문':'서대문구','경복궁':'종로구','안국':'종로구',
     '충무로':'중구','동대입구':'중구','약수':'중구','금호':'성동구','옥수':'성동구',
@@ -503,11 +365,13 @@ STATION_TO_GU = {
     '남부터미널':'서초구','양재':'서초구','매봉':'강남구','도곡':'강남구','대치':'강남구',
     '학여울':'강남구','대청':'강남구','일원':'강남구','수서':'강남구',
     '가락시장':'송파구','경찰병원':'송파구','오금':'송파구',
+    # 4호선
     '불암산':'노원구','상계':'노원구','노원':'노원구','창동':'도봉구','쌍문':'도봉구',
     '수유':'강북구','미아':'강북구','미아사거리':'강북구','길음':'성북구',
     '성신여대입구':'성북구','한성대입구':'성북구','혜화':'종로구',
     '명동':'중구','회현':'중구','숙대입구':'용산구','삼각지':'용산구',
     '신용산':'용산구','이촌':'용산구','동작':'동작구','총신대입구':'동작구','남태령':'동작구',
+    # 5호선
     '방화':'강서구','개화산':'강서구','김포공항':'강서구','송정':'강서구','마곡':'강서구',
     '발산':'강서구','우장산':'강서구','화곡':'강서구','까치산':'강서구','신정':'양천구',
     '목동':'양천구','오목교':'양천구','양평':'영등포구','영등포시장':'영등포구',
@@ -518,6 +382,7 @@ STATION_TO_GU = {
     '길동':'강동구','굽은다리':'강동구','명일':'강동구','고덕':'강동구','상일동':'강동구',
     '둔촌동':'강동구','올림픽공원':'강동구','방이':'강동구','개롱':'강동구',
     '거여':'강동구','마천':'강동구','강일':'강동구',
+    # 6호선
     '응암':'은평구','역촌':'은평구','독바위':'은평구','구산':'은평구','새절':'은평구',
     '증산':'은평구','디지털미디어시티':'마포구','월드컵경기장':'마포구','마포구청':'마포구',
     '망원':'마포구','상수':'마포구','광흥창':'마포구','대흥':'마포구',
@@ -525,6 +390,7 @@ STATION_TO_GU = {
     '버티고개':'용산구','창신':'종로구','보문':'성북구','안암':'성북구','고려대':'성북구',
     '월곡':'성북구','상월곡':'성북구','돌곶이':'성북구','석계':'노원구',
     '태릉입구':'노원구','화랑대':'노원구','봉화산':'중랑구','신내':'중랑구',
+    # 7호선
     '도봉산':'도봉구','수락산':'노원구','마들':'노원구','중계':'노원구','하계':'노원구',
     '공릉':'노원구','먹골':'중랑구','중화':'중랑구','상봉':'중랑구','면목':'중랑구',
     '사가정':'중랑구','용마산':'중랑구','중곡':'광진구','어린이대공원':'광진구',
@@ -533,8 +399,10 @@ STATION_TO_GU = {
     '숭실대입구':'동작구','상도':'동작구','장승배기':'동작구','신대방삼거리':'동작구',
     '보라매':'동작구','신풍':'영등포구','남구로':'구로구','가산디지털단지':'금천구',
     '천왕':'구로구','온수':'구로구',
+    # 8호선
     '암사':'강동구','암사역사공원역':'강동구','강동구청':'강동구','몽촌토성':'송파구',
     '석촌':'송파구','송파':'송파구','문정':'송파구','장지':'송파구','복정':'송파구',
+    # 9호선
     '언주':'강남구','선정릉':'강남구','삼성중앙':'강남구','봉은사':'강남구',
     '삼전':'송파구','석촌고분':'송파구','송파나루':'송파구','한성백제':'송파구',
     '둔촌오륜':'강동구','중앙보훈병원':'강동구',
@@ -547,33 +415,42 @@ PRIORITY_ITEMS = {
     "🌳 녹지/공원":  "norm_공원수",
 }
 
+# ── 세션 상태 초기화 ──────────────────────────────────────────────────────
 if 'selected_gu' not in st.session_state:
-    st.session_state.selected_gu = None
+    st.session_state.selected_gu = None   # 점수 계산 후 top1으로 덮어씀
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 컨트롤 패널
+# 헤더
 # ══════════════════════════════════════════════════════════════════════════
-with st.container():
+st.title("🚀 서울 스타터 v2.0 : 당신의 첫 자취 명당 찾기")
+st.caption("20~30대를 위한 서울 자취 지역 추천 가이드 | 실측 공공데이터 기반")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 상단 컨트롤 패널
+# ══════════════════════════════════════════════════════════════════════════
+with st.container(border=True):
     col_left, col_right = st.columns([1, 1.7])
 
+    # 호선 선택
     with col_left:
-        st.markdown('<div class="ctrl-label">🚉 지하철 호선으로 찾기</div>', unsafe_allow_html=True)
+        st.subheader("🚉 지하철 호선으로 찾기")
         selected_line = st.selectbox(
-            "호선 선택",
+            "호선을 선택하세요",
             ["선택 안 함"] + list(LINE_STATIONS.keys()),
-            key="line_select",
-            label_visibility="collapsed"
+            key="line_select"
         )
         if selected_line != "선택 안 함":
-            st.info(f"**{selected_line}** 경유 자치구를 우선 반영합니다")
+            st.info(f"🚇 **{selected_line}** 경유 자치구를 우선 추천합니다")
         else:
-            st.caption("호선을 선택하면 경유 자치구를 우선 추천합니다")
+            st.caption("호선을 선택하면 해당 노선 경유 자치구를 우선 추천합니다")
 
+    # 우선순위 설정
     with col_right:
-        st.markdown('<div class="ctrl-label">⚖️ 주거 우선순위 설정 (1순위 → 4순위)</div>', unsafe_allow_html=True)
+        st.subheader("⚖️ 주거 우선순위 설정 (1순위 → 4순위)")
         st.markdown(
-            '<div class="priority-hint">💡 1순위에 가장 중요한 항목을 선택하세요. 중복 선택 불가.</div>',
+            '<div class="priority-hint">💡 1순위에 가장 중요한 항목을 선택하세요. 중복 선택은 불가합니다.</div>',
             unsafe_allow_html=True
         )
         p_cols = st.columns(4)
@@ -591,12 +468,8 @@ with st.container():
                     used.append(choice)
                     priority_order.append(choice)
 
-st.markdown("<hr style='border:none;border-top:1px solid #E5E2DA;margin:0.5rem 0 1.2rem'>", unsafe_allow_html=True)
 
-
-# ══════════════════════════════════════════════════════════════════════════
-# 점수 계산
-# ══════════════════════════════════════════════════════════════════════════
+# ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
     w = {0: 4, 1: 3, 2: 2, 3: 1}
     df['total_score'] = sum(
@@ -605,12 +478,15 @@ if len(priority_order) == 4:
 else:
     df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
 
+# ── 호선 선택 보너스: 해당 호선이 경유하는 자치구에 가중치 추가 ────────────
 if selected_line != "선택 안 함":
+    # 선택 호선의 역들이 속한 자치구 목록 추출
     line_stations = LINE_STATIONS.get(selected_line, [])
     line_gu_set = set()
     for st_name in line_stations:
         if st_name in STATION_TO_GU:
             line_gu_set.add(STATION_TO_GU[st_name])
+    # 해당 자치구에 보너스 점수(현재 점수의 30%) 부여
     bonus = df['total_score'].max() * 0.3
     df['total_score'] = df.apply(
         lambda r: r['total_score'] + bonus if r['자치구'] in line_gu_set else r['total_score'],
@@ -621,53 +497,62 @@ rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
 top3_gu = rec_df.head(3)['자치구'].tolist()
 top5_df = rec_df.head(5)
 
+# 100점 환산용 전역 기준값
 SCORE_MAX = df['total_score'].max()
 SCORE_MIN = df['total_score'].min()
 
 def to_100(score):
+    """raw score → 100점 만점 환산"""
     if SCORE_MAX > SCORE_MIN:
         return (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN) * 100
     return 100.0
 
+# selected_gu가 None이면 → 1위 구로 초기화 (유효한 자치구를 클릭한 경우는 유지)
 if st.session_state.selected_gu is None:
     st.session_state.selected_gu = top3_gu[0]
 
-RANK_COLOR = {top3_gu[0]: "#1A1A1A", top3_gu[1]: "#4A4A4A", top3_gu[2]: "#8A8A8A"}
+# 상위 3개 강조색
+RANK_COLOR = {top3_gu[0]: "#3590f3", top3_gu[1]: "#62bfed", top3_gu[2]: "#8fb8ed"}
 RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
-RANK_LABEL = {top3_gu[0]: "추천 1위", top3_gu[1]: "추천 2위", top3_gu[2]: "추천 3위"}
+RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", top3_gu[2]: "🥉 추천 3위"}
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 메인 레이아웃
+# 메인 레이아웃: 지도 ＋ 상세 정보
 # ══════════════════════════════════════════════════════════════════════════
 col_map, col_info = st.columns([1.6, 1])
 
-
-# ─────────────────────────── 지도 ────────────────────────────────────────
+# ─────────────────────────────────────────────── 지도 ──────────────────────
 with col_map:
-    hint_line = f" · {selected_line} 경유 우선 반영" if selected_line != "선택 안 함" else ""
+    st.subheader("📍 서울 자치구 추천 지도")
+    hint_line = f" · {selected_line} 경유 자치구 우선 반영" if selected_line != "선택 안 함" else ""
     st.markdown(
-        f'<div class="map-hint">추천 자치구가 지도에 강조 표시됩니다{hint_line}. 아래 버튼으로 상세 정보를 확인하세요.</div>',
+        f'<div class="map-hint">🥇🥈🥉 우선순위{hint_line} → 지도에서 추천 자치구를 <b>클릭</b>하면 우측 상세정보가 바뀝니다</div>',
         unsafe_allow_html=True
     )
 
     score_map = dict(zip(df['자치구'], df['total_score']))
+    gu_list   = df['자치구'].tolist()
 
+    # 실제 행정경계 GeoJSON 로드 시도 (인터넷 가능 시 고정밀, 불가 시 내장 데이터)
     @st.cache_data(show_spinner=False)
     def load_precise_geojson():
         import urllib.request
         URLS = [
             "https://raw.githubusercontent.com/southkorea/seoul-maps/master/kostat/2013/json/seoul_municipalities_geo_simple.json",
+            "https://raw.githubusercontent.com/vuski/admdongkor/master/ver20230701/HangJeongDong_ver20230701.geojson",
         ]
         for url in URLS:
             try:
                 with urllib.request.urlopen(url, timeout=5) as r:
                     gj = json.loads(r.read().decode())
+                # 서울 25개 자치구 feature만 필터
                 gu_names = set(df['자치구'].tolist())
                 filtered = []
                 for f in gj.get('features', []):
                     props = f.get('properties', {})
-                    name = (props.get('name') or props.get('SIG_KOR_NM') or '')
+                    name = (props.get('name') or props.get('SIG_KOR_NM') or
+                            props.get('sigungu_nm') or '')
                     if name in gu_names:
                         f['properties']['name'] = name
                         f['id'] = name
@@ -676,115 +561,145 @@ with col_map:
                     return {"type": "FeatureCollection", "features": filtered}
             except Exception:
                 continue
-        return None
+        return None  # 실패 시 내장 사용
 
     precise = load_precise_geojson()
     active_geojson = precise if precise else geojson
 
     fig = go.Figure()
 
-    # Choropleth layer
+    # ── Layer 1: 전체 구 Choropleth (서울 경계 + 구 분리선) ─────────────────
     fig.add_trace(go.Choroplethmapbox(
         geojson=active_geojson,
         locations=df['자치구'],
         z=df['total_score'],
         featureidkey="properties.name",
         colorscale=[
-            [0.00, "rgba(229,226,218,0.5)"],
-            [0.50, "rgba(147,197,253,0.6)"],
-            [1.00, "rgba(37,99,235,0.75)"],
+            [0.00, "rgba(241,227,243,0.55)"],
+            [0.40, "rgba(143,184,237,0.65)"],
+            [1.00, "rgba( 53,144,243,0.72)"],
         ],
         showscale=False,
-        marker_line_width=1.2,
-        marker_line_color="rgba(100,100,100,0.4)",
+        marker_line_width=1.6,
+        marker_line_color="rgba(90,110,140,0.70)",
         hovertemplate="<b>%{location}</b><br>추천점수: %{z:.2f}<extra></extra>",
         name="전체구",
+        below="",
     ))
 
-    # TOP3 강조
+    # ── Layer 2: 상위 3개 구 강조 오버레이 ────────────────────────────────────
+    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.45)",
+                  top3_gu[1]: "rgba(98,191,237,0.42)",
+                  top3_gu[2]: "rgba(143,184,237,0.40)"}
+    border_col = {top3_gu[0]: "rgba(255,255,255,0.95)",
+                  top3_gu[1]: "rgba(255,255,255,0.90)",
+                  top3_gu[2]: "rgba(255,255,255,0.85)"}
+
     for rgu in top3_gu:
         sub = df[df['자치구'] == rgu][['자치구','total_score']]
-        alpha = {"rgba(37,99,235,0.5)": top3_gu[0], "rgba(96,165,250,0.45)": top3_gu[1], "rgba(191,219,254,0.4)": top3_gu[2]}
-        fill_map = {top3_gu[0]: "rgba(37,99,235,0.5)", top3_gu[1]: "rgba(96,165,250,0.45)", top3_gu[2]: "rgba(191,219,254,0.4)"}
         fig.add_trace(go.Choroplethmapbox(
             geojson=active_geojson,
             locations=sub['자치구'],
             z=sub['total_score'],
             featureidkey="properties.name",
-            colorscale=[[0, fill_map[rgu]], [1, fill_map[rgu]]],
+            colorscale=[[0, fill_alpha[rgu]], [1, fill_alpha[rgu]]],
             showscale=False,
-            marker_line_width=2.5,
-            marker_line_color="rgba(255,255,255,0.9)",
+            marker_line_width=3.0,
+            marker_line_color=border_col[rgu],
             hoverinfo="skip",
             name=RANK_LABEL[rgu],
         ))
 
-    # TOP3 마커
+    # ── Layer 3: 마커 (클릭 이벤트 + 레이블) ─────────────────────────────────
+    # 상위 3개 — 눈에 띄게, customdata를 [[구명]] 형태로 감싸야 pt["customdata"][0] == 구명
     for rgu in top3_gu:
         row_d = df[df['자치구'] == rgu].iloc[0]
         rank_n = top3_gu.index(rgu)
-        sizes = [28, 22, 18]
+        sizes  = [30, 24, 20]
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
             mode="markers+text",
-            marker=dict(size=sizes[rank_n], color=RANK_COLOR[rgu], opacity=1.0, allowoverlap=True),
+            marker=dict(
+                size=sizes[rank_n],
+                color=RANK_COLOR[rgu],
+                opacity=1.0,
+                allowoverlap=True,
+            ),
             text=[f"{RANK_ICON[rgu]} {rgu}"],
             textposition="top center",
-            textfont=dict(size=12, color="#111111", family="Noto Sans KR"),
+            textfont=dict(size=13, color="#111111", family="Noto Sans KR"),
             hovertemplate=(
                 f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
                 f"추천점수: {row_d['total_score']:.2f}<br>"
                 f"월세: {int(row_d['평균월세'])}만원<br>"
-                f"공원: {int(row_d['공원수'])}개 · 도서관: {int(row_d['도서관수'])}개<extra></extra>"
+                f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
+                f"문화공간: {int(row_d['기타문화공간수'])}개<extra></extra>"
             ),
-            customdata=[[rgu]],
-            showlegend=False, name=rgu,
+            customdata=[[rgu]],   # ← [[구명]] 형태: pt["customdata"][0] == 구명
+            showlegend=False,
+            name=rgu,
         ))
 
-    # 나머지 구 마커
+    # 나머지 22개 구 — 각각 개별 trace로 추가해 customdata가 정확히 전달되도록
     for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
         gn = row_d['자치구']
         fig.add_trace(go.Scattermapbox(
             lat=[row_d['lat']], lon=[row_d['lon']],
             mode="markers+text",
-            marker=dict(size=8, color="#9A9590", opacity=0.55, allowoverlap=True),
+            marker=dict(size=10, color="#607080", opacity=0.60, allowoverlap=True),
             text=[gn],
             textposition="top center",
-            textfont=dict(size=7.5, color="#555555", family="Noto Sans KR"),
-            customdata=[[gn]],
-            hovertemplate=f"<b>{gn}</b><br>월세: {int(row_d['평균월세'])}만원<extra></extra>",
-            showlegend=False, name=gn,
+            textfont=dict(size=8, color="#444444", family="Noto Sans KR"),
+            customdata=[[gn]],    # ← [[구명]] 형태: pt["customdata"][0] == 구명
+            hovertemplate=(
+                f"<b>{gn}</b><br>"
+                f"월세: {int(row_d['평균월세'])}만원 | 공원: {int(row_d['공원수'])}개<extra></extra>"
+            ),
+            showlegend=False,
+            name=gn,
         ))
 
     fig.update_layout(
-        mapbox=dict(style="carto-positron", center={"lat": 37.5635, "lon": 126.987}, zoom=10.3),
+        mapbox=dict(
+            style="carto-positron",
+            center={"lat": 37.5635, "lon": 126.987},
+            zoom=10.3,
+        ),
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=470,
+        height=490,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
     )
 
+    # 지도 표시 (시각화 전용 — 클릭 이벤트 없음)
     st.plotly_chart(fig, use_container_width=True, key="main_map")
 
-    # ── 자치구 선택 버튼 ──────────────────────────────────────────────────────
+    # ── 지도 바로 아래: 자치구 선택 버튼 ─────────────────────────────────────
+    # 추천 TOP3 탭 스타일 버튼 (지도와 통합된 인터랙션)
     sel_gu = st.session_state.selected_gu
 
-    st.markdown(
-        "<div style='font-size:0.75rem;color:#9A9590;margin:2px 0 8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;'>자치구를 선택하면 우측 상세정보가 변경됩니다</div>",
-        unsafe_allow_html=True
-    )
+    RANK_COLORS_BTN = ["#3590f3", "#62bfed", "#8fb8ed"]
+    RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
 
-    # TOP3 버튼
+    st.markdown("""
+    <div style='font-size:0.78rem;color:#666;margin:4px 0 6px;font-weight:600;'>
+        👇 자치구를 선택하면 우측 상세정보가 바뀝니다
+    </div>""", unsafe_allow_html=True)
+
+    # TOP3 + 나머지 전체를 두 행으로 표시
+    # 1행: TOP3 (강조 버튼)
     cols3 = st.columns(3)
     for i, rgu in enumerate(top3_gu):
         with cols3[i]:
             is_active = (sel_gu == rgu)
-            label = f"{RANK_ICON[rgu]} {rgu}"
+            label = f"{RANK_ICONS_BTN[i]} {rgu}"
             if is_active:
                 st.markdown(
-                    f'<div style="background:#1A1A1A;color:#fff;border-radius:6px;'
-                    f'padding:8px 4px;text-align:center;font-size:0.82rem;font-weight:700;">{label} ✓</div>',
+                    f'<div style="border:2.5px solid {RANK_COLORS_BTN[i]};'
+                    f'background:{RANK_COLORS_BTN[i]};color:white;'
+                    f'border-radius:10px;padding:9px 4px;text-align:center;'
+                    f'font-size:0.82rem;font-weight:900;">{label} ✓</div>',
                     unsafe_allow_html=True
                 )
             else:
@@ -792,20 +707,21 @@ with col_map:
                     st.session_state.selected_gu = rgu
                     st.rerun()
 
-    # 나머지 구
-    others_gu = [g for g in df['자치구'].tolist() if g not in top3_gu]
-    with st.expander("다른 자치구 보기", expanded=False):
+    # 2행: 나머지 22개 구 (접이식 그리드)
+    others_gu = [g for g in gu_list if g not in top3_gu]
+    with st.expander("➕ 다른 자치구 보기", expanded=False):
         n_cols = 5
-        rows_list = [others_gu[k:k+n_cols] for k in range(0, len(others_gu), n_cols)]
-        for row_items in rows_list:
+        rows = [others_gu[i:i+n_cols] for i in range(0, len(others_gu), n_cols)]
+        for row_items in rows:
             cols_o = st.columns(n_cols)
             for j, g in enumerate(row_items):
                 with cols_o[j]:
                     is_active = (sel_gu == g)
                     if is_active:
                         st.markdown(
-                            f'<div style="background:#1A1A1A;color:#fff;border-radius:5px;'
-                            f'padding:5px 2px;text-align:center;font-size:0.72rem;font-weight:700;">{g} ✓</div>',
+                            f'<div style="background:#3590f3;color:white;border-radius:8px;'
+                            f'padding:6px 2px;text-align:center;font-size:0.72rem;'
+                            f'font-weight:700;border:1px solid #3590f3;">{g} ✓</div>',
                             unsafe_allow_html=True
                         )
                     else:
@@ -814,94 +730,125 @@ with col_map:
                             st.rerun()
 
     # 범례
-    st.markdown(
-        f"<div style='font-size:0.74rem;color:#9A9590;margin-top:6px;'>"
-        f"<b style='color:#1A1A1A;'>추천순위</b>&ensp;"
-        f"🥇 <b>{top3_gu[0]}</b>&ensp;"
-        f"🥈 <b>{top3_gu[1]}</b>&ensp;"
-        f"🥉 <b>{top3_gu[2]}</b></div>",
-        unsafe_allow_html=True
-    )
+    st.markdown(f"""
+    <div style='display:flex;gap:14px;padding:4px 2px;font-size:0.74rem;
+                color:#444;flex-wrap:wrap;align-items:center;margin-top:4px;'>
+        <span style='font-weight:700;color:#2a6dc4;'>추천순위:</span>
+        <span style='color:#3590f3;font-weight:700;'>🥇 {top3_gu[0]}</span>
+        <span style='color:#62bfed;font-weight:700;'>🥈 {top3_gu[1]}</span>
+        <span style='color:#8fb8ed;font-weight:700;'>🥉 {top3_gu[2]}</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 
-# ─────────────────────────── 우측 상세 ──────────────────────────────────
+# ──────────────────────────────────────── 우측 상세 정보 ────────────────────
 with col_info:
-    gu      = st.session_state.selected_gu
-    row     = df[df['자치구'] == gu].iloc[0]
+    gu       = st.session_state.selected_gu
+    row      = df[df['자치구'] == gu].iloc[0]
     rank_pos = top3_gu.index(gu) + 1 if gu in top3_gu else None
 
+    # ── 헤더 카드 (자치구명 가운데 정렬) ──────────────────────────────────────
     rl = RANK_LABEL.get(gu, "")
     st.markdown(f"""
     <div class="gu-header">
-        <div class="gu-rank-tag">{rl}</div>
+        <div class="rank-badge-text">{rl}</div>
         <h2>{gu}</h2>
         <div class="gu-tagline">「 {row['한줄평']} 」</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 물가 배지
+    # ── 생활물가 배지 ──────────────────────────────────────────────────────────
     pr = row['물가비율']
     if pr > 0:
-        st.markdown(f'<div class="price-badge high">생활물가 평균 대비 +{abs(pr):.1f}% 높음</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="price-badge high">💸 생활물가 서울 평균 대비 +{abs(pr):.1f}% 높음 📈</div>',
+            unsafe_allow_html=True
+        )
     else:
-        st.markdown(f'<div class="price-badge low">생활물가 평균 대비 -{abs(pr):.1f}% 낮음</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="price-badge low">💸 생활물가 서울 평균 대비 -{abs(pr):.1f}% 낮음 📉</div>',
+            unsafe_allow_html=True
+        )
 
+    # ── 비교 퍼센트 계산 (순수 숫자만) ──────────────────────────────────────────
     def _pct(val, avg):
         return (val - avg) / avg * 100 if avg != 0 else 0
 
-    rent_pct    = _pct(row['평균월세'], AVG_RENT)
-    park_pct    = _pct(row['공원수'], AVG_PARK)
-    lib_pct     = _pct(row['도서관수'], AVG_LIB)
-    culture_pct = _pct(row['기타문화공간수'], AVG_CULTURE)
+    rent_pct    = _pct(row['평균월세'],         AVG_RENT)
+    park_pct    = _pct(row['공원수'],            AVG_PARK)
+    lib_pct     = _pct(row['도서관수'],          AVG_LIB)
+    culture_pct = _pct(row['기타문화공간수'],    AVG_CULTURE)
 
     def _badge_rent(pct):
-        if pct < -2:   return "better", f"평균보다 {abs(pct):.0f}% 저렴"
-        elif pct > 2:  return "worse",  f"평균보다 +{pct:.0f}% 비쌈"
-        else:          return "neutral", "서울 평균과 비슷"
+        if pct < -2:
+            cls, txt = "better", f"서울 평균보다 {abs(pct):.0f}% 저렴 ▼"
+        elif pct > 2:
+            cls, txt = "worse",  f"서울 평균보다 +{pct:.0f}% 비쌈 ▲"
+        else:
+            cls, txt = "neutral", "서울 평균과 비슷"
+        return cls, txt
 
     def _badge_more(pct):
-        if pct > 2:    return "better", f"평균보다 +{pct:.0f}% 많음"
-        elif pct < -2: return "worse",  f"평균보다 {pct:.0f}% 적음"
-        else:          return "neutral", "서울 평균과 비슷"
+        if pct > 2:
+            cls, txt = "better", f"서울 평균 대비 +{pct:.0f}% 많음 ▲"
+        elif pct < -2:
+            cls, txt = "worse",  f"서울 평균 대비 {pct:.0f}% 적음 ▼"
+        else:
+            cls, txt = "neutral", "서울 평균과 비슷"
+        return cls, txt
 
-    rc, rt   = _badge_rent(rent_pct)
-    pc, pt_t = _badge_more(park_pct)
-    lc, lt   = _badge_more(lib_pct)
-    cc, ct   = _badge_more(culture_pct)
+    rc, rt = _badge_rent(rent_pct)
+    pc, pt_txt = _badge_more(park_pct)
+    lc, lt = _badge_more(lib_pct)
+    cc, ct = _badge_more(culture_pct)
 
-    # 메트릭 그리드
+    # ── 메트릭 그리드: 완전한 HTML을 단일 문자열로 구성 후 렌더링 ──────────────
     metric_html = (
         '<div class="metric-grid">'
-        f'<div class="metric-card"><div class="mlabel">🏠 평균 월세</div>'
+
+        '<div class="metric-card">'
+        '<div class="mlabel">🏠 평균 월세</div>'
         f'<div class="mvalue">{int(row["평균월세"])}만원</div>'
-        f'<div class="msub">원룸 기준 추정<br>서울 평균 <b>{AVG_RENT:.0f}만원</b></div>'
-        f'<span class="mcomp {rc}">{rt}</span></div>'
+        f'<div class="msub">원룸 기준 추정<br>서울 전체 평균 <b>{AVG_RENT:.0f}만원</b></div>'
+        f'<span class="mcomp {rc}">{rt}</span>'
+        '</div>'
 
-        f'<div class="metric-card"><div class="mlabel">🌳 공원 수</div>'
+        '<div class="metric-card green">'
+        '<div class="mlabel">🌳 공원 수</div>'
         f'<div class="mvalue">{int(row["공원수"])}개소</div>'
-        f'<div class="msub">서울시 주요공원 기준<br>서울 평균 <b>{AVG_PARK:.1f}개</b></div>'
-        f'<span class="mcomp {pc}">{pt_t}</span></div>'
+        f'<div class="msub">서울시 주요공원 기준<br>서울 전체 평균 <b>{AVG_PARK:.1f}개</b></div>'
+        f'<span class="mcomp {pc}">{pt_txt}</span>'
+        '</div>'
 
-        f'<div class="metric-card"><div class="mlabel">📚 공공도서관</div>'
+        '<div class="metric-card orange">'
+        '<div class="mlabel">📚 공공도서관</div>'
         f'<div class="mvalue">{int(row["도서관수"])}개</div>'
-        f'<div class="msub">구립·시립 포함<br>서울 평균 <b>{AVG_LIB:.1f}개</b></div>'
-        f'<span class="mcomp {lc}">{lt}</span></div>'
+        f'<div class="msub">구립·시립 포함<br>서울 전체 평균 <b>{AVG_LIB:.1f}개</b></div>'
+        f'<span class="mcomp {lc}">{lt}</span>'
+        '</div>'
 
-        f'<div class="metric-card"><div class="mlabel">🎨 문화공간</div>'
+        '<div class="metric-card purple">'
+        '<div class="mlabel">🎨 기타 문화공간</div>'
         f'<div class="mvalue">{int(row["기타문화공간수"])}개</div>'
-        f'<div class="msub">미술관·공연장 등<br>서울 평균 <b>{AVG_CULTURE:.1f}개</b></div>'
-        f'<span class="mcomp {cc}">{ct}</span></div>'
+        f'<div class="msub">미술관·공연장·박물관 등<br>서울 전체 평균 <b>{AVG_CULTURE:.1f}개</b></div>'
+        f'<span class="mcomp {cc}">{ct}</span>'
+        '</div>'
+
         '</div>'
     )
     st.markdown(metric_html, unsafe_allow_html=True)
 
-    # 점수 바
+    # ── 추천 점수 바 ────────────────────────────────────────────────────────────
     score     = row['total_score']
     score_100 = to_100(score)
-    bar_col   = "#2563EB" if rank_pos == 1 else "#60A5FA" if rank_pos == 2 else "#BFDBFE" if rank_pos == 3 else "#9A9590"
+    bar_col   = (
+        "#3590f3" if rank_pos == 1 else
+        "#62bfed" if rank_pos == 2 else
+        "#8fb8ed" if rank_pos == 3 else "#c2bbf0"
+    )
     st.markdown(f"""
     <div class="score-bar-wrap">
-        <div class="score-bar-label">종합 추천 점수</div>
+        <div class="score-bar-label">✨ 종합 추천 점수</div>
         <div class="score-bar-bg">
             <div class="score-bar-fill" style="width:{score_100:.0f}%;background:{bar_col};"></div>
         </div>
@@ -909,68 +856,72 @@ with col_info:
     </div>
     """, unsafe_allow_html=True)
 
-    # 역 태그
-    st.markdown("<div style='font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9A9590;margin-top:0.8rem;margin-bottom:0.4rem;'>🚉 주변 주요역</div>", unsafe_allow_html=True)
+    # ── 주변 역 태그 ────────────────────────────────────────────────────────────
+    st.markdown("**🚉 주변 주요역**")
     tags_html = "".join(
         f'<span class="station-tag">{s.strip()}</span>'
         for s in row['지하철역_예시'].split(',')
     )
     st.markdown(f'<div class="station-tags">{tags_html}</div>', unsafe_allow_html=True)
+
     st.markdown("<br>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# TOP 5 카드
+# 하단: TOP 5 추천 카드
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown("<hr style='border:none;border-top:1px solid #E5E2DA;margin:0.5rem 0 1.2rem'>", unsafe_allow_html=True)
-st.markdown(
-    "<div style='font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;"
-    "color:#9A9590;margin-bottom:0.8rem;'>우선순위 기반 추천 지역 TOP 5</div>",
-    unsafe_allow_html=True
-)
+st.markdown("---")
+st.subheader("🌟 우선순위 기반 추천 지역 TOP 5")
 
-CARD_EMOJI = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+CARD_BG     = ["#e8eeff", "#dff0fb", "#ede8f8", "#f1e3f3", "#f1e3f3"]
+CARD_BORDER = ["#3590f3", "#62bfed", "#8fb8ed", "#c2bbf0", "#c2bbf0"]
+CARD_EMOJI  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+
 cols_top = st.columns(5)
-
 for i, (_, r) in enumerate(top5_df.iterrows()):
     with cols_top[i]:
         is_sel  = r['자치구'] == st.session_state.selected_gu
+        shadow  = "0 4px 20px rgba(0,0,0,0.16)" if is_sel else "none"
+        outline = f"2px solid {CARD_BORDER[i]}" if not is_sel else f"3px solid {CARD_BORDER[i]}"
         rd      = r['평균월세'] - AVG_RENT
-        rs, rc  = ("▲", "#DC2626") if rd > 0 else ("▼", "#059669")
-        p_diff  = r['공원수'] - AVG_PARK
-        l_diff  = r['도서관수'] - AVG_LIB
-        s100    = to_100(r['total_score'])
-        border  = "2px solid #1A1A1A" if is_sel else "1px solid #E5E2DA"
-        bg      = "#F0F0F0" if is_sel else "#FFFFFF"
+        rs, rc  = ("▲", "#c0392b") if rd > 0 else ("▼", "#1e8449")
+
+        # 공원·도서관 서울 평균 대비
+        p_diff = r['공원수'] - AVG_PARK
+        l_diff = r['도서관수'] - AVG_LIB
+
+        # 100점 만점 환산
+        s100 = to_100(r['total_score'])
 
         st.markdown(f"""
-        <div style="background:{bg};border:{border};border-radius:10px;
-                    padding:14px 8px;text-align:center;min-height:170px;">
-            <div style="font-size:1.7rem;">{CARD_EMOJI[i]}</div>
-            <div style="font-size:1rem;font-weight:700;margin:6px 0 5px;">{r['자치구']}</div>
-            <div style="font-size:0.71rem;color:#4A4A4A;line-height:1.8;">
+        <div style="background:{CARD_BG[i]};border:{outline};border-radius:14px;
+                    padding:15px 10px;text-align:center;box-shadow:{shadow};min-height:175px;">
+            <div style="font-size:1.9rem;">{CARD_EMOJI[i]}</div>
+            <div style="font-size:1.05rem;font-weight:900;margin:5px 0 4px;">{r['자치구']}</div>
+            <div style="font-size:0.73rem;color:#444;line-height:1.7;">
                 🏠 월세 <b>{int(r['평균월세'])}만원</b>
-                <span style="color:{rc};font-size:0.65rem;">({rs}{abs(rd):.0f}만)</span><br>
+                <span style="color:{rc};font-size:0.67rem;">({rs}{abs(rd):.0f}만)</span><br>
                 🌳 공원 {int(r['공원수'])}개
-                <span style="color:{'#059669' if p_diff>=0 else '#DC2626'};font-size:0.63rem;">
+                <span style="color:{'#1e8449' if p_diff>=0 else '#c0392b'};font-size:0.65rem;">
                 ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
-                &nbsp;📚 {int(r['도서관수'])}개
-                <span style="color:{'#059669' if l_diff>=0 else '#DC2626'};font-size:0.63rem;">
+                &nbsp;📚 도서관 {int(r['도서관수'])}개
+                <span style="color:{'#1e8449' if l_diff>=0 else '#c0392b'};font-size:0.65rem;">
                 ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
                 🎨 문화공간 {int(r['기타문화공간수'])}개
             </div>
-            <div style="font-size:0.67rem;background:#1A1A1A;color:#fff;border-radius:4px;
-                        padding:3px 10px;display:inline-block;margin-top:7px;font-weight:700;">
-                {s100:.0f}점
+            <div style="font-size:0.67rem;background:rgba(0,0,0,0.07);border-radius:8px;
+                        padding:2px 9px;display:inline-block;margin-top:6px;font-weight:700;">
+                추천점수 {s100:.0f}점
             </div>
         </div>
         """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.caption(
-    "※ 도서관: 서울시 공공도서관 현황(2024, 215개) · "
-    "문화공간: 서울시 문화공간 정보(862개) · "
-    "공원: 서울시 주요공원현황(2026 상반기, 130개) · "
-    "생활물가: 생필품·농수축산물 가격정보(2024, 98,053건) · "
-    "지하철: 서울교통공사 역주소(289개)"
+    "※ 도서관: 서울시 공공도서관 현황(2024, 215개) | "
+    "문화공간: 서울시 문화공간 정보(1,036개, 도서관 제외 862개) | "
+    "공원: 서울시 주요공원현황(2026 상반기, 130개) | "
+    "생활물가: 서울시 생필품·농수축산물 가격정보(2024, 98,053건) | "
+    "평균월세: 추정치(전월세 실거래 미반영) | "
+    "지하철역: 서울교통공사 역주소 현황(289개)"
 )
