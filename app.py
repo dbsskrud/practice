@@ -656,8 +656,8 @@ with col_map:
 
     # 자치구 선택 버튼
     sel_gu = st.session_state.selected_gu
-    RANK_COLORS_BTN = ["#1a5499", "#2979c8", "#4a9de0"]
-    RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
+    RANK_COLORS_BTN = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
+    RANK_ICONS_BTN  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
     st.markdown("""
     <div style="background:linear-gradient(135deg,#1a5499,#2979c8);
@@ -668,15 +668,15 @@ with col_map:
     </div>
     """, unsafe_allow_html=True)
 
-    cols3 = st.columns(3)
-    for i, rgu in enumerate(top3_gu):
-        with cols3[i]:
+    cols5 = st.columns(5)
+    for i, rgu in enumerate(top5_gu):
+        with cols5[i]:
             is_active = (sel_gu == rgu)
             if is_active:
                 st.markdown(
                     f'<div style="background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
                     f'color:white;border-radius:10px;padding:10px 4px;text-align:center;'
-                    f'font-size:0.78rem;font-weight:900;height:38px;line-height:18px;'
+                    f'font-size:0.75rem;font-weight:900;height:38px;line-height:18px;'
                     f'box-shadow:0 3px 10px {RANK_COLORS_BTN[i]}55;">'
                     f'{RANK_ICONS_BTN[i]} {rgu} ✓</div>',
                     unsafe_allow_html=True
