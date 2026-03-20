@@ -15,18 +15,37 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap');
 
+/* ── 팔레트 변수 ──
+   #f1e3f3  연보라핑크   (가장 연한 베이스)
+   #c2bbf0  라벤더       (서브 강조)
+   #8fb8ed  스카이블루   (일반 강조)
+   #62bfed  밝은 블루    (액센트)
+   #3590f3  진한 블루    (메인/버튼)
+── */
+:root {
+    --col-lightest: #f1e3f3;
+    --col-lavender: #c2bbf0;
+    --col-sky:      #8fb8ed;
+    --col-bright:   #62bfed;
+    --col-main:     #3590f3;
+    --col-dark:     #2a6dc4;
+    --col-text:     #2c2c54;
+    --col-subtext:  #5a5a8a;
+}
+
 html, body, [class*="css"] { font-family: 'Noto Sans KR', sans-serif; }
 .block-container { padding-top: 1.4rem; padding-bottom: 2rem; }
 h1 {
     font-family: 'Bebas Neue', 'Noto Sans KR', sans-serif;
     letter-spacing: 2px; font-size: 2.5rem !important;
+    color: var(--col-dark) !important;
 }
 
 /* ── 헤더 카드 ── */
 .gu-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: linear-gradient(135deg, var(--col-main) 0%, var(--col-sky) 60%, var(--col-lavender) 100%);
     border-radius: 16px; padding: 20px 24px 18px; color: white;
-    margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.25);
     text-align: center;
 }
 .gu-header h2 {
@@ -34,11 +53,11 @@ h1 {
     color: #fff; text-align: center;
 }
 .gu-tagline {
-    font-size: 0.88rem; color: #aac4e0; line-height: 1.5;
+    font-size: 0.88rem; color: rgba(255,255,255,0.88); line-height: 1.5;
     font-style: italic; text-align: center;
 }
 .rank-badge-text {
-    font-size: 0.84rem; color: #7eb8e0;
+    font-size: 0.84rem; color: var(--col-lightest);
     margin-bottom: 6px; text-align: center; font-weight: 600;
 }
 
@@ -48,22 +67,31 @@ h1 {
     font-weight: 700; font-size: 0.82rem; margin-bottom: 10px;
 }
 .price-badge.high { background:#fde8e8; color:#c0392b; border:1px solid #e74c3c40; }
-.price-badge.low  { background:#e8fde8; color:#1e8449; border:1px solid #27ae6040; }
+.price-badge.low  { background:#e8f8f0; color:#1e8449; border:1px solid #27ae6040; }
 
 /* ── 메트릭 그리드 ── */
 .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 11px; }
 .metric-card {
     border-radius: 12px; padding: 13px 15px;
-    border-left: 4px solid #2196F3;
-    background: linear-gradient(135deg, #e8f4fd, #d1ecf9);
+    border-left: 4px solid var(--col-main);
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
 }
-.metric-card.green  { background: linear-gradient(135deg,#e8f8f0,#c8efd8); border-left-color:#4CAF50; }
-.metric-card.orange { background: linear-gradient(135deg,#fff3e0,#ffe0b2); border-left-color:#FF9800; }
-.metric-card.purple { background: linear-gradient(135deg,#f3e5f5,#e1bee7); border-left-color:#9C27B0; }
+.metric-card.green  {
+    background: linear-gradient(135deg, #dff0fb, #c2e8f7);
+    border-left-color: var(--col-bright);
+}
+.metric-card.orange {
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
+    border-left-color: var(--col-lavender);
+}
+.metric-card.purple {
+    background: linear-gradient(135deg, #e8eeff, #d4e4fb);
+    border-left-color: var(--col-sky);
+}
 
-.metric-card .mlabel { font-size:0.70rem; color:#555; font-weight:700; margin-bottom:3px; }
-.metric-card .mvalue { font-size:1.30rem; font-weight:900; color:#1a1a2e; line-height:1.2; }
-.metric-card .msub   { font-size:0.66rem; color:#777; margin-top:3px; line-height:1.45; }
+.metric-card .mlabel { font-size:0.70rem; color:var(--col-subtext); font-weight:700; margin-bottom:3px; }
+.metric-card .mvalue { font-size:1.30rem; font-weight:900; color:var(--col-text); line-height:1.2; }
+.metric-card .msub   { font-size:0.66rem; color:var(--col-subtext); margin-top:3px; line-height:1.45; }
 
 /* ── 비교 배지 ── */
 .mcomp {
@@ -71,51 +99,53 @@ h1 {
     padding: 3px 9px; border-radius: 20px;
     font-size: 0.67rem; font-weight: 700; line-height: 1.4;
 }
-.mcomp.better  { background:#d4edda; color:#155724; }
-.mcomp.worse   { background:#f8d7da; color:#721c24; }
-.mcomp.neutral { background:#e2e3e5; color:#383d41; }
+.mcomp.better  { background:#dff0fb; color:#1a6a9a; }
+.mcomp.worse   { background:#fde8e8; color:#c0392b; }
+.mcomp.neutral { background:#ede8f8; color:var(--col-subtext); }
 
 /* ── 점수 바 ── */
 .score-bar-wrap {
-    background:#f0f4f8; border-radius:12px;
-    padding:13px 15px; margin-bottom:11px;
+    background: linear-gradient(135deg, var(--col-lightest), #e8dcf5);
+    border-radius:12px; padding:13px 15px; margin-bottom:11px;
+    border: 1px solid var(--col-lavender);
 }
-.score-bar-label { font-size:0.76rem; color:#666; font-weight:700; margin-bottom:6px; }
-.score-bar-bg { background:#ddd; border-radius:6px; height:11px; overflow:hidden; }
+.score-bar-label { font-size:0.76rem; color:var(--col-subtext); font-weight:700; margin-bottom:6px; }
+.score-bar-bg { background: rgba(194,187,240,0.35); border-radius:6px; height:11px; overflow:hidden; }
 .score-bar-fill { height:100%; border-radius:6px; transition: width 0.4s ease; }
 .score-bar-val {
-    text-align:right; font-size:0.76rem;
-    color:#333; font-weight:700; margin-top:4px;
+    text-align:right; font-size:0.80rem;
+    color:var(--col-dark); font-weight:900; margin-top:4px;
 }
 
 /* ── 역 태그 ── */
 .station-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
 .station-tag {
-    background:#1a1a2e; color:#aac4e0;
+    background: var(--col-main);
+    color: #fff;
     padding:3px 10px; border-radius:20px;
     font-size:0.69rem; font-weight:500;
-    border:1px solid rgba(170,196,224,0.3);
+    border:1px solid rgba(255,255,255,0.3);
 }
 
 /* ── 힌트 박스 ── */
 .priority-hint {
-    background: linear-gradient(90deg,#e3f0ff,#f0e3ff);
+    background: linear-gradient(90deg, #ede8f8, var(--col-lightest));
     border-radius:10px; padding:7px 13px;
-    font-size:0.78rem; color:#444; margin-top:5px;
-    border-left:3px solid #6a85b6;
+    font-size:0.78rem; color:var(--col-subtext); margin-top:5px;
+    border-left:3px solid var(--col-lavender);
 }
 .map-hint {
-    background:#fffbe6; border-radius:8px;
-    padding:6px 12px; font-size:0.76rem;
-    color:#7a6000; border-left:3px solid #f0c040; margin-bottom:6px;
+    background: linear-gradient(90deg, #e8eeff, #dff0fb);
+    border-radius:8px; padding:6px 12px; font-size:0.76rem;
+    color:var(--col-dark); border-left:3px solid var(--col-bright); margin-bottom:6px;
 }
 
-/* 지도 선택 버튼 래퍼: 카드 div와 버튼을 겹쳐서 카드가 보이고 버튼이 클릭 영역이 됨 */
+/* ── 버튼 래퍼 ── */
 .gu-btn-wrap { position: relative; margin-bottom: 4px; }
 .gu-btn-card {
     border-radius: 10px; padding: 7px 4px;
     text-align: center; font-size: 0.82rem; font-weight: 800;
-    pointer-events: none; /* 클릭은 버튼이 받음 */
+    pointer-events: none;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -482,7 +512,7 @@ if st.session_state.selected_gu is None:
     st.session_state.selected_gu = top3_gu[0]
 
 # 상위 3개 강조색
-RANK_COLOR = {top3_gu[0]: "#E8002D", top3_gu[1]: "#FF6B00", top3_gu[2]: "#FFB800"}
+RANK_COLOR = {top3_gu[0]: "#3590f3", top3_gu[1]: "#62bfed", top3_gu[2]: "#8fb8ed"}
 RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
 RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", top3_gu[2]: "🥉 추천 3위"}
 
@@ -545,9 +575,9 @@ with col_map:
         z=df['total_score'],
         featureidkey="properties.name",
         colorscale=[
-            [0.00, "rgba(210,228,252,0.55)"],
-            [0.40, "rgba(130,175,240,0.65)"],
-            [1.00, "rgba( 40,100,210,0.72)"],
+            [0.00, "rgba(241,227,243,0.55)"],
+            [0.40, "rgba(143,184,237,0.65)"],
+            [1.00, "rgba( 53,144,243,0.72)"],
         ],
         showscale=False,
         marker_line_width=1.6,
@@ -558,9 +588,9 @@ with col_map:
     ))
 
     # ── Layer 2: 상위 3개 구 강조 오버레이 ────────────────────────────────────
-    fill_alpha = {top3_gu[0]: "rgba(232,0,45,0.45)",
-                  top3_gu[1]: "rgba(255,107,0,0.42)",
-                  top3_gu[2]: "rgba(255,184,0,0.40)"}
+    fill_alpha = {top3_gu[0]: "rgba(53,144,243,0.45)",
+                  top3_gu[1]: "rgba(98,191,237,0.42)",
+                  top3_gu[2]: "rgba(143,184,237,0.40)"}
     border_col = {top3_gu[0]: "rgba(255,255,255,0.95)",
                   top3_gu[1]: "rgba(255,255,255,0.90)",
                   top3_gu[2]: "rgba(255,255,255,0.85)"}
@@ -649,7 +679,7 @@ with col_map:
     # 추천 TOP3 탭 스타일 버튼 (지도와 통합된 인터랙션)
     sel_gu = st.session_state.selected_gu
 
-    RANK_COLORS_BTN = ["#E8002D", "#FF6B00", "#FFB800"]
+    RANK_COLORS_BTN = ["#3590f3", "#62bfed", "#8fb8ed"]
     RANK_ICONS_BTN  = ["🥇", "🥈", "🥉"]
 
     st.markdown("""
@@ -689,9 +719,9 @@ with col_map:
                     is_active = (sel_gu == g)
                     if is_active:
                         st.markdown(
-                            f'<div style="background:#1a1a2e;color:white;border-radius:8px;'
+                            f'<div style="background:#3590f3;color:white;border-radius:8px;'
                             f'padding:6px 2px;text-align:center;font-size:0.72rem;'
-                            f'font-weight:700;border:1px solid #1a1a2e;">{g} ✓</div>',
+                            f'font-weight:700;border:1px solid #3590f3;">{g} ✓</div>',
                             unsafe_allow_html=True
                         )
                     else:
@@ -703,10 +733,10 @@ with col_map:
     st.markdown(f"""
     <div style='display:flex;gap:14px;padding:4px 2px;font-size:0.74rem;
                 color:#444;flex-wrap:wrap;align-items:center;margin-top:4px;'>
-        <span style='font-weight:700;color:#555;'>추천순위:</span>
-        <span style='color:#E8002D;font-weight:700;'>🥇 {top3_gu[0]}</span>
-        <span style='color:#FF6B00;font-weight:700;'>🥈 {top3_gu[1]}</span>
-        <span style='color:#FFB800;font-weight:700;'>🥉 {top3_gu[2]}</span>
+        <span style='font-weight:700;color:#2a6dc4;'>추천순위:</span>
+        <span style='color:#3590f3;font-weight:700;'>🥇 {top3_gu[0]}</span>
+        <span style='color:#62bfed;font-weight:700;'>🥈 {top3_gu[1]}</span>
+        <span style='color:#8fb8ed;font-weight:700;'>🥉 {top3_gu[2]}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -812,9 +842,9 @@ with col_info:
     score     = row['total_score']
     score_100 = to_100(score)
     bar_col   = (
-        "#E8002D" if rank_pos == 1 else
-        "#FF6B00" if rank_pos == 2 else
-        "#FFB800" if rank_pos == 3 else "#3498db"
+        "#3590f3" if rank_pos == 1 else
+        "#62bfed" if rank_pos == 2 else
+        "#8fb8ed" if rank_pos == 3 else "#c2bbf0"
     )
     st.markdown(f"""
     <div class="score-bar-wrap">
@@ -843,8 +873,8 @@ with col_info:
 st.markdown("---")
 st.subheader("🌟 우선순위 기반 추천 지역 TOP 5")
 
-CARD_BG     = ["#fff8e1", "#f5f5f5", "#fbe9e7", "#e8f4fd", "#e8f4fd"]
-CARD_BORDER = ["#ffc107", "#9e9e9e", "#ff7043", "#64b5f6", "#64b5f6"]
+CARD_BG     = ["#e8eeff", "#dff0fb", "#ede8f8", "#f1e3f3", "#f1e3f3"]
+CARD_BORDER = ["#3590f3", "#62bfed", "#8fb8ed", "#c2bbf0", "#c2bbf0"]
 CARD_EMOJI  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
 cols_top = st.columns(5)
