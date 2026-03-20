@@ -455,14 +455,14 @@ st.markdown("""
         letter-spacing:0.5px;
     ">🏙️ 서울시 공공데이터 기반 · 2024~2026</div>
     <div style="
-        font-size:2.1rem;
+        font-size:2.8rem;
         font-weight:900;
         color:#ffffff;
         line-height:1.2;
         margin-bottom:10px;
         letter-spacing:-0.5px;
     ">🏠 서울 스타터<br>
-    <span style="font-size:1.2rem; font-weight:500; opacity:0.92;">서울시 자취 가이드</span>
+    <span style="font-size:1.6rem; font-weight:500; opacity:0.92;">서울시 자취 가이드</span>
     </div>
     <div style="
         font-size:0.90rem;
