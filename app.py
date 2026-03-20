@@ -63,7 +63,7 @@ hr { border:none; border-top:1.5px solid var(--border); margin:24px 0; }
 .rank-badge-text { font-size:0.72rem; color:rgba(255,255,255,0.65); margin-bottom:6px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; }
 
 /* ── 메트릭 그리드: 가로 4열 ── */
-.metric-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
+.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
 .metric-card {
     border-radius:var(--r-sm); padding:12px 10px 10px;
     background:var(--surface); border:1.5px solid var(--border);
@@ -799,7 +799,8 @@ with col_info:
     score_price_html = (
         '<div class="metric-grid">'
 
-        f'<div class="metric-card" style="background:linear-gradient(135deg,#e8f1fd,#d4e8fb);border-top-color:{arc_col};grid-column:span 2;">'
+        f'<div class="metric-card" style="background:linear-gradient(135deg,#e8f1fd,#d4e8fb);border-top-color:{arc_col};">'
+
         '<div class="mlabel">✨ 종합 추천 점수</div>'
         f'<svg width="100%" height="80" viewBox="0 0 160 90" style="margin-top:2px;">'
         f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="rgba(180,210,240,0.5)" stroke-width="12" stroke-linecap="round"/>'
@@ -810,7 +811,7 @@ with col_info:
         '</svg>'
         '</div>'
 
-        f'<div class="metric-card" style="background:{price_bg};border-top-color:{price_border}80;grid-column:span 2;">'
+        f'<div class="metric-card" style="background:{price_bg};border-top-color:{price_border}80;">'
         '<div class="mlabel">💸 생활물가</div>'
         f'<div class="mvalue" style="color:{price_col};">{price_txt}</div>'
         f'<div class="msub">서울 평균 대비<br><b>{price_label}</b></div>'
