@@ -874,7 +874,7 @@ with col_info:
     )
     st.markdown(metric_html, unsafe_allow_html=True)
 
-   # ── 추천 점수 반원 도넛 ─────────────────────────────────────────────────────
+   # ── 종합 추천 점수 + 생활물가 (메트릭 카드 동일 양식) ──────────────────────
     score     = row['total_score']
     score_100 = to_100(score)
     arc_col   = (
@@ -883,67 +883,43 @@ with col_info:
         "#ffdc00" if rank_pos == 3 else "#c2bbf0"
     )
 
-    # 반원 도넛: SVG로 구현
-    # 반원 둘레 = π * r = 3.14159 * 54 ≈ 169.6
-    # fill = score_100 / 100 * 169.6
-    r = 50
-    cx, cy = 80, 85
-    circumference = 3.14159 * r          # 반원 둘레 ≈ 157
-    fill_len  = score_100 / 100 * circumference
-    empty_len = circumference - fill_len
-
     pr = row['물가비율']
-    price_bg  = "#fde8e8" if pr > 0 else "#e8f8f0"
-    price_col = "#c0392b" if pr > 0 else "#1e8449"
-    price_icon = "📈" if pr > 0 else "📉"
-    price_txt = f"+{abs(pr):.1f}% 높음" if pr > 0 else f"-{abs(pr):.1f}% 낮음"
+    price_bg     = "linear-gradient(135deg,#fde8e8,#fdd0d0)" if pr > 0 else "linear-gradient(135deg,#e8f8f0,#d0f0e0)"
+    price_col    = "#c0392b" if pr > 0 else "#1e8449"
+    price_border = "#e74c3c" if pr > 0 else "#27ae60"
+    price_icon   = "📈" if pr > 0 else "📉"
+    price_txt    = f"+{abs(pr):.1f}%" if pr > 0 else f"-{abs(pr):.1f}%"
+    price_label  = "높음" if pr > 0 else "낮음"
 
-    st.markdown(f"""
-    <div style="background:linear-gradient(135deg,var(--col-lightest),#e8dcf5);
-                border-radius:12px;padding:13px 15px;margin-bottom:11px;
-                border:1px solid var(--col-lavender);">
-        <div style="font-size:0.76rem;color:var(--col-subtext);font-weight:700;
-                    margin-bottom:10px;text-align:center;">
-            ✨ 종합 추천 점수
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
-            <svg width="160" height="100" viewBox="0 0 160 100">
-                <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-                      fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="14"
-                      stroke-linecap="round"/>
-                <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-                      fill="none"
-                      stroke="{arc_col}"
-                      stroke-width="14"
-                      stroke-linecap="round"
-                      stroke-dasharray="{fill_len:.1f} {circumference:.1f}"
-                      stroke-dashoffset="0"
-                />
-                <text x="{cx}" y="{cy-14}" text-anchor="middle"
-                      font-size="26" font-weight="900"
-                      fill="{arc_col}" font-family="Noto Sans KR">
-                    {score_100:.0f}
-                </text>
-                <text x="{cx}" y="{cy+2}" text-anchor="middle"
-                      font-size="11" fill="#5a5a8a" font-family="Noto Sans KR">
-                    / 100점
-                </text>
-            </svg>
-            <div style="background:{price_bg};border-radius:10px;padding:10px 14px;
-                        border:1px solid {price_col}40;text-align:center;min-width:90px;">
-                <div style="font-size:0.68rem;color:#555;font-weight:600;margin-bottom:4px;">
-                    💸 생활물가
-                </div>
-                <div style="font-size:0.82rem;font-weight:900;color:{price_col};">
-                    {price_icon} {price_txt}
-                </div>
-                <div style="font-size:0.65rem;color:#888;margin-top:3px;">
-                    서울 평균 대비
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    circumference = 3.14159 * 50
+    fill_len = score_100 / 100 * circumference
+
+    score_price_html = (
+        '<div class="metric-grid">'
+
+        f'<div class="metric-card" style="background:linear-gradient(135deg,#e8eeff,#d4e4fb);border-left-color:{arc_col};">'
+        '<div class="mlabel">✨ 종합 추천 점수</div>'
+        f'<div class="mvalue" style="color:{arc_col};">{score_100:.0f}점</div>'
+        '<div class="msub">100점 만점 기준</div>'
+        f'<svg width="100%" height="44" viewBox="0 0 160 50" style="margin-top:4px;">'
+        f'<path d="M 10 45 A 70 70 0 0 1 150 45" fill="none" stroke="rgba(194,187,240,0.4)" stroke-width="10" stroke-linecap="round"/>'
+        f'<path d="M 10 45 A 70 70 0 0 1 150 45" fill="none" stroke="{arc_col}" stroke-width="10" stroke-linecap="round"'
+        f' stroke-dasharray="{fill_len*1.4:.1f} {circumference*1.4:.1f}" stroke-dashoffset="0"/>'
+        '</svg>'
+        '</div>'
+
+        f'<div class="metric-card" style="background:{price_bg};border-left-color:{price_border}40;">'
+        '<div class="mlabel">💸 생활물가</div>'
+        f'<div class="mvalue" style="color:{price_col};">{price_txt}</div>'
+        f'<div class="msub">서울 평균 대비<br><b>{price_label}</b></div>'
+        f'<span class="mcomp {"worse" if pr > 0 else "better"}">'
+        f'{price_icon} 서울 평균보다 {price_txt} {"비쌈" if pr > 0 else "저렴"}'
+        '</span>'
+        '</div>'
+
+        '</div>'
+    )
+    st.markdown(score_price_html, unsafe_allow_html=True)
     
     # ── 주변 역 태그 ────────────────────────────────────────────────────────────
     st.markdown("**🚉 주변 주요역**")
