@@ -822,7 +822,7 @@ with col_info:
         <div class="score-bar-bg">
             <div class="score-bar-fill" style="width:{score_100:.0f}%;background:{bar_col};"></div>
         </div>
-        <div class="score-bar-val">{score_100:.1f} / 100점</div>
+        <div class="score-bar-val">{score_100:.0f}점</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -881,7 +881,7 @@ for i, (_, r) in enumerate(top5_df.iterrows()):
             </div>
             <div style="font-size:0.67rem;background:rgba(0,0,0,0.07);border-radius:8px;
                         padding:2px 9px;display:inline-block;margin-top:6px;font-weight:700;">
-                추천점수 {s100:.1f}점
+                추천점수 {s100:.0f}점
             </div>
         </div>
         """, unsafe_allow_html=True)
