@@ -854,7 +854,7 @@ top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
 top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
 top5_df = rec_df.head(min(5, n_avail))
 
-# 패딩 제거 — 부족하면 빈칸으로 처리
+# top3 부족 시 None 패딩
 while len(top3_gu) < 3:
     top3_gu.append(None)
 
@@ -1058,6 +1058,7 @@ if active_tab == "🏆 TOP 5 추천":
                     if st.button(f"{RANK_ICONS_BTN[i]} {rgu}", key=f"sel_top_{i}", use_container_width=True):
                         st.session_state.selected_gu = rgu
                         st.rerun()
+
         others_gu = [g for g in gu_list if g not in top5_gu]
         with st.expander("🔍 다른 자치구 보기", expanded=False):
             n_cols = 5
@@ -1214,7 +1215,7 @@ if active_tab == "🏆 TOP 5 추천":
     CARD_BORDER  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
     CARD_EMOJI   = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
-   cols_top = st.columns(5)
+    cols_top = st.columns(5)
     top5_rows = list(top5_df.iterrows())
     for i in range(5):
         with cols_top[i]:
