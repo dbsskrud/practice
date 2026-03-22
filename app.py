@@ -940,70 +940,439 @@ with col_info:
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# ④ TOP5 — 1위 강조 계층 디자인
+# ④ 탭: TOP5 추천 / 지역 상세 / 비교 분석
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown("""
-<div style="margin:24px 0 14px;">
+tab1, tab2, tab3 = st.tabs(["🏆 TOP 5 추천", "🔍 지역 상세 분석", "🆚 자치구 비교"])
+
+# ────────────────────────────────────────────────────────────────────────
+# TAB 1 : TOP 5 추천 카드
+# ────────────────────────────────────────────────────────────────────────
+with tab1:
+    st.markdown("""
+    <div style="margin:16px 0 14px;">
+        <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
+                    letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;">
+            🏆 Rankings
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.05rem;font-weight:800;color:#1a5499;letter-spacing:-0.3px;">
+                우선순위 기반 추천 지역 TOP 5
+            </span>
+            <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.2),transparent);"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    CARD_RANK_BG = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
+    CARD_BORDER  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
+    CARD_EMOJI   = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+
+    cols_top = st.columns(5)
+    for i, (_, r) in enumerate(top5_df.iterrows()):
+        with cols_top[i]:
+            is_sel  = r['자치구'] == st.session_state.selected_gu
+            shadow  = "0 6px 24px rgba(26,84,153,0.22)" if is_sel else "0 2px 10px rgba(26,84,153,0.08)"
+            outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,0.15)"
+            rd      = r['평균월세'] - AVG_RENT
+            rs, rc  = ("▲", "#c0392b") if rd > 0 else ("▼", "#1a6e45")
+            p_diff  = r['공원수'] - AVG_PARK
+            l_diff  = r['도서관수'] - AVG_LIB
+            s100    = to_100(r['total_score'])
+
+            st.markdown(f"""
+            <div style="background:#ffffff;border:{outline};border-radius:14px;
+                        padding:14px 10px 12px;text-align:center;
+                        box-shadow:{shadow};border-top:3px solid {CARD_RANK_BG[i]};">
+                <div style="background:{CARD_RANK_BG[i]};color:#fff;border-radius:8px;
+                            padding:3px 0;font-size:0.70rem;font-weight:800;
+                            margin-bottom:7px;letter-spacing:0.3px;">
+                    {CARD_EMOJI[i]} {i+1}위
+                </div>
+                <div style="font-size:1.0rem;font-weight:900;color:#0d2137;
+                            margin-bottom:8px;letter-spacing:-0.3px;">
+                    {r['자치구']}
+                </div>
+                <div style="font-size:0.70rem;color:#4a6d96;line-height:1.85;text-align:left;padding:0 3px;">
+                    🏠 <b style="color:#0d2137;">{int(r['평균월세'])}만원</b>
+                    <span style="color:{rc};font-size:0.62rem;">({rs}{abs(rd):.0f}만)</span><br>
+                    🌳 <b style="color:#0d2137;">{int(r['공원수'])}개</b>
+                    <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.60rem;">
+                    ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
+                    📚 <b style="color:#0d2137;">{int(r['도서관수'])}개</b>
+                    <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.60rem;">
+                    ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
+                    🎨 <b style="color:#0d2137;">{int(r['기타문화공간수'])}개</b>
+                </div>
+                <div style="margin-top:9px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
+                            border-radius:8px;padding:4px 0;
+                            font-size:0.72rem;font-weight:800;color:#1a5499;">
+                    {s100:.0f}점
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button(f"{'✓ 선택됨' if is_sel else '상세보기'}", key=f"tab1_btn_{i}", use_container_width=True):
+                st.session_state.selected_gu = r['자치구']
+                st.rerun()
+
+# ────────────────────────────────────────────────────────────────────────
+# TAB 2 : 지역 상세 분석
+# ────────────────────────────────────────────────────────────────────────
+with tab2:
+    top5_list  = top5_df['자치구'].tolist()
+    top5_icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+    tab_labels = [f"{top5_icons[i]} {g}" for i, g in enumerate(top5_list)]
+    detail_tabs = st.tabs(tab_labels)
+
+    def _pct2(val, avg):
+        return (val - avg) / avg * 100 if avg != 0 else 0
+
+    for ti, detail_gu in enumerate(top5_list):
+        with detail_tabs[ti]:
+            drow     = df[df['자치구'] == detail_gu].iloc[0]
+            d_rank   = ti + 1
+            arc_col2 = ["#ff3c3c","#ffa500","#ffdc00","#4a9de0","#7eb5e8"][ti]
+
+            # 헤더
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg,#1a5499,#2979c8,#4a9de0);
+                        border-radius:16px;padding:20px 24px;margin-bottom:16px;
+                        box-shadow:0 4px 16px rgba(26,84,153,0.15);">
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.70);font-weight:700;
+                            letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">
+                    {top5_icons[ti]} 추천 {d_rank}위
+                </div>
+                <div style="font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;">
+                    {detail_gu}
+                </div>
+                <div style="font-size:0.84rem;color:rgba(255,255,255,0.82);font-style:italic;">
+                    「 {drow['한줄평']} 」
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            left_col, right_col = st.columns([1.1, 1])
+
+            with left_col:
+                # 핵심 지표 4개
+                r_pct = _pct2(drow['평균월세'],      AVG_RENT)
+                p_pct = _pct2(drow['공원수'],         AVG_PARK)
+                l_pct = _pct2(drow['도서관수'],       AVG_LIB)
+                c_pct = _pct2(drow['기타문화공간수'], AVG_CULTURE)
+                pr2   = drow['물가비율']
+
+                def _bar(val, max_val, color):
+                    pct = min(val / max_val * 100, 100)
+                    return (f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:6px;margin-top:4px;">'
+                            f'<div style="width:{pct:.0f}%;height:100%;border-radius:4px;background:{color};"></div></div>')
+
+                max_rent    = df['평균월세'].max()
+                max_park    = df['공원수'].max()
+                max_lib     = df['도서관수'].max()
+                max_culture = df['기타문화공간수'].max()
+
+                st.markdown(f"""
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
+                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">🏠 평균 월세</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['평균월세'])}만원</div>
+                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_RENT:.0f}만원</div>
+                        {_bar(drow['평균월세'], max_rent, '#2979c8')}
+                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                            background:{'#fff0f0' if r_pct>2 else '#e6f3ff'};color:{'#c0392b' if r_pct>2 else '#1a5499'};">
+                            {'▲ 평균보다 비쌈' if r_pct>2 else ('▼ 평균보다 저렴' if r_pct<-2 else '≈ 평균 수준')}
+                        </div>
+                    </div>
+                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">💸 생활물가</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{'+' if pr2>0 else ''}{pr2:.1f}%</div>
+                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 대비</div>
+                        {_bar(abs(pr2), 30, '#4a9de0')}
+                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                            background:{'#fff0f0' if pr2>0 else '#e6f3ff'};color:{'#c0392b' if pr2>0 else '#1a5499'};">
+                            {'📈 평균보다 높음' if pr2>0 else '📉 평균보다 낮음'}
+                        </div>
+                    </div>
+                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
+                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">🌳 공원 수</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['공원수'])}개</div>
+                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_PARK:.1f}개</div>
+                        {_bar(drow['공원수'], max_park, '#7eb5e8')}
+                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                            background:{'#e6f3ff' if p_pct>2 else '#eef4fb'};color:{'#1a5499' if p_pct>2 else '#4a6d96'};">
+                            {f'▲ 평균보다 +{p_pct:.0f}%' if p_pct>2 else (f'▼ 평균보다 {p_pct:.0f}%' if p_pct<-2 else '≈ 평균 수준')}
+                        </div>
+                    </div>
+                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
+                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">📚 도서관</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['도서관수'])}개</div>
+                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_LIB:.1f}개</div>
+                        {_bar(drow['도서관수'], max_lib, '#b8d0f0')}
+                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                            background:{'#e6f3ff' if l_pct>2 else '#eef4fb'};color:{'#1a5499' if l_pct>2 else '#4a6d96'};">
+                            {f'▲ 평균보다 +{l_pct:.0f}%' if l_pct>2 else (f'▼ 평균보다 {l_pct:.0f}%' if l_pct<-2 else '≈ 평균 수준')}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # 문화공간
+                st.markdown(f"""
+                <div style="background:#fff;border-radius:12px;padding:14px;
+                            border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;margin-bottom:12px;">
+                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🎨 기타 문화공간</div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#0d2137;">{int(drow['기타문화공간수'])}개</div>
+                        <div>
+                            <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_CULTURE:.1f}개</div>
+                            {_bar(drow['기타문화공간수'], max_culture, '#2979c8')}
+                        </div>
+                        <div style="margin-left:auto;display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.62rem;font-weight:700;
+                            background:{'#e6f3ff' if c_pct>2 else '#eef4fb'};color:{'#1a5499' if c_pct>2 else '#4a6d96'};">
+                            {f'+{c_pct:.0f}%' if c_pct>2 else (f'{c_pct:.0f}%' if c_pct<-2 else '≈ 평균')}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # 지하철역
+                tags_html2 = "".join(
+                    f'<span class="station-tag">{s.strip()}</span>'
+                    for s in drow['지하철역_예시'].split(',')
+                )
+                st.markdown(f"""
+                <div style="background:#fff;border-radius:12px;padding:14px;
+                            border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
+                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
+                                text-transform:uppercase;margin-bottom:8px;">🚉 주변 주요역</div>
+                    <div class="station-tags">{tags_html2}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with right_col:
+                # 추천점수 도넛
+                score2   = to_100(drow['total_score'])
+                circ2    = 3.14159 * 60
+                fill2    = score2 / 100 * circ2
+                st.markdown(f"""
+                <div style="background:#fff;border-radius:12px;padding:16px;
+                            border:1.5px solid rgba(41,121,200,0.12);
+                            border-top:3px solid {arc_col2};margin-bottom:12px;text-align:center;">
+                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
+                                text-transform:uppercase;margin-bottom:4px;">✨ 종합 추천 점수</div>
+                    <svg width="160" height="100" viewBox="0 0 160 100" style="overflow:visible;">
+                        <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="rgba(180,210,240,0.4)" stroke-width="14" stroke-linecap="round"/>
+                        <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="{arc_col2}" stroke-width="14" stroke-linecap="round"
+                            stroke-dasharray="{fill2*1.3:.1f} {circ2*1.3:.1f}" stroke-dashoffset="0"/>
+                        <text x="80" y="78" text-anchor="middle" font-size="28" font-weight="900" fill="{arc_col2}" font-family="Noto Sans KR">{score2:.0f}</text>
+                        <text x="80" y="93" text-anchor="middle" font-size="11" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>
+                    </svg>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # 지표별 레이더 요약 바
+                metrics = [
+                    ("🏠 월세 저렴도", 1 - drow['평균월세']/df['평균월세'].max(), "#2979c8"),
+                    ("💸 물가 저렴도", 1 - (drow['물가비율']+20)/40, "#4a9de0"),
+                    ("🌳 공원", drow['공원수']/max_park, "#7eb5e8"),
+                    ("📚 도서관", drow['도서관수']/max_lib, "#b8d0f0"),
+                    ("🎨 문화공간", drow['기타문화공간수']/max_culture, "#1a5499"),
+                ]
+                bars_html = ""
+                for label, val, color in metrics:
+                    val = max(0, min(1, val))
+                    bars_html += (
+                        f'<div style="margin-bottom:10px;">'
+                        f'<div style="display:flex;justify-content:space-between;'
+                        f'font-size:0.65rem;color:#4a6d96;font-weight:600;margin-bottom:3px;">'
+                        f'<span>{label}</span><span style="color:{color};font-weight:800;">{val*100:.0f}</span></div>'
+                        f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:8px;">'
+                        f'<div style="width:{val*100:.0f}%;height:100%;border-radius:4px;background:{color};"></div>'
+                        f'</div></div>'
+                    )
+                st.markdown(f"""
+                <div style="background:#fff;border-radius:12px;padding:16px;
+                            border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
+                                text-transform:uppercase;margin-bottom:12px;">📊 지표별 점수</div>
+                    {bars_html}
+                </div>
+                """, unsafe_allow_html=True)
+
+# ────────────────────────────────────────────────────────────────────────
+# TAB 3 : 비교 분석
+# ────────────────────────────────────────────────────────────────────────
+with tab3:
+    st.markdown("""
     <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
-                letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;">
-        🏆 Rankings
+                letter-spacing:1.4px;text-transform:uppercase;margin-bottom:12px;">
+        🆚 자치구 비교 분석
     </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:1.05rem;font-weight:800;color:#1a5499;letter-spacing:-0.3px;">
-            우선순위 기반 추천 지역 TOP 5
-        </span>
-        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,rgba(41,121,200,0.2),transparent);"></div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-CARD_RANK_BG = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
-CARD_BORDER  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
-CARD_EMOJI   = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+    all_gu = df['자치구'].tolist()
+    c_col1, c_col2 = st.columns(2)
+    with c_col1:
+        gu_a = st.selectbox("첫 번째 자치구", all_gu,
+                            index=all_gu.index(top5_df.iloc[0]['자치구']), key="compare_a")
+    with c_col2:
+        gu_b = st.selectbox("두 번째 자치구", all_gu,
+                            index=all_gu.index(top5_df.iloc[1]['자치구']), key="compare_b")
 
-cols_top = st.columns(5)
-for i, (_, r) in enumerate(top5_df.iterrows()):
-    with cols_top[i]:
-        is_sel = r['자치구'] == st.session_state.selected_gu
-        shadow  = "0 6px 24px rgba(26,84,153,0.22)" if is_sel else "0 2px 10px rgba(26,84,153,0.08)"
-        outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,0.15)"
-        rd     = r['평균월세'] - AVG_RENT
-        rs, rc = ("▲", "#c0392b") if rd > 0 else ("▼", "#1a6e45")
-        p_diff = r['공원수'] - AVG_PARK
-        l_diff = r['도서관수'] - AVG_LIB
-        s100   = to_100(r['total_score'])
+    if gu_a == gu_b:
+        st.warning("서로 다른 자치구를 선택해 주세요.")
+    else:
+        ra = df[df['자치구'] == gu_a].iloc[0]
+        rb = df[df['자치구'] == gu_b].iloc[0]
+        sa = to_100(ra['total_score'])
+        sb = to_100(rb['total_score'])
+
+        # VS 헤더 카드
+        h1, hm, h2 = st.columns([1, 0.3, 1])
+        with h1:
+            col_a = "#2979c8" if sa >= sb else "#8aadcc"
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg,{col_a},{col_a}99);
+                        border-radius:16px;padding:20px;text-align:center;
+                        box-shadow:0 4px 16px rgba(26,84,153,0.15);">
+                <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">{gu_a}</div>
+                <div style="font-size:0.80rem;color:rgba(255,255,255,0.85);">추천 점수</div>
+                <div style="font-size:2rem;font-weight:900;color:#fff;">{sa:.0f}점</div>
+                {'<div style="margin-top:6px;background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 12px;font-size:0.72rem;color:#fff;font-weight:700;display:inline-block;">✓ 우세</div>' if sa>sb else ''}
+            </div>
+            """, unsafe_allow_html=True)
+        with hm:
+            st.markdown("""
+            <div style="display:flex;align-items:center;justify-content:center;
+                        height:100%;font-size:1.4rem;font-weight:900;color:#8aadcc;padding-top:20px;">
+                VS
+            </div>
+            """, unsafe_allow_html=True)
+        with h2:
+            col_b = "#2979c8" if sb >= sa else "#8aadcc"
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg,{col_b},{col_b}99);
+                        border-radius:16px;padding:20px;text-align:center;
+                        box-shadow:0 4px 16px rgba(26,84,153,0.15);">
+                <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">{gu_b}</div>
+                <div style="font-size:0.80rem;color:rgba(255,255,255,0.85);">추천 점수</div>
+                <div style="font-size:2rem;font-weight:900;color:#fff;">{sb:.0f}점</div>
+                {'<div style="margin-top:6px;background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 12px;font-size:0.72rem;color:#fff;font-weight:700;display:inline-block;">✓ 우세</div>' if sb>sa else ''}
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # 지표 비교 바
+        compare_metrics = [
+            ("🏠 평균 월세 (낮을수록 유리)", ra['평균월세'], rb['평균월세'],
+             df['평균월세'].max(), False),
+            ("💸 생활물가 (낮을수록 유리)", ra['물가비율']+20, rb['물가비율']+20,
+             40, False),
+            ("🌳 공원 수", ra['공원수'], rb['공원수'],
+             df['공원수'].max(), True),
+            ("📚 도서관 수", ra['도서관수'], rb['도서관수'],
+             df['도서관수'].max(), True),
+            ("🎨 문화공간 수", ra['기타문화공간수'], rb['기타문화공간수'],
+             df['기타문화공간수'].max(), True),
+        ]
+
+        labels_a = [f"{int(ra['평균월세'])}만원", f"{ra['물가비율']:+.1f}%",
+                    f"{int(ra['공원수'])}개", f"{int(ra['도서관수'])}개", f"{int(ra['기타문화공간수'])}개"]
+        labels_b = [f"{int(rb['평균월세'])}만원", f"{rb['물가비율']:+.1f}%",
+                    f"{int(rb['공원수'])}개", f"{int(rb['도서관수'])}개", f"{int(rb['기타문화공간수'])}개"]
+
+        compare_html = '<div style="background:#fff;border-radius:14px;padding:20px;border:1.5px solid rgba(41,121,200,0.12);box-shadow:0 2px 10px rgba(26,84,153,0.07);">'
+        compare_html += f'<div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;margin-bottom:16px;font-size:0.72rem;font-weight:800;color:#4a6d96;text-align:center;"><span>{gu_a}</span><span></span><span>{gu_b}</span></div>'
+
+        for idx, (label, va, vb, vmax, higher_better) in enumerate(compare_metrics):
+            pct_a = max(0, min(va / vmax, 1)) * 100
+            pct_b = max(0, min(vb / vmax, 1)) * 100
+            a_wins = (va < vb) if not higher_better else (va > vb)
+            b_wins = (vb < va) if not higher_better else (vb > va)
+            col_a2 = "#2979c8" if a_wins else "#d4e4f7"
+            col_b2 = "#2979c8" if b_wins else "#d4e4f7"
+            win_a  = ' ✓' if a_wins else ''
+            win_b  = ' ✓' if b_wins else ''
+
+            compare_html += (
+                f'<div style="margin-bottom:14px;">'
+                f'<div style="font-size:0.67rem;color:#8aadcc;font-weight:700;'
+                f'text-align:center;margin-bottom:6px;letter-spacing:0.2px;">{label}</div>'
+                f'<div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;align-items:center;">'
+                f'<div>'
+                f'<div style="text-align:right;font-size:0.75rem;font-weight:800;color:{"#1a5499" if a_wins else "#8aadcc"};margin-bottom:3px;">{labels_a[idx]}{win_a}</div>'
+                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;overflow:hidden;">'
+                f'<div style="width:{pct_a:.0f}%;height:100%;border-radius:4px;background:{col_a2};margin-left:auto;"></div>'
+                f'</div></div>'
+                f'<div style="text-align:center;font-size:0.60rem;color:#b8d0f0;font-weight:700;">vs</div>'
+                f'<div>'
+                f'<div style="font-size:0.75rem;font-weight:800;color:{"#1a5499" if b_wins else "#8aadcc"};margin-bottom:3px;">{win_b}{labels_b[idx]}</div>'
+                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;overflow:hidden;">'
+                f'<div style="width:{pct_b:.0f}%;height:100%;border-radius:4px;background:{col_b2};"></div>'
+                f'</div></div>'
+                f'</div></div>'
+            )
+
+        compare_html += '</div>'
+        st.markdown(compare_html, unsafe_allow_html=True)
+
+        # 한줄 총평
+        winner = gu_a if sa >= sb else gu_b
+        loser  = gu_b if sa >= sb else gu_a
+        w_row  = ra if sa >= sb else rb
+        l_row  = rb if sa >= sb else ra
+
+        rent_adv    = "월세가 더 저렴하고" if w_row['평균월세'] < l_row['평균월세'] else "생활물가가 낮으며"
+        culture_adv = "문화공간이 더 풍부합니다." if w_row['기타문화공간수'] > l_row['기타문화공간수'] else "공원과 도서관이 더 많습니다."
 
         st.markdown(f"""
-        <div style="background:#ffffff;border:{outline};border-radius:14px;
-                    padding:14px 10px 12px;text-align:center;
-                    box-shadow:{shadow};border-top:3px solid {CARD_RANK_BG[i]};">
-            <div style="background:{CARD_RANK_BG[i]};color:#fff;border-radius:8px;
-                        padding:3px 0;font-size:0.70rem;font-weight:800;
-                        margin-bottom:7px;letter-spacing:0.3px;">
-                {CARD_EMOJI[i]} {i+1}위
+        <div style="margin-top:16px;background:linear-gradient(135deg,#e8f1fd,#f0f6ff);
+                    border-radius:12px;padding:16px 20px;
+                    border-left:4px solid #2979c8;">
+            <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
+                        letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">
+                💬 AI 종합 평가
             </div>
-            <div style="font-size:1.0rem;font-weight:900;color:#0d2137;
-                        margin-bottom:8px;letter-spacing:-0.3px;">
-                {r['자치구']}
-            </div>
-            <div style="font-size:0.70rem;color:#4a6d96;line-height:1.85;text-align:left;padding:0 3px;">
-                🏠 <b style="color:#0d2137;">{int(r['평균월세'])}만원</b>
-                <span style="color:{rc};font-size:0.62rem;">({rs}{abs(rd):.0f}만)</span><br>
-                🌳 <b style="color:#0d2137;">{int(r['공원수'])}개</b>
-                <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.60rem;">
-                ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
-                📚 <b style="color:#0d2137;">{int(r['도서관수'])}개</b>
-                <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.60rem;">
-                ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
-                🎨 <b style="color:#0d2137;">{int(r['기타문화공간수'])}개</b>
-            </div>
-            <div style="margin-top:9px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
-                        border-radius:8px;padding:4px 0;
-                        font-size:0.72rem;font-weight:800;color:#1a5499;">
-                {s100:.0f}점
+            <div style="font-size:0.90rem;color:#0d2137;line-height:1.7;font-weight:500;">
+                현재 우선순위 기준으로 <b style="color:#1a5499;">{winner}</b>가 더 높은 추천 점수를 받았습니다.<br>
+                {winner}은 {rent_adv} {culture_adv}<br>
+                반면 <b style="color:#4a6d96;">{loser}</b>은 다른 조건에서 강점이 있을 수 있으니
+                우선순위 설정을 바꿔 비교해 보세요.
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+        # 주요역 비교
+        st.markdown("<br>", unsafe_allow_html=True)
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            tags_a = "".join(
+                f'<span class="station-tag">{s.strip()}</span>'
+                for s in ra['지하철역_예시'].split(',')
+            )
+            st.markdown(f"""
+            <div style="background:#fff;border-radius:12px;padding:14px;
+                        border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
+                            text-transform:uppercase;margin-bottom:8px;">🚉 {gu_a} 주요역</div>
+                <div class="station-tags">{tags_a}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with sc2:
+            tags_b = "".join(
+                f'<span class="station-tag">{s.strip()}</span>'
+                for s in rb['지하철역_예시'].split(',')
+            )
+            st.markdown(f"""
+            <div style="background:#fff;border-radius:12px;padding:14px;
+                        border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
+                            text-transform:uppercase;margin-bottom:8px;">🚉 {gu_b} 주요역</div>
+                <div class="station-tags">{tags_b}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
 # ══════════════════════════════════════════════════════════════════════════
 # 데이터 출처
 # ══════════════════════════════════════════════════════════════════════════
