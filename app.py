@@ -672,6 +672,17 @@ with st.sidebar:
             st.session_state.active_tab = opt
             st.rerun()
 
+st.markdown("---")
+    st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🔄 초기화</div>', unsafe_allow_html=True)
+    if st.button("검색 조건 초기화", key="reset_btn", use_container_width=True):
+        for key in ["university_select", "work_select", "line_select",
+                    "rent_band_select", "prio_1", "prio_2", "prio_3", "prio_4"]:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.session_state.selected_gu  = None
+        st.session_state.search_ready = False
+        st.rerun()
+    
 # ══════════════════════════════════════════════════════════════════════════
 # ② 컨트롤 패널 — 2개 독립 카드
 # ══════════════════════════════════════════════════════════════════════════
@@ -837,9 +848,32 @@ active_tab = st.session_state.active_tab
 # ────────────────────────────────────────────────────────────────────────
 if active_tab == "🏆 TOP 5 추천":
 
+    # 검색 실행 버튼
+    btn_col, _ = st.columns([1, 3])
+    with btn_col:
+        if st.button("🔍 검색 실행", key="search_btn", use_container_width=True, type="primary"):
+            st.session_state.search_ready = True
+            if st.session_state.selected_gu is None:
+                st.session_state.selected_gu = top3_gu[0]
+            st.rerun()
+
+    if not st.session_state.search_ready:
+        st.markdown("""
+        <div style="background:#f0f5fb;border-radius:14px;padding:40px 24px;
+                    text-align:center;border:1.5px dashed rgba(41,121,200,0.25);margin-top:12px;">
+            <div style="font-size:1.8rem;margin-bottom:10px;">🗺️</div>
+            <div style="font-size:0.95rem;font-weight:700;color:#1a5499;margin-bottom:6px;">
+                검색 조건을 설정하고 검색을 실행하세요
+            </div>
+            <div style="font-size:0.80rem;color:#8aadcc;">
+                위의 조건을 설정한 후 <b>검색 실행</b> 버튼을 누르면 지역 탐색이 시작됩니다
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.stop()
+
     st.markdown('<div class="section-label" style="margin-top:8px;">🗺️ 지역 탐색</div>', unsafe_allow_html=True)
     col_map, col_info = st.columns([1.6, 1])
-
     with col_map:
         hint_line = f" · {', '.join(selected_lines)} 경유 우선 반영" if selected_lines else ""
         st.markdown(
