@@ -1445,10 +1445,7 @@ elif active_tab == "🔍 지역 상세 분석":
         def _diff_badge(val, avg, unit="", lower_better=False):
             diff = val - avg
             pct  = diff / avg * 100 if avg != 0 else 0
-            if lower_better:
-                good = diff < 0
-            else:
-                good = diff > 0
+            good = (diff < 0) if lower_better else (diff > 0)
             if abs(pct) <= 2:
                 return '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;background:#eef4fb;color:#4a6d96;">≈ 평균 수준</span>'
             sign  = "+" if diff > 0 else ""
@@ -1457,42 +1454,46 @@ elif active_tab == "🔍 지역 상세 분석":
             arrow = "▲" if diff > 0 else "▼"
             return f'<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;background:{bg};color:{color};">{arrow} {sign}{diff:.0f}{unit} vs 평균</span>'
 
-        st.markdown(f"""
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        # 배지 HTML을 미리 계산
+        badge_rent    = _diff_badge(drow['평균월세'], AVG_RENT, '만', lower_better=True)
+        badge_park    = _diff_badge(drow['공원수'],   AVG_PARK, '개', lower_better=False)
+        badge_lib     = _diff_badge(drow['도서관수'], AVG_LIB,  '개', lower_better=False)
+        price_bg      = '#fff0f0' if pr2 > 2 else '#eef7ee'
+        price_color   = '#c0392b' if pr2 > 2 else '#1a6e45'
+        price_text    = '📈 평균보다 높음' if pr2 > 2 else ('📉 평균보다 낮음' if pr2 < -2 else '≈ 평균 수준')
+        price_sign    = '+' if pr2 > 0 else ''
+        badge_price   = f'<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;background:{price_bg};color:{price_color};">{price_text}</span>'
 
-            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
-                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">🏠 평균 월세</div>
-                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow['평균월세'])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">만원</span></div>
-                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_RENT:.0f}만원</div>
-                {_diff_badge(drow['평균월세'], AVG_RENT, '만', lower_better=True)}
-            </div>
+        st.markdown(
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'
 
-            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
-                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">💸 생활물가</div>
-                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{'+' if pr2>0 else ''}{pr2:.1f}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:1px;">%</span></div>
-                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 대비</div>
-                <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                    background:{'#fff0f0' if pr2>2 else '#eef7ee'};color:{'#c0392b' if pr2>2 else '#1a6e45'};">
-                    {'📈 평균보다 높음' if pr2>2 else ('📉 평균보다 낮음' if pr2<-2 else '≈ 평균 수준')}
-                </span>
-            </div>
+            f'<div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">'
+            f'<div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">🏠 평균 월세</div>'
+            f'<div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow["평균월세"])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">만원</span></div>'
+            f'<div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_RENT:.0f}만원</div>'
+            f'{badge_rent}</div>'
 
-            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
-                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">🌳 공원 수</div>
-                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow['공원수'])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">개</span></div>
-                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_PARK:.1f}개</div>
-                {_diff_badge(drow['공원수'], AVG_PARK, '개', lower_better=False)}
-            </div>
+            f'<div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">'
+            f'<div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">💸 생활물가</div>'
+            f'<div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{price_sign}{pr2:.1f}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:1px;">%</span></div>'
+            f'<div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 대비</div>'
+            f'{badge_price}</div>'
 
-            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
-                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">📚 도서관</div>
-                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow['도서관수'])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">개</span></div>
-                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_LIB:.1f}개</div>
-                {_diff_badge(drow['도서관수'], AVG_LIB, '개', lower_better=False)}
-            </div>
+            f'<div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">'
+            f'<div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">🌳 공원 수</div>'
+            f'<div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow["공원수"])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">개</span></div>'
+            f'<div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_PARK:.1f}개</div>'
+            f'{badge_park}</div>'
 
-        </div>
-        """, unsafe_allow_html=True)
+            f'<div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">'
+            f'<div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">📚 도서관</div>'
+            f'<div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow["도서관수"])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">개</span></div>'
+            f'<div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_LIB:.1f}개</div>'
+            f'{badge_lib}</div>'
+
+            '</div>',
+            unsafe_allow_html=True
+        )
 
         # ── 교통 접근성 ──
         transit_row = TRANSIT_TIME.get('강남', {})
