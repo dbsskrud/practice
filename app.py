@@ -808,92 +808,107 @@ if summary_chips:
     </div>
     """, unsafe_allow_html=True)
 
-# ── 점수 계산 ──────────────────────────────────────────────────────────────
-if len(priority_order) == 4:
-    w = {0: 4, 1: 3, 2: 2, 3: 1}
-    df['total_score'] = sum(
-        df[PRIORITY_ITEMS[item]] * w[i] for i, item in enumerate(priority_order)
-    )
-else:
-    df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
-
-# 호선 보너스
-if selected_lines:
-    line_gu_set = set()
-    for line in selected_lines:
-        for st_name in LINE_STATIONS.get(line, []):
-            if st_name in STATION_TO_GU:
-                line_gu_set.add(STATION_TO_GU[st_name])
-    bonus = df['total_score'].max() * 0.3
-    df['total_score'] = df.apply(
-        lambda r: r['total_score'] + bonus if r['자치구'] in line_gu_set else r['total_score'],
-        axis=1
-    )
-
-# 대학교 보너스
-if university != "선택 안 함":
-    uni_gu_list = UNI_TO_GU.get(university, [])
-    uni_bonus = df['total_score'].max() * 0.25
-    df['total_score'] = df.apply(
-        lambda r: r['total_score'] + uni_bonus * (1 - uni_gu_list.index(r['자치구']) * 0.2)
-        if r['자치구'] in uni_gu_list else r['total_score'],
-        axis=1
-    )
-
-# 근무지 보너스
-if work_place != "선택 안 함":
-    work_gu_list = WORK_TO_GU.get(work_place, [])
-    work_bonus = df['total_score'].max() * 0.25
-    df['total_score'] = df.apply(
-        lambda r: r['total_score'] + work_bonus * (1 - work_gu_list.index(r['자치구']) * 0.15)
-        if r['자치구'] in work_gu_list else r['total_score'],
-        axis=1
-    )
-
-# 월세 필터링 — df는 지도용 25개 전체 유지, score_df만 필터링
-rent_lo, rent_hi = RENT_BAND[rent_band]
-score_df = df[(df['평균월세'] >= rent_lo) & (df['평균월세'] <= rent_hi)].copy()
-if score_df.empty:
-    st.warning("해당 월세 가격대의 자치구가 없습니다. 조건을 완화해 주세요.")
+# ── 점수 계산 (search_ready일 때만 실행) ───────────────────────────────────
+if not st.session_state.search_ready:
+    # 아직 검색 전 — 더미값 설정으로 이후 참조 오류 방지
+    df['total_score'] = 0.0
     score_df = df.copy()
+    n_avail  = len(df)
+    top3_gu  = df.head(3)['자치구'].tolist()
+    top5_gu  = df.head(5)['자치구'].tolist()
+    top5_df  = df.head(5)
+    SCORE_MAX = 1.0
+    SCORE_MIN = 0.0
+    def to_100(score): return 0.0
+    gu_list_filtered = df['자치구'].tolist()
+    if st.session_state.selected_gu is None:
+        st.session_state.selected_gu = top3_gu[0]
+    RANK_COLOR = {}
+    RANK_ICON  = {}
+    RANK_LABEL = {}
+else:
+    if len(priority_order) == 4:
+        w = {0: 4, 1: 3, 2: 2, 3: 1}
+        df['total_score'] = sum(
+            df[PRIORITY_ITEMS[item]] * w[i] for i, item in enumerate(priority_order)
+        )
+    else:
+        df['total_score'] = sum(df[v] for v in PRIORITY_ITEMS.values()) / 4.0
 
-rec_df  = score_df.sort_values('total_score', ascending=False).reset_index(drop=True)
-n_avail = len(rec_df)
+    # 호선 보너스
+    if selected_lines:
+        line_gu_set = set()
+        for line in selected_lines:
+            for st_name in LINE_STATIONS.get(line, []):
+                if st_name in STATION_TO_GU:
+                    line_gu_set.add(STATION_TO_GU[st_name])
+        bonus = df['total_score'].max() * 0.3
+        df['total_score'] = df.apply(
+            lambda r: r['total_score'] + bonus if r['자치구'] in line_gu_set else r['total_score'],
+            axis=1
+        )
 
-if n_avail == 0:
-    st.error("조건을 만족하는 자치구가 없습니다. 조건을 완화해 주세요.")
-    st.stop()
+    # 대학교 보너스
+    if university != "선택 안 함":
+        uni_gu_list = UNI_TO_GU.get(university, [])
+        uni_bonus = df['total_score'].max() * 0.25
+        df['total_score'] = df.apply(
+            lambda r: r['total_score'] + uni_bonus * (1 - uni_gu_list.index(r['자치구']) * 0.2)
+            if r['자치구'] in uni_gu_list else r['total_score'],
+            axis=1
+        )
 
-top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
-top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
-top5_df = rec_df.head(min(5, n_avail))
+    # 근무지 보너스
+    if work_place != "선택 안 함":
+        work_gu_list = WORK_TO_GU.get(work_place, [])
+        work_bonus = df['total_score'].max() * 0.25
+        df['total_score'] = df.apply(
+            lambda r: r['total_score'] + work_bonus * (1 - work_gu_list.index(r['자치구']) * 0.15)
+            if r['자치구'] in work_gu_list else r['total_score'],
+            axis=1
+        )
 
-# top3/top5 부족 시 마지막 값으로 패딩 (딕셔너리 접근 오류 방지)
-# 단, n_avail 변수로 실제 유효 개수를 별도 관리
-_last3 = top3_gu[-1] if top3_gu else "강남구"
-_last5 = top5_gu[-1] if top5_gu else "강남구"
-while len(top3_gu) < 3:
-    top3_gu.append(_last3)
-while len(top5_gu) < 5:
-    top5_gu.append(_last5)
+    # 월세 필터링 — df는 지도용 25개 전체 유지, score_df만 필터링
+    rent_lo, rent_hi = RENT_BAND[rent_band]
+    score_df = df[(df['평균월세'] >= rent_lo) & (df['평균월세'] <= rent_hi)].copy()
+    if score_df.empty:
+        st.warning("해당 월세 가격대의 자치구가 없습니다. 조건을 완화해 주세요.")
+        score_df = df.copy()
 
-SCORE_MAX = df['total_score'].max()
-SCORE_MIN = df['total_score'].min()
+    rec_df  = score_df.sort_values('total_score', ascending=False).reset_index(drop=True)
+    n_avail = len(rec_df)
 
-def to_100(score):
-    if SCORE_MAX > SCORE_MIN:
-        return (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN) * 100
-    return 100.0
+    if n_avail == 0:
+        st.error("조건을 만족하는 자치구가 없습니다. 조건을 완화해 주세요.")
+        st.stop()
 
-# 선택된 자치구가 없거나 필터링으로 제거된 경우 1위로 초기화
-gu_list_filtered = score_df['자치구'].tolist()
-if (st.session_state.selected_gu is None or
-        st.session_state.selected_gu not in gu_list_filtered):
-    st.session_state.selected_gu = top3_gu[0]
+    top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
+    top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
+    top5_df = rec_df.head(min(5, n_avail))
 
-RANK_COLOR = {top3_gu[0]: "#2979c8", top3_gu[1]: "#4a9de0", top3_gu[2]: "#7eb5e8"}
-RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
-RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", top3_gu[2]: "🥉 추천 3위"}
+    _last3 = top3_gu[-1] if top3_gu else "강남구"
+    _last5 = top5_gu[-1] if top5_gu else "강남구"
+    while len(top3_gu) < 3:
+        top3_gu.append(_last3)
+    while len(top5_gu) < 5:
+        top5_gu.append(_last5)
+
+    SCORE_MAX = df['total_score'].max()
+    SCORE_MIN = df['total_score'].min()
+
+    def to_100(score):
+        if SCORE_MAX > SCORE_MIN:
+            return (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN) * 100
+        return 100.0
+
+    gu_list_filtered = score_df['자치구'].tolist()
+    if (st.session_state.selected_gu is None or
+            st.session_state.selected_gu not in gu_list_filtered):
+        st.session_state.selected_gu = top3_gu[0]
+
+    RANK_COLOR = {top3_gu[0]: "#2979c8", top3_gu[1]: "#4a9de0", top3_gu[2]: "#7eb5e8"}
+    RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
+    RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", top3_gu[2]: "🥉 추천 3위"}
 
 
 # ══════════════════════════════════════════════════════════════════════════
