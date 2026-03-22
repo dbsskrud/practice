@@ -625,6 +625,8 @@ if 'selected_gu' not in st.session_state:
     st.session_state.selected_gu = None
 if 'active_tab' not in st.session_state:
     st.session_state.active_tab = "🏆 TOP 5 추천"
+if 'search_ready' not in st.session_state:
+    st.session_state.search_ready = False
 
 
 # ══════════════════════════════════════════════════════════════════════════
