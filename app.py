@@ -634,357 +634,326 @@ RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", to
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# ③ 메인 레이아웃: 지도 + 상세 정보
-# ══════════════════════════════════════════════════════════════════════════
-st.markdown('<div class="section-label" style="margin-top:8px;">🗺️ 지역 탐색</div>', unsafe_allow_html=True)
-
-col_map, col_info = st.columns([1.6, 1])
-
-with col_map:
-    hint_line = f" · {', '.join(selected_lines)} 경유 우선 반영" if selected_lines else ""
-    st.markdown(
-        f'<div class="map-hint">🥇🥈🥉 추천 순위{hint_line} — 자치구를 선택하면 우측 상세정보가 바뀝니다</div>',
-        unsafe_allow_html=True
-    )
-
-    score_map = dict(zip(df['자치구'], df['total_score']))
-    gu_list   = df['자치구'].tolist()
-
-    @st.cache_data(show_spinner=False)
-    def load_precise_geojson():
-        import urllib.request
-        URLS = [
-            "https://raw.githubusercontent.com/southkorea/seoul-maps/master/kostat/2013/json/seoul_municipalities_geo_simple.json",
-            "https://raw.githubusercontent.com/vuski/admdongkor/master/ver20230701/HangJeongDong_ver20230701.geojson",
-        ]
-        for url in URLS:
-            try:
-                with urllib.request.urlopen(url, timeout=5) as r:
-                    gj = json.loads(r.read().decode())
-                gu_names = set(df['자치구'].tolist())
-                filtered = []
-                for f in gj.get('features', []):
-                    props = f.get('properties', {})
-                    name = (props.get('name') or props.get('SIG_KOR_NM') or
-                            props.get('sigungu_nm') or '')
-                    if name in gu_names:
-                        f['properties']['name'] = name
-                        f['id'] = name
-                        filtered.append(f)
-                if len(filtered) >= 20:
-                    return {"type": "FeatureCollection", "features": filtered}
-            except Exception:
-                continue
-        return None
-
-    precise = load_precise_geojson()
-    active_geojson = precise if precise else geojson
-
-    fig = go.Figure()
-
-    # Layer 1: 비우선순위 구 — 흰색 배경
-    others_df = df[~df['자치구'].isin(top5_gu)].copy()
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=active_geojson,
-        locations=list(others_df['자치구']),
-        z=[1] * len(others_df),
-        featureidkey="properties.name",
-        colorscale=[[0, "rgba(255,255,255,0.85)"], [1, "rgba(255,255,255,0.85)"]],
-        showscale=False,
-        marker_line_width=1.4,
-        marker_line_color="rgba(100,120,160,0.40)",
-        hovertemplate="<b>%{location}</b><extra></extra>",
-        name="기타구"
-    ))
-
-    # Layer 2: 상위 5개 구 — 블루 팔레트, 순위별 농도
-    fill_alpha = {top5_gu[0]: "rgba(41,121,200,0.80)",
-                  top5_gu[1]: "rgba(41,121,200,0.55)",
-                  top5_gu[2]: "rgba(41,121,200,0.33)",
-                  top5_gu[3]: "rgba(41,121,200,0.20)",
-                  top5_gu[4]: "rgba(41,121,200,0.12)"}
-    border_col = {top5_gu[0]: "rgba(26,84,153,1.0)",
-                  top5_gu[1]: "rgba(41,121,200,0.85)",
-                  top5_gu[2]: "rgba(74,157,224,0.70)",
-                  top5_gu[3]: "rgba(126,181,232,0.60)",
-                  top5_gu[4]: "rgba(184,208,240,0.50)"}
-    rank_label_map = {top5_gu[0]: "🥇 1위", top5_gu[1]: "🥈 2위", top5_gu[2]: "🥉 3위",
-                      top5_gu[3]: "4️⃣ 4위", top5_gu[4]: "5️⃣ 5위"}
-
-    for rgu in top5_gu:
-        sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
-        fig.add_trace(go.Choroplethmapbox(
-            geojson=active_geojson,
-            locations=list(sub['자치구']),
-            z=list(sub['total_score']),
-            featureidkey="properties.name",
-            colorscale=[[0, fill_alpha[rgu]], [1, fill_alpha[rgu]]],
-            showscale=False,
-            marker_line_width=3.0,
-            marker_line_color=border_col[rgu],
-            hoverinfo="skip",
-            name=rank_label_map[rgu]
-        ))
-
-   # Layer 3: TOP3 텍스트
-    for rgu in top3_gu:
-        row_d = df[df['자치구'] == rgu].iloc[0]
-        fig.add_trace(go.Scattermapbox(
-            lat=[row_d['lat']], lon=[row_d['lon']],
-            mode="markers+text",
-            marker=dict(size=1, color="#1a5499", opacity=0, allowoverlap=True),
-            text=[f"{RANK_ICON[rgu]} {rgu}"],
-            textposition="middle center",
-            textfont=dict(size=14, color="#ffffff", family="Noto Sans KR"),
-            hovertemplate=(
-                f"<b>{RANK_ICON[rgu]} {rgu}</b><br>"
-                f"추천점수: {row_d['total_score']:.2f}<br>"
-                f"월세: {int(row_d['평균월세'])}만원<br>"
-                f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
-                f"문화공간: {int(row_d['기타문화공간수'])}개<extra></extra>"
-            ),
-            customdata=[[rgu]],
-            showlegend=False,
-            name=rgu
-        ))
-
-    # Layer 4: 나머지 22개 구 텍스트
-    for _, row_d in df[~df['자치구'].isin(top3_gu)].iterrows():
-        gn = row_d['자치구']
-        fig.add_trace(go.Scattermapbox(
-            lat=[row_d['lat']], lon=[row_d['lon']],
-            mode="text",
-            text=[gn],
-            textposition="middle center",
-            textfont=dict(size=9, color="#4a6d96", family="Noto Sans KR"),
-            customdata=[[gn]],
-            hovertemplate=(
-                f"<b>{gn}</b><br>"
-                f"월세: {int(row_d['평균월세'])}만원 | 공원: {int(row_d['공원수'])}개<extra></extra>"
-            ),
-            showlegend=False,
-            name=gn
-        ))
-
-    fig.update_layout(
-        mapbox=dict(style="carto-positron", center={"lat": 37.5635, "lon": 126.987}, zoom=10.3),
-        margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        height=490,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        showlegend=False,
-    )
-
-    st.plotly_chart(fig, use_container_width=True, key="main_map")
-
-    # 자치구 선택 버튼
-    sel_gu = st.session_state.selected_gu
-    RANK_COLORS_BTN = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
-    RANK_ICONS_BTN  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
-
-    st.markdown("""
-    <div style="background:linear-gradient(135deg,#1a5499,#2979c8);
-                border-radius:10px;padding:9px 16px;margin:8px 0 10px;">
-        <span style="font-size:0.77rem;color:rgba(255,255,255,0.95);font-weight:600;">
-            📍 자치구를 선택하면 우측 상세정보가 바뀝니다
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    cols5 = st.columns(5)
-    for i, rgu in enumerate(top5_gu):
-        with cols5[i]:
-            is_active = (sel_gu == rgu)
-            if is_active:
-                st.markdown(
-                    f'<div style="background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
-                    f'color:white;border-radius:10px;padding:10px 4px;text-align:center;'
-                    f'font-size:0.75rem;font-weight:900;height:38px;line-height:18px;'
-                    f'box-shadow:0 3px 10px {RANK_COLORS_BTN[i]}55;">'
-                    f'{RANK_ICONS_BTN[i]} {rgu} ✓</div>',
-                    unsafe_allow_html=True
-                )
-            else:
-                if st.button(f"{RANK_ICONS_BTN[i]} {rgu}", key=f"sel_top_{i}", use_container_width=True):
-                    st.session_state.selected_gu = rgu
-                    st.rerun()
-
-    others_gu = [g for g in gu_list if g not in top3_gu]
-    with st.expander("🔍 다른 자치구 보기", expanded=False):
-        n_cols = 5
-        rows = [others_gu[i:i+n_cols] for i in range(0, len(others_gu), n_cols)]
-        for row_items in rows:
-            cols_o = st.columns(n_cols)
-            for j, g in enumerate(row_items):
-                with cols_o[j]:
-                    is_active = (sel_gu == g)
-                    if is_active:
-                        st.markdown(
-                            f'<div style="background:linear-gradient(135deg,#1a5499,#2979c8);'
-                            f'color:white;border-radius:8px;padding:6px 2px;text-align:center;'
-                            f'font-size:0.72rem;font-weight:700;">{g} ✓</div>',
-                            unsafe_allow_html=True
-                        )
-                    else:
-                        if st.button(g, key=f"sel_other_{g}", use_container_width=True):
-                            st.session_state.selected_gu = g
-                            st.rerun()
-
-
-# ── 우측 상세 정보 ────────────────────────────────────────────────────────
-with col_info:
-    gu       = st.session_state.selected_gu
-    row      = df[df['자치구'] == gu].iloc[0]
-    rank_pos = top3_gu.index(gu) + 1 if gu in top3_gu else None
-
-    rl = RANK_LABEL.get(gu, "")
-    st.markdown(f"""
-    <div class="gu-header">
-        <div class="rank-badge-text">{rl}</div>
-        <h2>{gu}</h2>
-        <div class="gu-tagline">「 {row['한줄평']} 」</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    def _pct(val, avg):
-        return (val - avg) / avg * 100 if avg != 0 else 0
-
-    rent_pct    = _pct(row['평균월세'],      AVG_RENT)
-    park_pct    = _pct(row['공원수'],         AVG_PARK)
-    lib_pct     = _pct(row['도서관수'],       AVG_LIB)
-    culture_pct = _pct(row['기타문화공간수'], AVG_CULTURE)
-
-    def _badge_rent(pct):
-        if pct < -2:   return "better",  f"서울 평균보다 {abs(pct):.0f}% 저렴 ▼"
-        elif pct > 2:  return "worse",   f"서울 평균보다 +{pct:.0f}% 비쌈 ▲"
-        else:          return "neutral", "서울 평균과 비슷"
-
-    def _badge_more(pct):
-        if pct > 2:    return "better",  f"서울 평균 대비 +{pct:.0f}% 많음 ▲"
-        elif pct < -2: return "worse",   f"서울 평균 대비 {pct:.0f}% 적음 ▼"
-        else:          return "neutral", "서울 평균과 비슷"
-
-    rc, rt   = _badge_rent(rent_pct)
-    pc, pt_txt = _badge_more(park_pct)
-    lc, lt   = _badge_more(lib_pct)
-    cc, ct   = _badge_more(culture_pct)
-
-    # 메트릭 그리드 — 4열 가로 배치
-    metric_html = (
-        '<div class="metric-grid">'
-
-        '<div class="metric-card">'
-        '<div class="mlabel">🏠 평균 월세</div>'
-        f'<div class="mvalue">{int(row["평균월세"])}만원</div>'
-        f'<div class="msub">원룸 기준<br>평균 <b>{AVG_RENT:.0f}만원</b></div>'
-        f'<span class="mcomp {rc}">{rt}</span>'
-        '</div>'
-
-        '<div class="metric-card green">'
-        '<div class="mlabel">🌳 공원 수</div>'
-        f'<div class="mvalue">{int(row["공원수"])}개</div>'
-        f'<div class="msub">주요공원 기준<br>평균 <b>{AVG_PARK:.1f}개</b></div>'
-        f'<span class="mcomp {pc}">{pt_txt}</span>'
-        '</div>'
-
-        '<div class="metric-card orange">'
-        '<div class="mlabel">📚 도서관</div>'
-        f'<div class="mvalue">{int(row["도서관수"])}개</div>'
-        f'<div class="msub">구립·시립 포함<br>평균 <b>{AVG_LIB:.1f}개</b></div>'
-        f'<span class="mcomp {lc}">{lt}</span>'
-        '</div>'
-
-        '<div class="metric-card purple">'
-        '<div class="mlabel">🎨 문화공간</div>'
-        f'<div class="mvalue">{int(row["기타문화공간수"])}개</div>'
-        f'<div class="msub">미술관·공연장 등<br>평균 <b>{AVG_CULTURE:.1f}개</b></div>'
-        f'<span class="mcomp {cc}">{ct}</span>'
-        '</div>'
-
-        '</div>'
-    )
-    st.markdown(metric_html, unsafe_allow_html=True)
-
-    # 종합 추천 점수 + 생활물가
-    score     = row['total_score']
-    score_100 = to_100(score)
-    arc_col   = (
-        "#ff3c3c" if rank_pos == 1 else
-        "#ffa500" if rank_pos == 2 else
-        "#ffdc00" if rank_pos == 3 else "#7eb5e8"
-    )
-
-    pr = row['물가비율']
-    price_bg     = "linear-gradient(135deg,#fde8e8,#fdd0d0)" if pr > 0 else "linear-gradient(135deg,#e8f8f0,#d0f0e0)"
-    price_col    = "#c0392b" if pr > 0 else "#1e8449"
-    price_border = "#e74c3c" if pr > 0 else "#27ae60"
-    price_icon   = "📈" if pr > 0 else "📉"
-    price_txt    = f"+{abs(pr):.1f}%" if pr > 0 else f"-{abs(pr):.1f}%"
-    price_label  = "높음" if pr > 0 else "낮음"
-
-    circumference = 3.14159 * 60
-    fill_len = score_100 / 100 * circumference
-
-    score_price_html = (
-        '<div class="metric-grid">'
-
-        f'<div class="metric-card" style="background:linear-gradient(135deg,#e8f1fd,#d4e8fb);border-top-color:{arc_col};">'
-
-        '<div class="mlabel">✨ 종합 추천 점수</div>'
-        f'<svg width="100%" height="80" viewBox="0 0 160 90" style="margin-top:2px;">'
-        f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="rgba(180,210,240,0.5)" stroke-width="12" stroke-linecap="round"/>'
-        f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="{arc_col}" stroke-width="12" stroke-linecap="round"'
-        f' stroke-dasharray="{fill_len*1.3:.1f} {circumference*1.3:.1f}" stroke-dashoffset="0"/>'
-        f'<text x="80" y="68" text-anchor="middle" font-size="24" font-weight="900" fill="{arc_col}" font-family="Noto Sans KR">{score_100:.0f}</text>'
-        f'<text x="80" y="82" text-anchor="middle" font-size="10" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>'
-        '</svg>'
-        '</div>'
-
-        f'<div class="metric-card" style="background:{price_bg};border-top-color:{price_border}80;">'
-        '<div class="mlabel">💸 생활물가</div>'
-        f'<div class="mvalue" style="color:{price_col};">{price_txt}</div>'
-        f'<div class="msub">서울 평균 대비<br><b>{price_label}</b></div>'
-        f'<span class="mcomp {"worse" if pr > 0 else "better"}">'
-        f'{price_icon} 서울 평균보다 {price_txt} {"비쌈" if pr > 0 else "저렴"}'
-        '</span>'
-        '</div>'
-
-        '</div>'
-    )
-    st.markdown(score_price_html, unsafe_allow_html=True)
-
-    # 주변 주요역
-    tags_html = "".join(
-        f'<span class="station-tag">{s.strip()}</span>'
-        for s in row['지하철역_예시'].split(',')
-    )
-    st.markdown(f"""
-    <div style="background:#ffffff;border-radius:12px;padding:12px 14px;
-                border:1.5px solid var(--border);box-shadow:var(--sh-s);
-                border-top:3px solid #7eb5e8;">
-        <div style="font-size:0.66rem;color:var(--col-sub);font-weight:700;
-                    margin-bottom:7px;letter-spacing:0.3px;text-transform:uppercase;">
-            🚉 주변 주요역
-        </div>
-        <div class="station-tags">{tags_html}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# ④ 탭: TOP5 추천 / 지역 상세 / 비교 분석
+# ③ 페이지 분기
 # ══════════════════════════════════════════════════════════════════════════
 active_tab = st.session_state.active_tab
+
 # ────────────────────────────────────────────────────────────────────────
-# TAB 1 : TOP 5 추천 카드
+# PAGE 1 : 지역 탐색 + TOP5
 # ────────────────────────────────────────────────────────────────────────
 if active_tab == "🏆 TOP 5 추천":
-    st.markdown("""
-    <div style="margin:16px 0 14px;">
-        <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
-                    letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;">
-            🏆 Rankings
+
+    st.markdown('<div class="section-label" style="margin-top:8px;">🗺️ 지역 탐색</div>', unsafe_allow_html=True)
+    col_map, col_info = st.columns([1.6, 1])
+
+    with col_map:
+        hint_line = f" · {', '.join(selected_lines)} 경유 우선 반영" if selected_lines else ""
+        st.markdown(
+            f'<div class="map-hint">🥇🥈🥉 추천 순위{hint_line} — 자치구를 선택하면 우측 상세정보가 바뀝니다</div>',
+            unsafe_allow_html=True
+        )
+
+        score_map = dict(zip(df['자치구'], df['total_score']))
+        gu_list   = df['자치구'].tolist()
+
+        @st.cache_data(show_spinner=False)
+        def load_precise_geojson():
+            import urllib.request
+            URLS = [
+                "https://raw.githubusercontent.com/southkorea/seoul-maps/master/kostat/2013/json/seoul_municipalities_geo_simple.json",
+                "https://raw.githubusercontent.com/vuski/admdongkor/master/ver20230701/HangJeongDong_ver20230701.geojson",
+            ]
+            for url in URLS:
+                try:
+                    with urllib.request.urlopen(url, timeout=5) as r:
+                        gj = json.loads(r.read().decode())
+                    gu_names = set(df['자치구'].tolist())
+                    filtered = []
+                    for f in gj.get('features', []):
+                        props = f.get('properties', {})
+                        name = (props.get('name') or props.get('SIG_KOR_NM') or
+                                props.get('sigungu_nm') or '')
+                        if name in gu_names:
+                            f['properties']['name'] = name
+                            f['id'] = name
+                            filtered.append(f)
+                    if len(filtered) >= 20:
+                        return {"type": "FeatureCollection", "features": filtered}
+                except Exception:
+                    continue
+            return None
+
+        precise = load_precise_geojson()
+        active_geojson = precise if precise else geojson
+
+        fig = go.Figure()
+
+        others_df = df[~df['자치구'].isin(top5_gu)].copy()
+        fig.add_trace(go.Choroplethmapbox(
+            geojson=active_geojson,
+            locations=list(others_df['자치구']),
+            z=[1] * len(others_df),
+            featureidkey="properties.name",
+            colorscale=[[0, "rgba(255,255,255,0.85)"], [1, "rgba(255,255,255,0.85)"]],
+            showscale=False,
+            marker_line_width=1.4,
+            marker_line_color="rgba(100,120,160,0.40)",
+            hovertemplate="<b>%{location}</b><extra></extra>",
+            name="기타구"
+        ))
+
+        fill_alpha = {top5_gu[0]: "rgba(41,121,200,0.80)",
+                      top5_gu[1]: "rgba(41,121,200,0.55)",
+                      top5_gu[2]: "rgba(41,121,200,0.33)",
+                      top5_gu[3]: "rgba(41,121,200,0.20)",
+                      top5_gu[4]: "rgba(41,121,200,0.12)"}
+        border_col = {top5_gu[0]: "rgba(26,84,153,1.0)",
+                      top5_gu[1]: "rgba(41,121,200,0.85)",
+                      top5_gu[2]: "rgba(74,157,224,0.70)",
+                      top5_gu[3]: "rgba(126,181,232,0.60)",
+                      top5_gu[4]: "rgba(184,208,240,0.50)"}
+        rank_label_map = {top5_gu[0]: "🥇 1위", top5_gu[1]: "🥈 2위", top5_gu[2]: "🥉 3위",
+                          top5_gu[3]: "4️⃣ 4위", top5_gu[4]: "5️⃣ 5위"}
+
+        for rgu in top5_gu:
+            sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
+            fig.add_trace(go.Choroplethmapbox(
+                geojson=active_geojson,
+                locations=list(sub['자치구']),
+                z=list(sub['total_score']),
+                featureidkey="properties.name",
+                colorscale=[[0, fill_alpha[rgu]], [1, fill_alpha[rgu]]],
+                showscale=False,
+                marker_line_width=3.0,
+                marker_line_color=border_col[rgu],
+                hoverinfo="skip",
+                name=rank_label_map[rgu]
+            ))
+
+        rank_icons_all = {top5_gu[j]: ["🥇","🥈","🥉","4️⃣","5️⃣"][j] for j in range(5)}
+        for rgu in top5_gu:
+            row_d   = df[df['자치구'] == rgu].iloc[0]
+            is_top3 = rgu in top3_gu
+            fig.add_trace(go.Scattermapbox(
+                lat=[row_d['lat']], lon=[row_d['lon']],
+                mode="markers+text",
+                marker=dict(size=1, color="#1a5499", opacity=0, allowoverlap=True),
+                text=[f"{rank_icons_all[rgu]} {rgu}"],
+                textposition="middle center",
+                textfont=dict(size=14 if is_top3 else 11, color="#ffffff", family="Noto Sans KR"),
+                hovertemplate=(
+                    f"<b>{rank_icons_all[rgu]} {rgu}</b><br>"
+                    f"추천점수: {row_d['total_score']:.2f}<br>"
+                    f"월세: {int(row_d['평균월세'])}만원<br>"
+                    f"공원: {int(row_d['공원수'])}개  도서관: {int(row_d['도서관수'])}개<br>"
+                    f"문화공간: {int(row_d['기타문화공간수'])}개<extra></extra>"
+                ),
+                customdata=[[rgu]],
+                showlegend=False,
+                name=rgu
+            ))
+
+        for _, row_d in df[~df['자치구'].isin(top5_gu)].iterrows():
+            gn = row_d['자치구']
+            fig.add_trace(go.Scattermapbox(
+                lat=[row_d['lat']], lon=[row_d['lon']],
+                mode="text",
+                text=[gn],
+                textposition="middle center",
+                textfont=dict(size=9, color="#4a6d96", family="Noto Sans KR"),
+                customdata=[[gn]],
+                hovertemplate=(
+                    f"<b>{gn}</b><br>"
+                    f"월세: {int(row_d['평균월세'])}만원 | 공원: {int(row_d['공원수'])}개<extra></extra>"
+                ),
+                showlegend=False,
+                name=gn
+            ))
+
+        fig.update_layout(
+            mapbox=dict(style="carto-positron", center={"lat": 37.5635, "lon": 126.987}, zoom=10.3),
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            height=490,
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            showlegend=False,
+        )
+        st.plotly_chart(fig, use_container_width=True, key="main_map")
+
+        sel_gu = st.session_state.selected_gu
+        RANK_COLORS_BTN = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#b8d0f0"]
+        RANK_ICONS_BTN  = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+
+        st.markdown("""
+        <div style="background:linear-gradient(135deg,#1a5499,#2979c8);
+                    border-radius:10px;padding:9px 16px;margin:8px 0 10px;">
+            <span style="font-size:0.77rem;color:rgba(255,255,255,0.95);font-weight:600;">
+                📍 자치구를 선택하면 우측 상세정보가 바뀝니다
+            </span>
         </div>
+        """, unsafe_allow_html=True)
+
+        cols5 = st.columns(5)
+        for i, rgu in enumerate(top5_gu):
+            with cols5[i]:
+                is_active = (sel_gu == rgu)
+                if is_active:
+                    st.markdown(
+                        f'<div style="background:linear-gradient(135deg,{RANK_COLORS_BTN[i]},{RANK_COLORS_BTN[i]}cc);'
+                        f'color:white;border-radius:10px;padding:10px 4px;text-align:center;'
+                        f'font-size:0.75rem;font-weight:900;height:38px;line-height:18px;'
+                        f'box-shadow:0 3px 10px {RANK_COLORS_BTN[i]}55;">'
+                        f'{RANK_ICONS_BTN[i]} {rgu} ✓</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    if st.button(f"{RANK_ICONS_BTN[i]} {rgu}", key=f"sel_top_{i}", use_container_width=True):
+                        st.session_state.selected_gu = rgu
+                        st.rerun()
+
+        others_gu = [g for g in gu_list if g not in top5_gu]
+        with st.expander("🔍 다른 자치구 보기", expanded=False):
+            n_cols = 5
+            rows_gu = [others_gu[i:i+n_cols] for i in range(0, len(others_gu), n_cols)]
+            for row_items in rows_gu:
+                cols_o = st.columns(n_cols)
+                for j, g in enumerate(row_items):
+                    with cols_o[j]:
+                        is_active = (sel_gu == g)
+                        if is_active:
+                            st.markdown(
+                                f'<div style="background:linear-gradient(135deg,#1a5499,#2979c8);'
+                                f'color:white;border-radius:8px;padding:6px 2px;text-align:center;'
+                                f'font-size:0.72rem;font-weight:700;">{g} ✓</div>',
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            if st.button(g, key=f"sel_other_{g}", use_container_width=True):
+                                st.session_state.selected_gu = g
+                                st.rerun()
+
+    with col_info:
+        gu       = st.session_state.selected_gu
+        row      = df[df['자치구'] == gu].iloc[0]
+        rank_pos = top3_gu.index(gu) + 1 if gu in top3_gu else None
+
+        rl = RANK_LABEL.get(gu, "")
+        st.markdown(f"""
+        <div class="gu-header">
+            <div class="rank-badge-text">{rl}</div>
+            <h2>{gu}</h2>
+            <div class="gu-tagline">「 {row['한줄평']} 」</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        def _pct(val, avg):
+            return (val - avg) / avg * 100 if avg != 0 else 0
+
+        rent_pct    = _pct(row['평균월세'],      AVG_RENT)
+        park_pct    = _pct(row['공원수'],         AVG_PARK)
+        lib_pct     = _pct(row['도서관수'],       AVG_LIB)
+        culture_pct = _pct(row['기타문화공간수'], AVG_CULTURE)
+
+        def _badge_rent(pct):
+            if pct < -2:   return "better",  f"서울 평균보다 {abs(pct):.0f}% 저렴 ▼"
+            elif pct > 2:  return "worse",   f"서울 평균보다 +{pct:.0f}% 비쌈 ▲"
+            else:          return "neutral", "서울 평균과 비슷"
+
+        def _badge_more(pct):
+            if pct > 2:    return "better",  f"서울 평균 대비 +{pct:.0f}% 많음 ▲"
+            elif pct < -2: return "worse",   f"서울 평균 대비 {pct:.0f}% 적음 ▼"
+            else:          return "neutral", "서울 평균과 비슷"
+
+        rc, rt     = _badge_rent(rent_pct)
+        pc, pt_txt = _badge_more(park_pct)
+        lc, lt     = _badge_more(lib_pct)
+        cc, ct     = _badge_more(culture_pct)
+
+        metric_html = (
+            '<div class="metric-grid">'
+            '<div class="metric-card">'
+            '<div class="mlabel">🏠 평균 월세</div>'
+            f'<div class="mvalue">{int(row["평균월세"])}만원</div>'
+            f'<div class="msub">원룸 기준<br>평균 <b>{AVG_RENT:.0f}만원</b></div>'
+            f'<span class="mcomp {rc}">{rt}</span>'
+            '</div>'
+            '<div class="metric-card green">'
+            '<div class="mlabel">🌳 공원 수</div>'
+            f'<div class="mvalue">{int(row["공원수"])}개</div>'
+            f'<div class="msub">주요공원 기준<br>평균 <b>{AVG_PARK:.1f}개</b></div>'
+            f'<span class="mcomp {pc}">{pt_txt}</span>'
+            '</div>'
+            '<div class="metric-card orange">'
+            '<div class="mlabel">📚 도서관</div>'
+            f'<div class="mvalue">{int(row["도서관수"])}개</div>'
+            f'<div class="msub">구립·시립 포함<br>평균 <b>{AVG_LIB:.1f}개</b></div>'
+            f'<span class="mcomp {lc}">{lt}</span>'
+            '</div>'
+            '<div class="metric-card purple">'
+            '<div class="mlabel">🎨 문화공간</div>'
+            f'<div class="mvalue">{int(row["기타문화공간수"])}개</div>'
+            f'<div class="msub">미술관·공연장 등<br>평균 <b>{AVG_CULTURE:.1f}개</b></div>'
+            f'<span class="mcomp {cc}">{ct}</span>'
+            '</div>'
+            '</div>'
+        )
+        st.markdown(metric_html, unsafe_allow_html=True)
+
+        score     = row['total_score']
+        score_100 = to_100(score)
+        arc_col   = ("#ff3c3c" if rank_pos == 1 else "#ffa500" if rank_pos == 2 else "#ffdc00" if rank_pos == 3 else "#7eb5e8")
+        pr = row['물가비율']
+        price_bg     = "linear-gradient(135deg,#fde8e8,#fdd0d0)" if pr > 0 else "linear-gradient(135deg,#e8f8f0,#d0f0e0)"
+        price_col    = "#c0392b" if pr > 0 else "#1e8449"
+        price_border = "#e74c3c" if pr > 0 else "#27ae60"
+        price_icon   = "📈" if pr > 0 else "📉"
+        price_txt    = f"+{abs(pr):.1f}%" if pr > 0 else f"-{abs(pr):.1f}%"
+        price_label  = "높음" if pr > 0 else "낮음"
+        circumference = 3.14159 * 60
+        fill_len = score_100 / 100 * circumference
+
+        score_price_html = (
+            '<div class="metric-grid">'
+            f'<div class="metric-card" style="background:linear-gradient(135deg,#e8f1fd,#d4e8fb);border-top-color:{arc_col};">'
+            '<div class="mlabel">✨ 종합 추천 점수</div>'
+            f'<svg width="100%" height="80" viewBox="0 0 160 90" style="margin-top:2px;">'
+            f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="rgba(180,210,240,0.5)" stroke-width="12" stroke-linecap="round"/>'
+            f'<path d="M 10 80 A 75 75 0 0 1 150 80" fill="none" stroke="{arc_col}" stroke-width="12" stroke-linecap="round"'
+            f' stroke-dasharray="{fill_len*1.3:.1f} {circumference*1.3:.1f}" stroke-dashoffset="0"/>'
+            f'<text x="80" y="68" text-anchor="middle" font-size="24" font-weight="900" fill="{arc_col}" font-family="Noto Sans KR">{score_100:.0f}</text>'
+            f'<text x="80" y="82" text-anchor="middle" font-size="10" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>'
+            '</svg>'
+            '</div>'
+            f'<div class="metric-card" style="background:{price_bg};border-top-color:{price_border}80;">'
+            '<div class="mlabel">💸 생활물가</div>'
+            f'<div class="mvalue" style="color:{price_col};">{price_txt}</div>'
+            f'<div class="msub">서울 평균 대비<br><b>{price_label}</b></div>'
+            f'<span class="mcomp {"worse" if pr > 0 else "better"}">'
+            f'{price_icon} 서울 평균보다 {price_txt} {"비쌈" if pr > 0 else "저렴"}'
+            '</span>'
+            '</div>'
+            '</div>'
+        )
+        st.markdown(score_price_html, unsafe_allow_html=True)
+
+        tags_html = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in row['지하철역_예시'].split(','))
+        st.markdown(f"""
+        <div style="background:#ffffff;border-radius:12px;padding:12px 14px;
+                    border:1.5px solid var(--border);box-shadow:var(--sh-s);
+                    border-top:3px solid #7eb5e8;">
+            <div style="font-size:0.66rem;color:var(--col-sub);font-weight:700;
+                        margin-bottom:7px;letter-spacing:0.3px;text-transform:uppercase;">
+                🚉 주변 주요역
+            </div>
+            <div class="station-tags">{tags_html}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # TOP5 카드
+    st.markdown("""
+    <div style="margin:24px 0 14px;">
+        <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
+                    letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;">🏆 Rankings</div>
         <div style="display:flex;align-items:center;gap:12px;">
             <span style="font-size:1.05rem;font-weight:800;color:#1a5499;letter-spacing:-0.3px;">
                 우선순위 기반 추천 지역 TOP 5
@@ -1009,246 +978,242 @@ if active_tab == "🏆 TOP 5 추천":
             p_diff  = r['공원수'] - AVG_PARK
             l_diff  = r['도서관수'] - AVG_LIB
             s100    = to_100(r['total_score'])
-
             st.markdown(f"""
             <div style="background:#ffffff;border:{outline};border-radius:14px;
                         padding:14px 10px 12px;text-align:center;
                         box-shadow:{shadow};border-top:3px solid {CARD_RANK_BG[i]};">
                 <div style="background:{CARD_RANK_BG[i]};color:#fff;border-radius:8px;
                             padding:3px 0;font-size:0.70rem;font-weight:800;
-                            margin-bottom:7px;letter-spacing:0.3px;">
-                    {CARD_EMOJI[i]} {i+1}위
-                </div>
-                <div style="font-size:1.0rem;font-weight:900;color:#0d2137;
-                            margin-bottom:8px;letter-spacing:-0.3px;">
-                    {r['자치구']}
-                </div>
+                            margin-bottom:7px;">{CARD_EMOJI[i]} {i+1}위</div>
+                <div style="font-size:1.0rem;font-weight:900;color:#0d2137;margin-bottom:8px;">{r['자치구']}</div>
                 <div style="font-size:0.70rem;color:#4a6d96;line-height:1.85;text-align:left;padding:0 3px;">
                     🏠 <b style="color:#0d2137;">{int(r['평균월세'])}만원</b>
                     <span style="color:{rc};font-size:0.62rem;">({rs}{abs(rd):.0f}만)</span><br>
                     🌳 <b style="color:#0d2137;">{int(r['공원수'])}개</b>
-                    <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.60rem;">
-                    ({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
+                    <span style="color:{'#1a6e45' if p_diff>=0 else '#c0392b'};font-size:0.60rem;">({'+'if p_diff>=0 else ''}{p_diff:.1f})</span>
                     📚 <b style="color:#0d2137;">{int(r['도서관수'])}개</b>
-                    <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.60rem;">
-                    ({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
+                    <span style="color:{'#1a6e45' if l_diff>=0 else '#c0392b'};font-size:0.60rem;">({'+'if l_diff>=0 else ''}{l_diff:.1f})</span><br>
                     🎨 <b style="color:#0d2137;">{int(r['기타문화공간수'])}개</b>
                 </div>
                 <div style="margin-top:9px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
-                            border-radius:8px;padding:4px 0;
-                            font-size:0.72rem;font-weight:800;color:#1a5499;">
+                            border-radius:8px;padding:4px 0;font-size:0.72rem;font-weight:800;color:#1a5499;">
                     {s100:.0f}점
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button(f"{'✓ 선택됨' if is_sel else '상세보기'}", key=f"tab1_btn_{i}", use_container_width=True):
-                st.session_state.selected_gu = r['자치구']
-                st.rerun()
-
 # ────────────────────────────────────────────────────────────────────────
-# TAB 2 : 지역 상세 분석
+# PAGE 2 : 지역 상세 분석
 # ────────────────────────────────────────────────────────────────────────
 elif active_tab == "🔍 지역 상세 분석":
+    st.markdown('<div class="section-label">🔍 지역 상세 분석</div>', unsafe_allow_html=True)
+
+    all_gu     = df['자치구'].tolist()
     top5_list  = top5_df['자치구'].tolist()
     top5_icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
-    tab_labels = [f"{top5_icons[i]} {g}" for i, g in enumerate(top5_list)]
-    detail_tabs = st.tabs(tab_labels)
+
+    # 자치구 선택 — TOP5 빠른 버튼 + 전체 드롭다운
+    st.markdown('<div style="font-size:0.70rem;font-weight:700;color:#4a6d96;margin-bottom:8px;">추천 TOP5 빠른 선택</div>', unsafe_allow_html=True)
+    btn_cols = st.columns(5)
+    for i, g in enumerate(top5_list):
+        with btn_cols[i]:
+            is_sel = st.session_state.selected_gu == g
+            if is_sel:
+                st.markdown(
+                    f'<div style="background:linear-gradient(135deg,#1a5499,#2979c8);color:white;'
+                    f'border-radius:10px;padding:8px 4px;text-align:center;font-size:0.75rem;font-weight:800;">'
+                    f'{top5_icons[i]} {g} ✓</div>', unsafe_allow_html=True)
+            else:
+                if st.button(f"{top5_icons[i]} {g}", key=f"d2_top_{i}", use_container_width=True):
+                    st.session_state.selected_gu = g
+                    st.rerun()
+
+    with st.expander("🔍 다른 자치구 보기", expanded=False):
+        others_all = [g for g in all_gu if g not in top5_list]
+        n_cols = 5
+        for chunk in [others_all[i:i+n_cols] for i in range(0, len(others_all), n_cols)]:
+            cols_o = st.columns(n_cols)
+            for j, g in enumerate(chunk):
+                with cols_o[j]:
+                    is_sel = st.session_state.selected_gu == g
+                    if is_sel:
+                        st.markdown(
+                            f'<div style="background:linear-gradient(135deg,#1a5499,#2979c8);color:white;'
+                            f'border-radius:8px;padding:6px 2px;text-align:center;font-size:0.72rem;font-weight:700;">{g} ✓</div>',
+                            unsafe_allow_html=True)
+                    else:
+                        if st.button(g, key=f"d2_other_{g}", use_container_width=True):
+                            st.session_state.selected_gu = g
+                            st.rerun()
+
+    st.markdown("---")
+
+    detail_gu = st.session_state.selected_gu
+    drow      = df[df['자치구'] == detail_gu].iloc[0]
+    d_rank_idx = top5_list.index(detail_gu) if detail_gu in top5_list else None
+    arc_col2  = ["#ff3c3c","#ffa500","#ffdc00","#4a9de0","#7eb5e8"][d_rank_idx] if d_rank_idx is not None else "#7eb5e8"
+    rank_icon2 = top5_icons[d_rank_idx] if d_rank_idx is not None else "📍"
+    rank_label2 = f"추천 {d_rank_idx+1}위" if d_rank_idx is not None else "기타 자치구"
+
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg,#1a5499,#2979c8,#4a9de0);
+                border-radius:16px;padding:20px 24px;margin-bottom:16px;
+                box-shadow:0 4px 16px rgba(26,84,153,0.15);">
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.70);font-weight:700;
+                    letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">
+            {rank_icon2} {rank_label2}
+        </div>
+        <div style="font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;">
+            {detail_gu}
+        </div>
+        <div style="font-size:0.84rem;color:rgba(255,255,255,0.82);font-style:italic;">
+            「 {drow['한줄평']} 」
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    left_col, right_col = st.columns([1.1, 1])
 
     def _pct2(val, avg):
         return (val - avg) / avg * 100 if avg != 0 else 0
 
-    for ti, detail_gu in enumerate(top5_list):
-        with detail_tabs[ti]:
-            drow     = df[df['자치구'] == detail_gu].iloc[0]
-            d_rank   = ti + 1
-            arc_col2 = ["#ff3c3c","#ffa500","#ffdc00","#4a9de0","#7eb5e8"][ti]
+    max_rent    = df['평균월세'].max()
+    max_park    = df['공원수'].max()
+    max_lib     = df['도서관수'].max()
+    max_culture = df['기타문화공간수'].max()
 
-            # 헤더
-            st.markdown(f"""
-            <div style="background:linear-gradient(135deg,#1a5499,#2979c8,#4a9de0);
-                        border-radius:16px;padding:20px 24px;margin-bottom:16px;
-                        box-shadow:0 4px 16px rgba(26,84,153,0.15);">
-                <div style="font-size:0.72rem;color:rgba(255,255,255,0.70);font-weight:700;
-                            letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">
-                    {top5_icons[ti]} 추천 {d_rank}위
-                </div>
-                <div style="font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;">
-                    {detail_gu}
-                </div>
-                <div style="font-size:0.84rem;color:rgba(255,255,255,0.82);font-style:italic;">
-                    「 {drow['한줄평']} 」
+    def _bar(val, max_val, color):
+        pct = min(val / max_val * 100, 100) if max_val > 0 else 0
+        return (f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:6px;margin-top:4px;">'
+                f'<div style="width:{pct:.0f}%;height:100%;border-radius:4px;background:{color};"></div></div>')
+
+    with left_col:
+        r_pct = _pct2(drow['평균월세'],      AVG_RENT)
+        p_pct = _pct2(drow['공원수'],         AVG_PARK)
+        l_pct = _pct2(drow['도서관수'],       AVG_LIB)
+        pr2   = drow['물가비율']
+
+        st.markdown(f"""
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">🏠 평균 월세</div>
+                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['평균월세'])}만원</div>
+                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_RENT:.0f}만원</div>
+                {_bar(drow['평균월세'], max_rent, '#2979c8')}
+                <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                    background:{'#fff0f0' if r_pct>2 else '#e6f3ff'};color:{'#c0392b' if r_pct>2 else '#1a5499'};">
+                    {'▲ 평균보다 비쌈' if r_pct>2 else ('▼ 평균보다 저렴' if r_pct<-2 else '≈ 평균 수준')}
                 </div>
             </div>
-            """, unsafe_allow_html=True)
-
-            left_col, right_col = st.columns([1.1, 1])
-
-            with left_col:
-                # 핵심 지표 4개
-                r_pct = _pct2(drow['평균월세'],      AVG_RENT)
-                p_pct = _pct2(drow['공원수'],         AVG_PARK)
-                l_pct = _pct2(drow['도서관수'],       AVG_LIB)
-                c_pct = _pct2(drow['기타문화공간수'], AVG_CULTURE)
-                pr2   = drow['물가비율']
-
-                def _bar(val, max_val, color):
-                    pct = min(val / max_val * 100, 100)
-                    return (f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:6px;margin-top:4px;">'
-                            f'<div style="width:{pct:.0f}%;height:100%;border-radius:4px;background:{color};"></div></div>')
-
-                max_rent    = df['평균월세'].max()
-                max_park    = df['공원수'].max()
-                max_lib     = df['도서관수'].max()
-                max_culture = df['기타문화공간수'].max()
-
-                st.markdown(f"""
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
-                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">🏠 평균 월세</div>
-                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['평균월세'])}만원</div>
-                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_RENT:.0f}만원</div>
-                        {_bar(drow['평균월세'], max_rent, '#2979c8')}
-                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                            background:{'#fff0f0' if r_pct>2 else '#e6f3ff'};color:{'#c0392b' if r_pct>2 else '#1a5499'};">
-                            {'▲ 평균보다 비쌈' if r_pct>2 else ('▼ 평균보다 저렴' if r_pct<-2 else '≈ 평균 수준')}
-                        </div>
-                    </div>
-                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
-                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">💸 생활물가</div>
-                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{'+' if pr2>0 else ''}{pr2:.1f}%</div>
-                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 대비</div>
-                        {_bar(abs(pr2), 30, '#4a9de0')}
-                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                            background:{'#fff0f0' if pr2>0 else '#e6f3ff'};color:{'#c0392b' if pr2>0 else '#1a5499'};">
-                            {'📈 평균보다 높음' if pr2>0 else '📉 평균보다 낮음'}
-                        </div>
-                    </div>
-                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
-                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">🌳 공원 수</div>
-                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['공원수'])}개</div>
-                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_PARK:.1f}개</div>
-                        {_bar(drow['공원수'], max_park, '#7eb5e8')}
-                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                            background:{'#e6f3ff' if p_pct>2 else '#eef4fb'};color:{'#1a5499' if p_pct>2 else '#4a6d96'};">
-                            {f'▲ 평균보다 +{p_pct:.0f}%' if p_pct>2 else (f'▼ 평균보다 {p_pct:.0f}%' if p_pct<-2 else '≈ 평균 수준')}
-                        </div>
-                    </div>
-                    <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
-                        <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">📚 도서관</div>
-                        <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['도서관수'])}개</div>
-                        <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_LIB:.1f}개</div>
-                        {_bar(drow['도서관수'], max_lib, '#b8d0f0')}
-                        <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                            background:{'#e6f3ff' if l_pct>2 else '#eef4fb'};color:{'#1a5499' if l_pct>2 else '#4a6d96'};">
-                            {f'▲ 평균보다 +{l_pct:.0f}%' if l_pct>2 else (f'▼ 평균보다 {l_pct:.0f}%' if l_pct<-2 else '≈ 평균 수준')}
-                        </div>
-                    </div>
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">💸 생활물가</div>
+                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{'+' if pr2>0 else ''}{pr2:.1f}%</div>
+                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 대비</div>
+                {_bar(abs(pr2), 30, '#4a9de0')}
+                <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                    background:{'#fff0f0' if pr2>0 else '#e6f3ff'};color:{'#c0392b' if pr2>0 else '#1a5499'};">
+                    {'📈 평균보다 높음' if pr2>0 else '📉 평균보다 낮음'}
                 </div>
-                """, unsafe_allow_html=True)
-
-                # 문화공간
-                st.markdown(f"""
-                <div style="background:#fff;border-radius:12px;padding:14px;
-                            border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;margin-bottom:12px;">
-                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🎨 기타 문화공간</div>
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="font-size:1.8rem;font-weight:900;color:#0d2137;">{int(drow['기타문화공간수'])}개</div>
-                        <div>
-                            <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_CULTURE:.1f}개</div>
-                            {_bar(drow['기타문화공간수'], max_culture, '#2979c8')}
-                        </div>
-                        <div style="margin-left:auto;display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.62rem;font-weight:700;
-                            background:{'#e6f3ff' if c_pct>2 else '#eef4fb'};color:{'#1a5499' if c_pct>2 else '#4a6d96'};">
-                            {f'+{c_pct:.0f}%' if c_pct>2 else (f'{c_pct:.0f}%' if c_pct<-2 else '≈ 평균')}
-                        </div>
-                    </div>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">🌳 공원 수</div>
+                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['공원수'])}개</div>
+                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_PARK:.1f}개</div>
+                {_bar(drow['공원수'], max_park, '#7eb5e8')}
+                <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                    background:{'#e6f3ff' if p_pct>2 else '#eef4fb'};color:{'#1a5499' if p_pct>2 else '#4a6d96'};">
+                    {f'▲ +{p_pct:.0f}%' if p_pct>2 else (f'▼ {p_pct:.0f}%' if p_pct<-2 else '≈ 평균 수준')}
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">📚 도서관</div>
+                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['도서관수'])}개</div>
+                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_LIB:.1f}개</div>
+                {_bar(drow['도서관수'], max_lib, '#b8d0f0')}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-                # 지하철역
-                tags_html2 = "".join(
-                    f'<span class="station-tag">{s.strip()}</span>'
-                    for s in drow['지하철역_예시'].split(',')
-                )
-                st.markdown(f"""
-                <div style="background:#fff;border-radius:12px;padding:14px;
-                            border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
-                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
-                                text-transform:uppercase;margin-bottom:8px;">🚉 주변 주요역</div>
-                    <div class="station-tags">{tags_html2}</div>
+        st.markdown(f"""
+        <div style="background:#fff;border-radius:12px;padding:14px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;margin-bottom:12px;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🎨 기타 문화공간</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;">{int(drow['기타문화공간수'])}개</div>
+                <div style="flex:1;">
+                    <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_CULTURE:.1f}개</div>
+                    {_bar(drow['기타문화공간수'], max_culture, '#2979c8')}
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-            with right_col:
-                # 추천점수 도넛
-                score2   = to_100(drow['total_score'])
-                circ2    = 3.14159 * 60
-                fill2    = score2 / 100 * circ2
-                st.markdown(f"""
-                <div style="background:#fff;border-radius:12px;padding:16px;
-                            border:1.5px solid rgba(41,121,200,0.12);
-                            border-top:3px solid {arc_col2};margin-bottom:12px;text-align:center;">
-                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
-                                text-transform:uppercase;margin-bottom:4px;">✨ 종합 추천 점수</div>
-                    <svg width="160" height="100" viewBox="0 0 160 100" style="overflow:visible;">
-                        <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="rgba(180,210,240,0.4)" stroke-width="14" stroke-linecap="round"/>
-                        <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="{arc_col2}" stroke-width="14" stroke-linecap="round"
-                            stroke-dasharray="{fill2*1.3:.1f} {circ2*1.3:.1f}" stroke-dashoffset="0"/>
-                        <text x="80" y="78" text-anchor="middle" font-size="28" font-weight="900" fill="{arc_col2}" font-family="Noto Sans KR">{score2:.0f}</text>
-                        <text x="80" y="93" text-anchor="middle" font-size="11" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>
-                    </svg>
-                </div>
-                """, unsafe_allow_html=True)
+        tags_html2 = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in drow['지하철역_예시'].split(','))
+        st.markdown(f"""
+        <div style="background:#fff;border-radius:12px;padding:14px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 주변 주요역</div>
+            <div class="station-tags">{tags_html2}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-                # 지표별 레이더 요약 바
-                metrics = [
-                    ("🏠 월세 저렴도", 1 - drow['평균월세']/df['평균월세'].max(), "#2979c8"),
-                    ("💸 물가 저렴도", 1 - (drow['물가비율']+20)/40, "#4a9de0"),
-                    ("🌳 공원", drow['공원수']/max_park, "#7eb5e8"),
-                    ("📚 도서관", drow['도서관수']/max_lib, "#b8d0f0"),
-                    ("🎨 문화공간", drow['기타문화공간수']/max_culture, "#1a5499"),
-                ]
-                bars_html = ""
-                for label, val, color in metrics:
-                    val = max(0, min(1, val))
-                    bars_html += (
-                        f'<div style="margin-bottom:10px;">'
-                        f'<div style="display:flex;justify-content:space-between;'
-                        f'font-size:0.65rem;color:#4a6d96;font-weight:600;margin-bottom:3px;">'
-                        f'<span>{label}</span><span style="color:{color};font-weight:800;">{val*100:.0f}</span></div>'
-                        f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:8px;">'
-                        f'<div style="width:{val*100:.0f}%;height:100%;border-radius:4px;background:{color};"></div>'
-                        f'</div></div>'
-                    )
-                st.markdown(f"""
-                <div style="background:#fff;border-radius:12px;padding:16px;
-                            border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
-                    <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
-                                text-transform:uppercase;margin-bottom:12px;">📊 지표별 점수</div>
-                    {bars_html}
-                </div>
-                """, unsafe_allow_html=True)
+    with right_col:
+        score2 = to_100(drow['total_score'])
+        circ2  = 3.14159 * 60
+        fill2  = score2 / 100 * circ2
+        st.markdown(f"""
+        <div style="background:#fff;border-radius:12px;padding:16px;
+                    border:1.5px solid rgba(41,121,200,0.12);
+                    border-top:3px solid {arc_col2};margin-bottom:12px;text-align:center;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:4px;">✨ 종합 추천 점수</div>
+            <svg width="160" height="100" viewBox="0 0 160 100" style="overflow:visible;">
+                <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="rgba(180,210,240,0.4)" stroke-width="14" stroke-linecap="round"/>
+                <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="{arc_col2}" stroke-width="14" stroke-linecap="round"
+                    stroke-dasharray="{fill2*1.3:.1f} {circ2*1.3:.1f}" stroke-dashoffset="0"/>
+                <text x="80" y="78" text-anchor="middle" font-size="28" font-weight="900" fill="{arc_col2}" font-family="Noto Sans KR">{score2:.0f}</text>
+                <text x="80" y="93" text-anchor="middle" font-size="11" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>
+            </svg>
+        </div>
+        """, unsafe_allow_html=True)
+
+        metrics = [
+            ("🏠 월세 저렴도", 1 - drow['평균월세']/max_rent,          "#2979c8"),
+            ("💸 물가 저렴도", max(0,1-(drow['물가비율']+20)/40),       "#4a9de0"),
+            ("🌳 공원",        drow['공원수']/max_park,                  "#7eb5e8"),
+            ("📚 도서관",      drow['도서관수']/max_lib,                  "#b8d0f0"),
+            ("🎨 문화공간",    drow['기타문화공간수']/max_culture,        "#1a5499"),
+        ]
+        bars_html = ""
+        for label, val, color in metrics:
+            val = max(0, min(1, val))
+            bars_html += (
+                f'<div style="margin-bottom:10px;">'
+                f'<div style="display:flex;justify-content:space-between;font-size:0.65rem;color:#4a6d96;font-weight:600;margin-bottom:3px;">'
+                f'<span>{label}</span><span style="color:{color};font-weight:800;">{val*100:.0f}</span></div>'
+                f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:8px;">'
+                f'<div style="width:{val*100:.0f}%;height:100%;border-radius:4px;background:{color};"></div>'
+                f'</div></div>'
+            )
+        st.markdown(f"""
+        <div style="background:#fff;border-radius:12px;padding:16px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:12px;">📊 지표별 점수</div>
+            {bars_html}
+        </div>
+        """, unsafe_allow_html=True)
 
 # ────────────────────────────────────────────────────────────────────────
-# TAB 3 : 비교 분석
+# PAGE 3 : 자치구 비교
 # ────────────────────────────────────────────────────────────────────────
 elif active_tab == "🆚 자치구 비교":
-    st.markdown("""
-    <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
-                letter-spacing:1.4px;text-transform:uppercase;margin-bottom:12px;">
-        🆚 자치구 비교 분석
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="section-label">🆚 자치구 비교 분석</div>', unsafe_allow_html=True)
 
     all_gu = df['자치구'].tolist()
     c_col1, c_col2 = st.columns(2)
     with c_col1:
-        gu_a = st.selectbox("첫 번째 자치구", all_gu,
-                            index=all_gu.index(top5_df.iloc[0]['자치구']), key="compare_a")
+        gu_a = st.selectbox("첫 번째 자치구", all_gu, index=all_gu.index(top5_df.iloc[0]['자치구']), key="compare_a")
     with c_col2:
-        gu_b = st.selectbox("두 번째 자치구", all_gu,
-                            index=all_gu.index(top5_df.iloc[1]['자치구']), key="compare_b")
+        gu_b = st.selectbox("두 번째 자치구", all_gu, index=all_gu.index(top5_df.iloc[1]['자치구']), key="compare_b")
 
     if gu_a == gu_b:
         st.warning("서로 다른 자치구를 선택해 주세요.")
@@ -1258,151 +1223,98 @@ elif active_tab == "🆚 자치구 비교":
         sa = to_100(ra['total_score'])
         sb = to_100(rb['total_score'])
 
-        # VS 헤더 카드
         h1, hm, h2 = st.columns([1, 0.3, 1])
         with h1:
             col_a = "#2979c8" if sa >= sb else "#8aadcc"
             st.markdown(f"""
-            <div style="background:linear-gradient(135deg,{col_a},{col_a}99);
-                        border-radius:16px;padding:20px;text-align:center;
-                        box-shadow:0 4px 16px rgba(26,84,153,0.15);">
+            <div style="background:linear-gradient(135deg,{col_a},{col_a}99);border-radius:16px;padding:20px;text-align:center;box-shadow:0 4px 16px rgba(26,84,153,0.15);">
                 <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">{gu_a}</div>
                 <div style="font-size:0.80rem;color:rgba(255,255,255,0.85);">추천 점수</div>
                 <div style="font-size:2rem;font-weight:900;color:#fff;">{sa:.0f}점</div>
                 {'<div style="margin-top:6px;background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 12px;font-size:0.72rem;color:#fff;font-weight:700;display:inline-block;">✓ 우세</div>' if sa>sb else ''}
-            </div>
-            """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
         with hm:
-            st.markdown("""
-            <div style="display:flex;align-items:center;justify-content:center;
-                        height:100%;font-size:1.4rem;font-weight:900;color:#8aadcc;padding-top:20px;">
-                VS
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown('<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1.4rem;font-weight:900;color:#8aadcc;padding-top:20px;">VS</div>', unsafe_allow_html=True)
         with h2:
             col_b = "#2979c8" if sb >= sa else "#8aadcc"
             st.markdown(f"""
-            <div style="background:linear-gradient(135deg,{col_b},{col_b}99);
-                        border-radius:16px;padding:20px;text-align:center;
-                        box-shadow:0 4px 16px rgba(26,84,153,0.15);">
+            <div style="background:linear-gradient(135deg,{col_b},{col_b}99);border-radius:16px;padding:20px;text-align:center;box-shadow:0 4px 16px rgba(26,84,153,0.15);">
                 <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">{gu_b}</div>
                 <div style="font-size:0.80rem;color:rgba(255,255,255,0.85);">추천 점수</div>
                 <div style="font-size:2rem;font-weight:900;color:#fff;">{sb:.0f}점</div>
                 {'<div style="margin-top:6px;background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 12px;font-size:0.72rem;color:#fff;font-weight:700;display:inline-block;">✓ 우세</div>' if sb>sa else ''}
-            </div>
-            """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 지표 비교 바
         compare_metrics = [
-            ("🏠 평균 월세 (낮을수록 유리)", ra['평균월세'], rb['평균월세'],
-             df['평균월세'].max(), False),
-            ("💸 생활물가 (낮을수록 유리)", ra['물가비율']+20, rb['물가비율']+20,
-             40, False),
-            ("🌳 공원 수", ra['공원수'], rb['공원수'],
-             df['공원수'].max(), True),
-            ("📚 도서관 수", ra['도서관수'], rb['도서관수'],
-             df['도서관수'].max(), True),
-            ("🎨 문화공간 수", ra['기타문화공간수'], rb['기타문화공간수'],
-             df['기타문화공간수'].max(), True),
+            ("🏠 평균 월세 (낮을수록 유리)", ra['평균월세'],      rb['평균월세'],      df['평균월세'].max(),      False),
+            ("💸 생활물가 (낮을수록 유리)",  ra['물가비율']+20,   rb['물가비율']+20,   40,                        False),
+            ("🌳 공원 수",                   ra['공원수'],         rb['공원수'],         df['공원수'].max(),         True),
+            ("📚 도서관 수",                 ra['도서관수'],       rb['도서관수'],       df['도서관수'].max(),       True),
+            ("🎨 문화공간 수",               ra['기타문화공간수'], rb['기타문화공간수'], df['기타문화공간수'].max(), True),
         ]
-
-        labels_a = [f"{int(ra['평균월세'])}만원", f"{ra['물가비율']:+.1f}%",
-                    f"{int(ra['공원수'])}개", f"{int(ra['도서관수'])}개", f"{int(ra['기타문화공간수'])}개"]
-        labels_b = [f"{int(rb['평균월세'])}만원", f"{rb['물가비율']:+.1f}%",
-                    f"{int(rb['공원수'])}개", f"{int(rb['도서관수'])}개", f"{int(rb['기타문화공간수'])}개"]
+        labels_a = [f"{int(ra['평균월세'])}만원", f"{ra['물가비율']:+.1f}%", f"{int(ra['공원수'])}개", f"{int(ra['도서관수'])}개", f"{int(ra['기타문화공간수'])}개"]
+        labels_b = [f"{int(rb['평균월세'])}만원", f"{rb['물가비율']:+.1f}%", f"{int(rb['공원수'])}개", f"{int(rb['도서관수'])}개", f"{int(rb['기타문화공간수'])}개"]
 
         compare_html = '<div style="background:#fff;border-radius:14px;padding:20px;border:1.5px solid rgba(41,121,200,0.12);box-shadow:0 2px 10px rgba(26,84,153,0.07);">'
         compare_html += f'<div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;margin-bottom:16px;font-size:0.72rem;font-weight:800;color:#4a6d96;text-align:center;"><span>{gu_a}</span><span></span><span>{gu_b}</span></div>'
-
         for idx, (label, va, vb, vmax, higher_better) in enumerate(compare_metrics):
-            pct_a = max(0, min(va / vmax, 1)) * 100
-            pct_b = max(0, min(vb / vmax, 1)) * 100
+            pct_a  = max(0, min(va/vmax, 1)) * 100
+            pct_b  = max(0, min(vb/vmax, 1)) * 100
             a_wins = (va < vb) if not higher_better else (va > vb)
             b_wins = (vb < va) if not higher_better else (vb > va)
             col_a2 = "#2979c8" if a_wins else "#d4e4f7"
             col_b2 = "#2979c8" if b_wins else "#d4e4f7"
-            win_a  = ' ✓' if a_wins else ''
-            win_b  = ' ✓' if b_wins else ''
-
             compare_html += (
                 f'<div style="margin-bottom:14px;">'
-                f'<div style="font-size:0.67rem;color:#8aadcc;font-weight:700;'
-                f'text-align:center;margin-bottom:6px;letter-spacing:0.2px;">{label}</div>'
-                f'<div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;align-items:center;">'
-                f'<div>'
-                f'<div style="text-align:right;font-size:0.75rem;font-weight:800;color:{"#1a5499" if a_wins else "#8aadcc"};margin-bottom:3px;">{labels_a[idx]}{win_a}</div>'
-                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;overflow:hidden;">'
-                f'<div style="width:{pct_a:.0f}%;height:100%;border-radius:4px;background:{col_a2};margin-left:auto;"></div>'
-                f'</div></div>'
+                f'<div style="font-size:0.67rem;color:#8aadcc;font-weight:700;text-align:center;margin-bottom:6px;">{label}</div>'
+                f'<div style="display:grid;grid-template-columns:1fr 60px 1fr;gap:8px;align-items:center;">'
+                f'<div><div style="text-align:right;font-size:0.75rem;font-weight:800;color:{"#1a5499" if a_wins else "#8aadcc"};margin-bottom:3px;">{labels_a[idx]}{"  ✓" if a_wins else ""}</div>'
+                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;"><div style="width:{pct_a:.0f}%;height:100%;border-radius:4px;background:{col_a2};margin-left:auto;"></div></div></div>'
                 f'<div style="text-align:center;font-size:0.60rem;color:#b8d0f0;font-weight:700;">vs</div>'
-                f'<div>'
-                f'<div style="font-size:0.75rem;font-weight:800;color:{"#1a5499" if b_wins else "#8aadcc"};margin-bottom:3px;">{win_b}{labels_b[idx]}</div>'
-                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;overflow:hidden;">'
-                f'<div style="width:{pct_b:.0f}%;height:100%;border-radius:4px;background:{col_b2};"></div>'
-                f'</div></div>'
+                f'<div><div style="font-size:0.75rem;font-weight:800;color:{"#1a5499" if b_wins else "#8aadcc"};margin-bottom:3px;">{"✓  " if b_wins else ""}{labels_b[idx]}</div>'
+                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;"><div style="width:{pct_b:.0f}%;height:100%;border-radius:4px;background:{col_b2};"></div></div></div>'
                 f'</div></div>'
             )
-
         compare_html += '</div>'
         st.markdown(compare_html, unsafe_allow_html=True)
 
-        # 한줄 총평
         winner = gu_a if sa >= sb else gu_b
         loser  = gu_b if sa >= sb else gu_a
         w_row  = ra if sa >= sb else rb
         l_row  = rb if sa >= sb else ra
-
         rent_adv    = "월세가 더 저렴하고" if w_row['평균월세'] < l_row['평균월세'] else "생활물가가 낮으며"
         culture_adv = "문화공간이 더 풍부합니다." if w_row['기타문화공간수'] > l_row['기타문화공간수'] else "공원과 도서관이 더 많습니다."
 
         st.markdown(f"""
         <div style="margin-top:16px;background:linear-gradient(135deg,#e8f1fd,#f0f6ff);
-                    border-radius:12px;padding:16px 20px;
-                    border-left:4px solid #2979c8;">
-            <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;
-                        letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">
-                💬 AI 종합 평가
-            </div>
+                    border-radius:12px;padding:16px 20px;border-left:4px solid #2979c8;">
+            <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">💬 AI 종합 평가</div>
             <div style="font-size:0.90rem;color:#0d2137;line-height:1.7;font-weight:500;">
                 현재 우선순위 기준으로 <b style="color:#1a5499;">{winner}</b>가 더 높은 추천 점수를 받았습니다.<br>
                 {winner}은 {rent_adv} {culture_adv}<br>
-                반면 <b style="color:#4a6d96;">{loser}</b>은 다른 조건에서 강점이 있을 수 있으니
-                우선순위 설정을 바꿔 비교해 보세요.
+                반면 <b style="color:#4a6d96;">{loser}</b>은 다른 조건에서 강점이 있을 수 있으니 우선순위 설정을 바꿔 비교해 보세요.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # 주요역 비교
         st.markdown("<br>", unsafe_allow_html=True)
         sc1, sc2 = st.columns(2)
         with sc1:
-            tags_a = "".join(
-                f'<span class="station-tag">{s.strip()}</span>'
-                for s in ra['지하철역_예시'].split(',')
-            )
+            tags_a = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in ra['지하철역_예시'].split(','))
             st.markdown(f"""
-            <div style="background:#fff;border-radius:12px;padding:14px;
-                        border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
-                            text-transform:uppercase;margin-bottom:8px;">🚉 {gu_a} 주요역</div>
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 {gu_a} 주요역</div>
                 <div class="station-tags">{tags_a}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
         with sc2:
-            tags_b = "".join(
-                f'<span class="station-tag">{s.strip()}</span>'
-                for s in rb['지하철역_예시'].split(',')
-            )
+            tags_b = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in rb['지하철역_예시'].split(','))
             st.markdown(f"""
-            <div style="background:#fff;border-radius:12px;padding:14px;
-                        border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;
-                            text-transform:uppercase;margin-bottom:8px;">🚉 {gu_b} 주요역</div>
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 {gu_b} 주요역</div>
                 <div class="station-tags">{tags_b}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════
 # 데이터 출처
