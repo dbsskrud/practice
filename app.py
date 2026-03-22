@@ -836,31 +836,27 @@ if work_place != "선택 안 함":
         axis=1
     )
 
-# 월세 필터링
+# 월세 필터링 — df는 지도용 25개 전체 유지, score_df만 필터링
 rent_lo, rent_hi = RENT_BAND[rent_band]
-filtered_df = df[(df['평균월세'] >= rent_lo) & (df['평균월세'] <= rent_hi)].copy()
-if filtered_df.empty:
+score_df = df[(df['평균월세'] >= rent_lo) & (df['평균월세'] <= rent_hi)].copy()
+if score_df.empty:
     st.warning("해당 월세 가격대의 자치구가 없습니다. 조건을 완화해 주세요.")
-    filtered_df = df.copy()
-else:
-    df = filtered_df.copy()
+    score_df = df.copy()
 
-rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
+rec_df  = score_df.sort_values('total_score', ascending=False).reset_index(drop=True)
 n_avail = len(rec_df)
 
 if n_avail == 0:
-    st.error("조건을 만족하는 자치구가 없습니다. 월세 가격대나 다른 조건을 완화해 주세요.")
+    st.error("조건을 만족하는 자치구가 없습니다. 조건을 완화해 주세요.")
     st.stop()
 
 top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
 top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
 top5_df = rec_df.head(min(5, n_avail))
 
-# 부족할 경우 마지막 항목으로 패딩
+# 패딩 제거 — 부족하면 빈칸으로 처리
 while len(top3_gu) < 3:
-    top3_gu.append(top3_gu[-1])
-while len(top5_gu) < 5:
-    top5_gu.append(top5_gu[-1])
+    top3_gu.append(None)
 
 SCORE_MAX = df['total_score'].max()
 SCORE_MIN = df['total_score'].min()
@@ -871,7 +867,7 @@ def to_100(score):
     return 100.0
 
 # 선택된 자치구가 없거나 필터링으로 제거된 경우 1위로 초기화
-gu_list_filtered = df['자치구'].tolist()
+gu_list_filtered = score_df['자치구'].tolist()
 if (st.session_state.selected_gu is None or
         st.session_state.selected_gu not in gu_list_filtered):
     st.session_state.selected_gu = top3_gu[0]
@@ -1042,8 +1038,12 @@ if active_tab == "🏆 TOP 5 추천":
         """, unsafe_allow_html=True)
 
         cols5 = st.columns(5)
-        for i, rgu in enumerate(top5_gu):
+        for i in range(5):
             with cols5[i]:
+                if i >= n_avail:
+                    st.markdown('<div style="height:38px;"></div>', unsafe_allow_html=True)
+                    continue
+                rgu = top5_gu[i]
                 is_active = (sel_gu == rgu)
                 if is_active:
                     st.markdown(
@@ -1058,7 +1058,6 @@ if active_tab == "🏆 TOP 5 추천":
                     if st.button(f"{RANK_ICONS_BTN[i]} {rgu}", key=f"sel_top_{i}", use_container_width=True):
                         st.session_state.selected_gu = rgu
                         st.rerun()
-
         others_gu = [g for g in gu_list if g not in top5_gu]
         with st.expander("🔍 다른 자치구 보기", expanded=False):
             n_cols = 5
@@ -1215,9 +1214,17 @@ if active_tab == "🏆 TOP 5 추천":
     CARD_BORDER  = ["#1a5499", "#2979c8", "#4a9de0", "#7eb5e8", "#d4e4f7"]
     CARD_EMOJI   = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
-    cols_top = st.columns(5)
-    for i, (_, r) in enumerate(top5_df.iterrows()):
+   cols_top = st.columns(5)
+    top5_rows = list(top5_df.iterrows())
+    for i in range(5):
         with cols_top[i]:
+            if i >= n_avail:
+                st.markdown('<div style="background:#f8fafd;border-radius:14px;padding:14px 10px;'
+                            'border:1.5px dashed rgba(41,121,200,0.15);text-align:center;'
+                            'color:#b8d0f0;font-size:0.72rem;min-height:80px;">-</div>',
+                            unsafe_allow_html=True)
+                continue
+            _, r = top5_rows[i]
             is_sel  = r['자치구'] == st.session_state.selected_gu
             shadow  = "0 6px 24px rgba(26,84,153,0.22)" if is_sel else "0 2px 10px rgba(26,84,153,0.08)"
             outline = f"2.5px solid {CARD_BORDER[i]}" if is_sel else f"1.5px solid rgba(41,121,200,0.15)"
