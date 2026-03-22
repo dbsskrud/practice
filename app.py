@@ -426,6 +426,8 @@ PRIORITY_ITEMS = {
 
 if 'selected_gu' not in st.session_state:
     st.session_state.selected_gu = None
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = "🏆 TOP 5 추천"
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -444,6 +446,36 @@ st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
+
+# ══════════════════════════════════════════════════════════════════════════
+# 사이드바 — 탭 네비게이션
+# ══════════════════════════════════════════════════════════════════════════
+with st.sidebar:
+    st.markdown("""
+    <div style="padding:8px 0 16px;">
+        <div style="font-size:1.1rem;font-weight:900;color:#1a5499;margin-bottom:4px;">🏠 서울 스타터</div>
+        <div style="font-size:0.72rem;color:#8aadcc;">서울시 자취 가이드</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">📌 페이지</div>', unsafe_allow_html=True)
+
+    tab_options = ["🏆 TOP 5 추천", "🔍 지역 상세 분석", "🆚 자치구 비교"]
+    for opt in tab_options:
+        is_active = st.session_state.active_tab == opt
+        if st.button(
+            opt,
+            key=f"nav_{opt}",
+            use_container_width=True,
+            type="primary" if is_active else "secondary"
+        ):
+            st.session_state.active_tab = opt
+            st.rerun()
+
+    st.markdown("---")
+    st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">💬 현재 페이지</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="background:#e8f1fd;border-radius:8px;padding:8px 12px;font-size:0.80rem;font-weight:700;color:#1a5499;">{st.session_state.active_tab}</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
