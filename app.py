@@ -1441,41 +1441,56 @@ elif active_tab == "🔍 지역 상세 분석":
         p_pct = _pct2(drow['공원수'],   AVG_PARK)
         pr2   = drow['물가비율']
 
-        # 핵심 지표 4개
+        # 핵심 지표 4개 — 바그래프 제거, 숫자 중심 카드
+        def _diff_badge(val, avg, unit="", lower_better=False):
+            diff = val - avg
+            pct  = diff / avg * 100 if avg != 0 else 0
+            if lower_better:
+                good = diff < 0
+            else:
+                good = diff > 0
+            if abs(pct) <= 2:
+                return '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;background:#eef4fb;color:#4a6d96;">≈ 평균 수준</span>'
+            sign  = "+" if diff > 0 else ""
+            color = "#1a6e45" if good else "#c0392b"
+            bg    = "#eef7ee" if good else "#fff0f0"
+            arrow = "▲" if diff > 0 else "▼"
+            return f'<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;background:{bg};color:{color};">{arrow} {sign}{diff:.0f}{unit} vs 평균</span>'
+
         st.markdown(f"""
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">🏠 평균 월세</div>
-                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['평균월세'])}만원</div>
-                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_RENT:.0f}만원</div>
-                {_bar(drow['평균월세'], max_rent, '#2979c8')}
-                <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                    background:{'#fff0f0' if r_pct>2 else '#e6f3ff'};color:{'#c0392b' if r_pct>2 else '#1a5499'};">
-                    {'▲ 평균보다 비쌈' if r_pct>2 else ('▼ 평균보다 저렴' if r_pct<-2 else '≈ 평균 수준')}
-                </div>
+
+            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
+                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">🏠 평균 월세</div>
+                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow['평균월세'])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">만원</span></div>
+                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_RENT:.0f}만원</div>
+                {_diff_badge(drow['평균월세'], AVG_RENT, '만', lower_better=True)}
             </div>
-            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">💸 생활물가</div>
-                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{'+' if pr2>0 else ''}{pr2:.1f}%</div>
-                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 대비</div>
-                {_bar(abs(pr2), 30, '#4a9de0')}
-                <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                    background:{'#fff0f0' if pr2>0 else '#e6f3ff'};color:{'#c0392b' if pr2>0 else '#1a5499'};">
-                    {'📈 평균보다 높음' if pr2>0 else '📉 평균보다 낮음'}
-                </div>
+
+            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">💸 생활물가</div>
+                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{'+' if pr2>0 else ''}{pr2:.1f}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:1px;">%</span></div>
+                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 대비</div>
+                <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
+                    background:{'#fff0f0' if pr2>2 else '#eef7ee'};color:{'#c0392b' if pr2>2 else '#1a6e45'};">
+                    {'📈 평균보다 높음' if pr2>2 else ('📉 평균보다 낮음' if pr2<-2 else '≈ 평균 수준')}
+                </span>
             </div>
-            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">🌳 공원 수</div>
-                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['공원수'])}개</div>
-                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_PARK:.1f}개</div>
-                {_bar(drow['공원수'], max_park, '#7eb5e8')}
+
+            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
+                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">🌳 공원 수</div>
+                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow['공원수'])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">개</span></div>
+                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_PARK:.1f}개</div>
+                {_diff_badge(drow['공원수'], AVG_PARK, '개', lower_better=False)}
             </div>
-            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">📚 도서관</div>
-                <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['도서관수'])}개</div>
-                <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_LIB:.1f}개</div>
-                {_bar(drow['도서관수'], max_lib, '#b8d0f0')}
+
+            <div style="background:#fff;border-radius:12px;padding:16px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
+                <div style="font-size:0.63rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">📚 도서관</div>
+                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;line-height:1;">{int(drow['도서관수'])}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:3px;">개</span></div>
+                <div style="font-size:0.62rem;color:#8aadcc;margin:4px 0 8px;">서울 평균 {AVG_LIB:.1f}개</div>
+                {_diff_badge(drow['도서관수'], AVG_LIB, '개', lower_better=False)}
             </div>
+
         </div>
         """, unsafe_allow_html=True)
 
@@ -1527,28 +1542,41 @@ elif active_tab == "🔍 지역 상세 분석":
         """, unsafe_allow_html=True)
 
     with right_col:
-        # ── 추천점수 도넛 ──
-        score2 = to_100(drow['total_score'])
-        circ2  = 3.14159 * 60
-        fill2  = score2 / 100 * circ2
+        # ── 종합 추천 점수 — 별점 ──
+        score2     = to_100(drow['total_score'])
+        star_full  = int(score2 // 20)          # 0~5 채워진 별
+        star_half  = 1 if (score2 % 20) >= 10 else 0
+        star_empty = 5 - star_full - star_half
+        stars_html = (
+            '<span style="color:#f5a623;font-size:1.6rem;">★</span>' * star_full +
+            ('<span style="color:#f5a623;font-size:1.6rem;">⯨</span>' if star_half else '') +
+            '<span style="color:#d4e4f7;font-size:1.6rem;">★</span>' * star_empty
+        )
+        if score2 >= 80:   score_label, score_color = "매우 추천",  "#1a6e45"
+        elif score2 >= 60: score_label, score_color = "추천",       "#1a5499"
+        elif score2 >= 40: score_label, score_color = "보통",       "#b07d00"
+        else:              score_label, score_color = "아쉬운 편",  "#c0392b"
+
         st.markdown(f"""
         <div style="background:#fff;border-radius:12px;padding:16px;
                     border:1.5px solid rgba(41,121,200,0.12);
                     border-top:3px solid {arc_col2};margin-bottom:12px;text-align:center;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:4px;">✨ 종합 추천 점수</div>
-            <svg width="160" height="100" viewBox="0 0 160 100" style="overflow:visible;">
-                <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="rgba(180,210,240,0.4)" stroke-width="14" stroke-linecap="round"/>
-                <path d="M 10 90 A 75 75 0 0 1 150 90" fill="none" stroke="{arc_col2}" stroke-width="14" stroke-linecap="round"
-                    stroke-dasharray="{fill2*1.3:.1f} {circ2*1.3:.1f}" stroke-dashoffset="0"/>
-                <text x="80" y="78" text-anchor="middle" font-size="28" font-weight="900" fill="{arc_col2}" font-family="Noto Sans KR">{score2:.0f}</text>
-                <text x="80" y="93" text-anchor="middle" font-size="11" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>
-            </svg>
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:10px;">✨ 종합 추천 점수</div>
+            <div style="margin-bottom:6px;">{stars_html}</div>
+            <div style="font-size:2rem;font-weight:900;color:{arc_col2};line-height:1;">{score2:.0f}<span style="font-size:0.85rem;font-weight:600;color:#4a6d96;margin-left:2px;">/ 100점</span></div>
+            <div style="margin-top:6px;display:inline-block;padding:3px 14px;border-radius:20px;
+                        font-size:0.72rem;font-weight:800;
+                        background:{score_color}18;color:{score_color};">
+                {score_label}
+            </div>
+            <div style="font-size:0.62rem;color:#8aadcc;margin-top:8px;">
+                내 라이프스타일과 {score2:.0f}% 일치
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ── 안전 점수 (CCTV 기반) ──
+        # ── 안전 점수 ──
         cctv_count = CCTV_DATA.get(detail_gu, 0)
-        # 0~100점 정규화 (많을수록 안전)
         cctv_score = int((cctv_count - CCTV_MIN) / (CCTV_MAX - CCTV_MIN) * 100) if CCTV_MAX > CCTV_MIN else 50
         cctv_diff  = cctv_count - CCTV_AVG
         cctv_pct   = cctv_diff / CCTV_AVG * 100 if CCTV_AVG > 0 else 0
@@ -1560,28 +1588,22 @@ elif active_tab == "🔍 지역 상세 분석":
         else:
             safety_label, safety_color, safety_bg, safety_icon = "주의",     "#b07d00", "#fff8e8", "🟡"
 
-        cctv_bar = int(cctv_score)
         st.markdown(f"""
-        <div style="background:{safety_bg};border-radius:12px;padding:14px 16px;
+        <div style="background:{safety_bg};border-radius:12px;padding:16px;
                     border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid {safety_color};margin-bottom:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">
-                    🛡️ 안전 점수 (CCTV 기반)
-                </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">🛡️ 안전 점수</div>
                 <div style="font-size:0.60rem;color:#8aadcc;">2025.12.31 기준</div>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-                <div style="font-size:1.6rem;font-weight:900;color:{safety_color};">{cctv_score}점</div>
+            <div style="display:flex;align-items:center;gap:14px;">
+                <div style="font-size:2rem;font-weight:900;color:{safety_color};line-height:1;">{cctv_score}<span style="font-size:0.75rem;font-weight:600;color:#4a6d96;margin-left:2px;">점</span></div>
                 <div>
-                    <div style="font-size:0.72rem;font-weight:800;color:{safety_color};">{safety_icon} {safety_label}</div>
+                    <div style="font-size:0.80rem;font-weight:900;color:{safety_color};margin-bottom:3px;">{safety_icon} {safety_label}</div>
                     <div style="font-size:0.62rem;color:#8aadcc;">CCTV {cctv_count:,}대</div>
+                    <div style="font-size:0.62rem;color:{safety_color};font-weight:600;margin-top:2px;">
+                        서울 평균 대비 {'+' if cctv_pct>=0 else ''}{cctv_pct:.1f}%
+                    </div>
                 </div>
-            </div>
-            <div style="background:rgba(255,255,255,0.6);border-radius:4px;height:8px;overflow:hidden;">
-                <div style="width:{cctv_bar}%;height:100%;border-radius:4px;background:{safety_color};"></div>
-            </div>
-            <div style="margin-top:6px;font-size:0.62rem;color:{safety_color};font-weight:600;">
-                서울 평균 대비 {'+' if cctv_pct>=0 else ''}{cctv_pct:.1f}% ({'더 많은 CCTV' if cctv_pct>=0 else '더 적은 CCTV'})
             </div>
         </div>
         """, unsafe_allow_html=True)
