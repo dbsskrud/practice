@@ -755,6 +755,38 @@ with col_c:
                 used.append(choice)
                 priority_order.append(choice)
 
+# ── 입력값 요약 배너 ──────────────────────────────────────────────────────
+summary_chips = []
+if university != "선택 안 함":
+    summary_chips.append(f"🎓 {university.replace('대학교','대').replace('학교','교')}")
+if work_place != "선택 안 함":
+    summary_chips.append(f"🏢 {work_place}")
+if selected_lines:
+    summary_chips.append(f"🚇 {' · '.join(selected_lines)}")
+if rent_band != "상관없음":
+    summary_chips.append(f"💸 {rent_band}")
+if priority_order:
+    prio_label = priority_order[0].replace("💰 ","").replace("🛒 ","").replace("🎨 ","").replace("🌳 ","")
+    summary_chips.append(f"⚖️ {prio_label} 중심")
+
+if summary_chips:
+    chips_html = "".join(
+        f'<span style="display:inline-block;background:rgba(255,255,255,0.18);'
+        f'border:1px solid rgba(255,255,255,0.30);border-radius:20px;'
+        f'padding:4px 12px;font-size:0.75rem;font-weight:700;color:#fff;margin:3px 4px 3px 0;">'
+        f'{c}</span>' for c in summary_chips
+    )
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg,#1a5499,#2979c8);border-radius:12px;
+                padding:12px 18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(26,84,153,0.15);">
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.65);font-weight:700;
+                    text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
+            📋 현재 검색 조건
+        </div>
+        <div>{chips_html}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ── 점수 계산 ──────────────────────────────────────────────────────────────
 if len(priority_order) == 4:
     w = {0: 4, 1: 3, 2: 2, 3: 1}
@@ -1190,8 +1222,11 @@ if active_tab == "🏆 TOP 5 추천":
                     🎨 <b style="color:#0d2137;">{int(r['기타문화공간수'])}개</b>
                 </div>
                 <div style="margin-top:9px;background:linear-gradient(90deg,#e8f1fd,#f0f6ff);
-                            border-radius:8px;padding:4px 0;font-size:0.72rem;font-weight:800;color:#1a5499;">
-                    {s100:.0f}점
+                            border-radius:8px;padding:6px 4px;font-size:0.70rem;font-weight:800;color:#1a5499;">
+                    {s100:.0f}점<br>
+                    <span style="font-size:0.60rem;font-weight:500;color:#4a6d96;">
+                        내 라이프스타일과 {s100:.0f}% 일치
+                    </span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1280,6 +1315,27 @@ elif active_tab == "🔍 지역 상세 분석":
         return (f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:6px;margin-top:4px;">'
                 f'<div style="width:{pct:.0f}%;height:100%;border-radius:4px;background:{color};"></div></div>')
 
+    def _transit_label(time_str):
+        import re
+        nums = re.findall(r'\d+', time_str)
+        if not nums: return "⚪ 정보 없음", "#8aadcc"
+        minutes = int(nums[0])
+        if minutes <= 15:  return "🟢 매우 가까움", "#1a6e45"
+        if minutes <= 25:  return "🔵 가까운 편",   "#1a5499"
+        if minutes <= 35:  return "🟡 보통",         "#b07d00"
+        if minutes <= 45:  return "🟠 다소 멂",      "#c05000"
+        return                    "🔴 멀어요",        "#c0392b"
+
+    def _transit_card(label, time_str):
+        eval_text, eval_color = _transit_label(time_str)
+        return (
+            f'<div style="text-align:center;background:#f0f5fb;border-radius:10px;padding:10px 4px;">'
+            f'<div style="font-size:0.60rem;color:#4a6d96;font-weight:700;margin-bottom:3px;">{label}</div>'
+            f'<div style="font-size:0.85rem;font-weight:900;color:#1a5499;margin-bottom:3px;">{time_str}</div>'
+            f'<div style="font-size:0.60rem;font-weight:700;color:{eval_color};">{eval_text}</div>'
+            f'</div>'
+        )
+
     with left_col:
         r_pct = _pct2(drow['평균월세'], AVG_RENT)
         p_pct = _pct2(drow['공원수'],   AVG_PARK)
@@ -1341,18 +1397,9 @@ elif active_tab == "🔍 지역 상세 분석":
                     border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;margin-bottom:12px;">
             <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:10px;">🚇 주요 업무지구 접근시간</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
-                <div style="text-align:center;background:#e8f1fd;border-radius:8px;padding:8px 4px;">
-                    <div style="font-size:0.62rem;color:#4a6d96;font-weight:700;margin-bottom:2px;">강남역</div>
-                    <div style="font-size:0.88rem;font-weight:900;color:#1a5499;">{t_gangnam[0]}</div>
-                </div>
-                <div style="text-align:center;background:#e8f1fd;border-radius:8px;padding:8px 4px;">
-                    <div style="font-size:0.62rem;color:#4a6d96;font-weight:700;margin-bottom:2px;">여의도</div>
-                    <div style="font-size:0.88rem;font-weight:900;color:#1a5499;">{t_yeouido[0]}</div>
-                </div>
-                <div style="text-align:center;background:#e8f1fd;border-radius:8px;padding:8px 4px;">
-                    <div style="font-size:0.62rem;color:#4a6d96;font-weight:700;margin-bottom:2px;">광화문</div>
-                    <div style="font-size:0.88rem;font-weight:900;color:#1a5499;">{t_gwanghwa[0]}</div>
-                </div>
+            {_transit_card("강남역", t_gangnam[0])}
+            {_transit_card("여의도", t_yeouido[0])}
+            {_transit_card("광화문", t_gwanghwa[0])}
             </div>
             <div style="font-size:0.68rem;color:#4a6d96;line-height:1.6;">
                 <b>강남:</b> {t_gangnam[1]}<br>
@@ -1399,61 +1446,81 @@ elif active_tab == "🔍 지역 상세 분석":
         </div>
         """, unsafe_allow_html=True)
 
-        # ── 문화공간 ──
+        # ── 문화/공원/도서관 테마 큐레이션 ──
         culture_list = CULTURE_DATA.get(detail_gu, [])
-        culture_rows = "".join(
-            f'<div style="display:flex;justify-content:space-between;align-items:center;'
-            f'padding:6px 0;border-bottom:1px solid rgba(41,121,200,0.08);">'
-            f'<span style="font-size:0.72rem;color:#0d2137;font-weight:600;">{name}</span>'
-            f'<span style="font-size:0.62rem;background:#e8f1fd;color:#1a5499;padding:2px 8px;'
-            f'border-radius:20px;font-weight:700;">{ctype}</span>'
-            f'</div>'
-            for name, ctype in culture_list
-        )
+        park_list    = PARK_DATA.get(detail_gu, [])
+        lib_list     = LIBRARY_DATA.get(detail_gu, [])
+
+        theme_map = {
+            "미술관/갤러리":       ("🖼️ 영감을 주는 미술관",    "#f0f4ff", "#1a5499"),
+            "박물관/기념관":       ("🏛️ 역사를 만나는 박물관",   "#f5f0ff", "#5b3fa5"),
+            "공연장":              ("🎭 공연·음악 즐기기",        "#fff5f0", "#b84c00"),
+            "도서관":              ("📖 지식을 채우는 도서관",    "#f0f8ff", "#1a6699"),
+            "문화원/센터":         ("🏠 동네 문화 커뮤니티",     "#f0fff4", "#1a6e45"),
+            "문화예술회관/아트홀": ("✨ 예술의 향기, 아트홀",    "#fff8f0", "#8a4a00"),
+            "복합문화공간/기타":   ("🌀 복합문화·감성 공간",     "#f8f0ff", "#6a3fa5"),
+        }
+        themed = {}
+        for name, ctype in culture_list:
+            themed.setdefault(ctype, []).append(name)
+
+        culture_themed_html = ""
+        for ctype, names in themed.items():
+            title, bg, color = theme_map.get(ctype, (f"🎨 {ctype}", "#f0f5fb", "#1a5499"))
+            items = "".join(
+                f'<span style="display:inline-block;background:{bg};color:{color};'
+                f'padding:3px 9px;border-radius:20px;font-size:0.65rem;font-weight:600;'
+                f'border:1px solid {color}22;margin:2px;">{n}</span>'
+                for n in names[:4]
+            )
+            culture_themed_html += (
+                f'<div style="margin-bottom:10px;">'
+                f'<div style="font-size:0.64rem;font-weight:800;color:{color};margin-bottom:4px;">{title}</div>'
+                f'<div>{items}</div>'
+                f'</div>'
+            )
+
         st.markdown(f"""
         <div style="background:#fff;border-radius:12px;padding:14px;
-                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;margin-bottom:12px;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
-                🎨 동네 문화시설 ({int(drow['기타문화공간수'])}개)
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;margin-bottom:10px;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:10px;">
+                🎨 이 동네에서 즐길 수 있는 것들 ({int(drow['기타문화공간수'])}개)
             </div>
-            {culture_rows}
-            <div style="font-size:0.62rem;color:#8aadcc;margin-top:6px;">서울 평균 {AVG_CULTURE:.1f}개</div>
+            {culture_themed_html if culture_themed_html else '<div style="font-size:0.72rem;color:#8aadcc;">정보 없음</div>'}
         </div>
         """, unsafe_allow_html=True)
 
-        # ── 공원 ──
-        park_list = PARK_DATA.get(detail_gu, [])
-        park_tags = "".join(
+        park_tags_html = "".join(
             f'<span style="display:inline-block;background:#eef7ee;color:#1a6e45;'
-            f'padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:600;'
-            f'border:1px solid rgba(26,110,69,0.15);margin:2px;">{p}</span>'
+            f'padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:600;'
+            f'border:1px solid rgba(26,110,69,0.15);margin:2px;">🌿 {p}</span>'
             for p in park_list
         )
         st.markdown(f"""
         <div style="background:#fff;border-radius:12px;padding:13px 14px;
-                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;margin-bottom:12px;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
-                🌳 대표 공원 ({int(drow['공원수'])}개)
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;margin-bottom:10px;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">
+                🌳 힐링하기 좋은 공원 ({int(drow['공원수'])}개)
             </div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px;">{park_tags}</div>
+            <div style="font-size:0.60rem;color:#8aadcc;margin-bottom:6px;">산책·휴식·자연 충전</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">{park_tags_html if park_tags_html else '<span style="font-size:0.72rem;color:#8aadcc;">정보 없음</span>'}</div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ── 도서관 ──
-        lib_list = LIBRARY_DATA.get(detail_gu, [])
         lib_tags = "".join(
             f'<span style="display:inline-block;background:#f0f4ff;color:#1a5499;'
-            f'padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:600;'
-            f'border:1px solid rgba(41,121,200,0.15);margin:2px;">{l}</span>'
+            f'padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:600;'
+            f'border:1px solid rgba(41,121,200,0.15);margin:2px;">📚 {l}</span>'
             for l in lib_list
         )
         st.markdown(f"""
         <div style="background:#fff;border-radius:12px;padding:13px 14px;
                     border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
-                📚 대표 도서관 ({int(drow['도서관수'])}개)
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:6px;">
+                📖 공부·독서 환경 ({int(drow['도서관수'])}개)
             </div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px;">{lib_tags}</div>
+            <div style="font-size:0.60rem;color:#8aadcc;margin-bottom:6px;">조용한 집중 공간</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">{lib_tags if lib_tags else '<span style="font-size:0.72rem;color:#8aadcc;">정보 없음</span>'}</div>
         </div>
         """, unsafe_allow_html=True)
 # ────────────────────────────────────────────────────────────────────────
@@ -1501,6 +1568,59 @@ elif active_tab == "🆚 자치구 비교":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
+        # ── 방사형 차트 ──
+        max_rent_v    = df['평균월세'].max()
+        max_park_v    = df['공원수'].max()
+        max_lib_v     = df['도서관수'].max()
+        max_culture_v = df['기타문화공간수'].max()
+
+        def _norm(val, max_v, invert=False):
+            v = val / max_v if max_v > 0 else 0
+            return round((1 - v) * 100 if invert else v * 100, 1)
+
+        categories = ["월세 저렴", "물가 저렴", "공원", "도서관", "문화공간"]
+        vals_a = [
+            _norm(ra['평균월세'],      max_rent_v,    invert=True),
+            _norm(max(0, 20-ra['물가비율']), 40),
+            _norm(ra['공원수'],         max_park_v),
+            _norm(ra['도서관수'],       max_lib_v),
+            _norm(ra['기타문화공간수'], max_culture_v),
+        ]
+        vals_b = [
+            _norm(rb['평균월세'],      max_rent_v,    invert=True),
+            _norm(max(0, 20-rb['물가비율']), 40),
+            _norm(rb['공원수'],         max_park_v),
+            _norm(rb['도서관수'],       max_lib_v),
+            _norm(rb['기타문화공간수'], max_culture_v),
+        ]
+
+        radar_fig = go.Figure()
+        radar_fig.add_trace(go.Scatterpolar(
+            r=vals_a + [vals_a[0]], theta=categories + [categories[0]],
+            fill='toself', name=gu_a,
+            line=dict(color="#2979c8", width=2),
+            fillcolor="rgba(41,121,200,0.15)"
+        ))
+        radar_fig.add_trace(go.Scatterpolar(
+            r=vals_b + [vals_b[0]], theta=categories + [categories[0]],
+            fill='toself', name=gu_b,
+            line=dict(color="#e05c2a", width=2),
+            fillcolor="rgba(224,92,42,0.12)"
+        ))
+        radar_fig.update_layout(
+            polar=dict(
+                radialaxis=dict(visible=True, range=[0,100], tickfont=dict(size=9), gridcolor="rgba(41,121,200,0.15)"),
+                angularaxis=dict(tickfont=dict(size=11, family="Noto Sans KR"))
+            ),
+            showlegend=True,
+            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font=dict(size=11)),
+            margin=dict(l=40, r=40, t=20, b=40),
+            height=320,
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+        )
+        st.plotly_chart(radar_fig, use_container_width=True)
+
         compare_metrics = [
             ("🏠 평균 월세 (낮을수록 유리)", ra['평균월세'],      rb['평균월세'],      df['평균월세'].max(),      False),
             ("💸 생활물가 (낮을수록 유리)",  ra['물가비율']+20,   rb['물가비율']+20,   40,                        False),
@@ -1534,21 +1654,35 @@ elif active_tab == "🆚 자치구 비교":
         compare_html += '</div>'
         st.markdown(compare_html, unsafe_allow_html=True)
 
+        # ── AI 핵심 평가 — 헤드라인 형태 ──
         winner = gu_a if sa >= sb else gu_b
         loser  = gu_b if sa >= sb else gu_a
         w_row  = ra if sa >= sb else rb
         l_row  = rb if sa >= sb else ra
-        rent_adv    = "월세가 더 저렴하고" if w_row['평균월세'] < l_row['평균월세'] else "생활물가가 낮으며"
-        culture_adv = "문화공간이 더 풍부합니다." if w_row['기타문화공간수'] > l_row['기타문화공간수'] else "공원과 도서관이 더 많습니다."
+
+        rent_diff    = abs(int(w_row['평균월세']) - int(l_row['평균월세']))
+        culture_diff = abs(int(w_row['기타문화공간수']) - int(l_row['기타문화공간수']))
+        park_diff    = abs(int(w_row['공원수']) - int(l_row['공원수']))
+
+        if w_row['평균월세'] < l_row['평균월세']:
+            headline = f"💰 월세 {rent_diff}만원 저렴 — {winner}가 경제적으로 유리"
+        elif w_row['기타문화공간수'] > l_row['기타문화공간수']:
+            headline = f"🎨 문화공간 {culture_diff}개 더 많음 — {winner}가 생활 만족도에서 우세"
+        elif w_row['공원수'] > l_row['공원수']:
+            headline = f"🌳 공원 {park_diff}개 더 많음 — {winner}가 자연환경에서 앞섬"
+        else:
+            headline = f"✨ 종합 점수 {abs(sa-sb):.0f}점 차 — {winner}가 전반적으로 우세"
 
         st.markdown(f"""
-        <div style="margin-top:16px;background:linear-gradient(135deg,#e8f1fd,#f0f6ff);
-                    border-radius:12px;padding:16px 20px;border-left:4px solid #2979c8;">
-            <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">💬 AI 종합 평가</div>
-            <div style="font-size:0.90rem;color:#0d2137;line-height:1.7;font-weight:500;">
-                현재 우선순위 기준으로 <b style="color:#1a5499;">{winner}</b>가 더 높은 추천 점수를 받았습니다.<br>
-                {winner}은 {rent_adv} {culture_adv}<br>
-                반면 <b style="color:#4a6d96;">{loser}</b>은 다른 조건에서 강점이 있을 수 있으니 우선순위 설정을 바꿔 비교해 보세요.
+        <div style="margin-top:14px;background:linear-gradient(135deg,#e8f1fd,#f0f6ff);
+                    border-radius:12px;padding:14px 18px;border-left:4px solid #2979c8;">
+            <div style="font-size:0.65rem;font-weight:800;color:#8aadcc;letter-spacing:1px;
+                        text-transform:uppercase;margin-bottom:8px;">💬 핵심 차이</div>
+            <div style="font-size:1.0rem;font-weight:900;color:#1a5499;margin-bottom:6px;">
+                {headline}
+            </div>
+            <div style="font-size:0.78rem;color:#4a6d96;">
+                조건을 바꾸면 순위가 달라질 수 있어요 — 우선순위 설정을 조정해 보세요.
             </div>
         </div>
         """, unsafe_allow_html=True)
