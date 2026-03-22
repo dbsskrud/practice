@@ -625,6 +625,8 @@ if 'selected_gu' not in st.session_state:
     st.session_state.selected_gu = None
 if 'active_tab' not in st.session_state:
     st.session_state.active_tab = "🏆 TOP 5 추천"
+if 'search_ready' not in st.session_state:
+    st.session_state.search_ready = False
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -669,11 +671,6 @@ with st.sidebar:
         ):
             st.session_state.active_tab = opt
             st.rerun()
-
-    st.markdown("---")
-    st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">💬 현재 페이지</div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="background:#e8f1fd;border-radius:8px;padding:8px 12px;font-size:0.80rem;font-weight:700;color:#1a5499;">{st.session_state.active_tab}</div>', unsafe_allow_html=True)
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # ② 컨트롤 패널 — 2개 독립 카드
