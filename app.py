@@ -2058,10 +2058,20 @@ elif active_tab == "💾 저장 · 공유":
                     unsafe_allow_html=True
                 )
 
-                del_col, share_col, _ = st.columns([1, 1, 4])
+                del_col, restore_col, share_col, snap_col = st.columns([1, 1.4, 1.4, 1.4])
                 with del_col:
                     if st.button("🗑️ 삭제", key=f"del_{real_idx}", use_container_width=True):
                         st.session_state.saved_results.pop(real_idx)
+                        st.rerun()
+                with restore_col:
+                    if st.button("🔄 다시 불러오기", key=f"restore_{real_idx}", use_container_width=True):
+                        cond_r = rec["조건"]
+                        st.session_state["university_select"] = cond_r.get("대학교", "선택 안 함")
+                        st.session_state["work_select"]       = cond_r.get("근무지", "선택 안 함")
+                        st.session_state["line_select"]       = cond_r.get("호선", [])
+                        st.session_state["rent_band_select"]  = cond_r.get("월세", "상관없음")
+                        st.session_state.search_ready         = False
+                        st.session_state.active_tab           = "🏆 TOP 5 추천"
                         st.rerun()
                 with share_col:
                     d = rec.get("지역상세", {})
@@ -2088,6 +2098,102 @@ elif active_tab == "💾 저장 · 공유":
                     share_text = "\n".join(share_lines)
                     if st.button("📋 복사용 텍스트", key=f"copy_{real_idx}", use_container_width=True):
                         st.code(share_text, language=None)
+                with snap_col:
+                    if st.button("🖼️ 이미지 카드", key=f"snap_{real_idx}", use_container_width=True):
+                        st.session_state[f"show_snap_{real_idx}"] = not st.session_state.get(f"show_snap_{real_idx}", False)
+
+                # ── 이미지 스냅샷 카드 (HTML → 다운로드) ──
+                if st.session_state.get(f"show_snap_{real_idx}", False):
+                    d  = rec.get("지역상세", {})
+                    c  = rec.get("비교분석", {})
+                    SNAP_ICONS  = ["🥇","🥈","🥉","4️⃣","5️⃣"]
+                    SNAP_COLORS = ["#1a5499","#2979c8","#4a9de0","#7eb5e8","#b8d0f0"]
+
+                    top5_snap = "".join(
+                        f'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);">'
+                        f'<span style="font-size:1.0rem;">{SNAP_ICONS[i] if i<5 else "·"}</span>'
+                        f'<span style="font-size:0.85rem;font-weight:800;color:#fff;">{g}</span>'
+                        f'</div>'
+                        for i, g in enumerate(rec["TOP5"])
+                    )
+
+                    detail_snap = ""
+                    if d:
+                        star_n  = int(d["추천점수"] // 20)
+                        stars_s = "★" * star_n + "☆" * (5 - star_n)
+                        detail_snap = f"""
+                        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-top:12px;">
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">📍 지역 상세 — {d['자치구']}</div>
+                            <div style="color:#fbbf24;font-size:1.1rem;margin-bottom:6px;">{stars_s} <span style="color:#fff;font-size:0.80rem;">{d['추천점수']}점</span></div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                                <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px;text-align:center;">
+                                    <div style="font-size:0.60rem;color:rgba(255,255,255,0.6);">월세</div>
+                                    <div style="font-size:1.0rem;font-weight:900;color:#fff;">{d['평균월세']}만</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px;text-align:center;">
+                                    <div style="font-size:0.60rem;color:rgba(255,255,255,0.6);">공원</div>
+                                    <div style="font-size:1.0rem;font-weight:900;color:#fff;">{d['공원수']}개</div>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px;text-align:center;">
+                                    <div style="font-size:0.60rem;color:rgba(255,255,255,0.6);">안전</div>
+                                    <div style="font-size:1.0rem;font-weight:900;color:#fff;">{d['안전점수']}점</div>
+                                </div>
+                            </div>
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;">💬 {d['한줄평']}</div>
+                        </div>"""
+
+                    compare_snap = ""
+                    if c:
+                        compare_snap = f"""
+                        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-top:10px;">
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">🆚 비교 분석</div>
+                            <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;text-align:center;">
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:900;color:{'#fbbf24' if c['우세']==c['A구'] else 'rgba(255,255,255,0.6)'};">{c['A구']} {'✓' if c['우세']==c['A구'] else ''}</div>
+                                    <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);">{c['A_추천점수']}점</div>
+                                </div>
+                                <div style="font-size:0.80rem;font-weight:900;color:rgba(255,255,255,0.4);">VS</div>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:900;color:{'#fbbf24' if c['우세']==c['B구'] else 'rgba(255,255,255,0.6)'};">{c['B구']} {'✓' if c['우세']==c['B구'] else ''}</div>
+                                    <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);">{c['B_추천점수']}점</div>
+                                </div>
+                            </div>
+                        </div>"""
+
+                    cond_snap = " · ".join(cond_parts) if cond_parts else "조건 없음"
+
+                    snap_html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+  * {{ box-sizing:border-box; margin:0; padding:0; }}
+  body {{ font-family:'Noto Sans KR',sans-serif; background:#0d2137; display:flex; justify-content:center; align-items:center; min-height:100vh; }}
+</style></head><body>
+<div style="width:400px;background:linear-gradient(135deg,#1a5499,#2979c8 50%,#4a9de0);border-radius:20px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,0.4);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div>
+      <div style="font-size:0.65rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">🏠 서울 스타터</div>
+      <div style="font-size:1.1rem;font-weight:900;color:#fff;">{rec['메모']}</div>
+    </div>
+    <div style="font-size:0.60rem;color:rgba(255,255,255,0.5);">{rec['저장시각']}</div>
+  </div>
+  <div style="font-size:0.65rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">{cond_snap}</div>
+  <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">🏆 추천 TOP5</div>
+  {top5_snap}
+  {detail_snap}
+  {compare_snap}
+  <div style="margin-top:14px;text-align:center;font-size:0.60rem;color:rgba(255,255,255,0.4);">서울시 공공데이터 기반 · 서울 스타터</div>
+</div>
+</body></html>"""
+
+                    st.download_button(
+                        label="⬇️ HTML 카드 다운로드 (브라우저에서 열어 스크린샷)",
+                        data=snap_html.encode("utf-8"),
+                        file_name=f"서울스타터_{rec['메모'].replace(' ','_')}.html",
+                        mime="text/html",
+                        key=f"snap_dl_{real_idx}",
+                        use_container_width=True,
+                    )
 
             st.markdown("---")
 
