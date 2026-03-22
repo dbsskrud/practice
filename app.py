@@ -1904,16 +1904,64 @@ elif active_tab == "💾 저장 · 공유":
             memo = st.text_input("메모 (선택)", placeholder="예: 강남 출퇴근, 월세 저렴 우선", key="save_memo")
 
         if st.button("💾 현재 결과 저장", key="save_btn", type="primary"):
+            # 지역 상세 분석 데이터
+            detail_gu_saved = st.session_state.get("selected_gu") or (top5_gu[0] if top5_gu else None)
+            detail_data = {}
+            if detail_gu_saved and detail_gu_saved in df['자치구'].values:
+                drow_s = df[df['자치구'] == detail_gu_saved].iloc[0]
+                cctv_s = CCTV_DATA.get(detail_gu_saved, 0)
+                cctv_score_s = int((cctv_s - CCTV_MIN) / (CCTV_MAX - CCTV_MIN) * 100) if CCTV_MAX > CCTV_MIN else 50
+                detail_data = {
+                    "자치구":     detail_gu_saved,
+                    "한줄평":     str(drow_s['한줄평']),
+                    "평균월세":   int(drow_s['평균월세']),
+                    "생활물가":   f"{drow_s['물가비율']:+.1f}%",
+                    "공원수":     int(drow_s['공원수']),
+                    "도서관수":   int(drow_s['도서관수']),
+                    "문화공간수": int(drow_s['기타문화공간수']),
+                    "안전점수":   cctv_score_s,
+                    "추천점수":   round(to_100(drow_s['total_score']), 1),
+                    "주요역":     str(drow_s['지하철역_예시']),
+                }
+
+            # 비교 분석 데이터
+            compare_data = {}
+            gu_a_saved = st.session_state.get("compare_a")
+            gu_b_saved = st.session_state.get("compare_b")
+            if (gu_a_saved and gu_b_saved and
+                    gu_a_saved in df['자치구'].values and
+                    gu_b_saved in df['자치구'].values and
+                    gu_a_saved != gu_b_saved):
+                ra_s = df[df['자치구'] == gu_a_saved].iloc[0]
+                rb_s = df[df['자치구'] == gu_b_saved].iloc[0]
+                compare_data = {
+                    "A구":        gu_a_saved,
+                    "A_추천점수": round(to_100(ra_s['total_score']), 1),
+                    "A_월세":     int(ra_s['평균월세']),
+                    "A_공원":     int(ra_s['공원수']),
+                    "A_도서관":   int(ra_s['도서관수']),
+                    "A_문화공간": int(ra_s['기타문화공간수']),
+                    "B구":        gu_b_saved,
+                    "B_추천점수": round(to_100(rb_s['total_score']), 1),
+                    "B_월세":     int(rb_s['평균월세']),
+                    "B_공원":     int(rb_s['공원수']),
+                    "B_도서관":   int(rb_s['도서관수']),
+                    "B_문화공간": int(rb_s['기타문화공간수']),
+                    "우세":       gu_a_saved if to_100(ra_s['total_score']) >= to_100(rb_s['total_score']) else gu_b_saved,
+                }
+
             record = {
-                "저장시각":    datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "메모":        memo if memo else "저장된 결과",
+                "저장시각":  datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "메모":      memo if memo else "저장된 결과",
                 "조건": {
-                    "대학교":   st.session_state.get("university_select", "선택 안 함"),
-                    "근무지":   st.session_state.get("work_select",       "선택 안 함"),
-                    "호선":     st.session_state.get("line_select",       []),
-                    "월세":     st.session_state.get("rent_band_select",  "상관없음"),
+                    "대학교": st.session_state.get("university_select", "선택 안 함"),
+                    "근무지": st.session_state.get("work_select",       "선택 안 함"),
+                    "호선":   st.session_state.get("line_select",       []),
+                    "월세":   st.session_state.get("rent_band_select",  "상관없음"),
                 },
-                "TOP5":       top5_gu[:n_avail],
+                "TOP5":         top5_gu[:n_avail],
+                "지역상세":     detail_data,
+                "비교분석":     compare_data,
             }
             st.session_state.saved_results.append(record)
             st.success(f"✅ 저장 완료! (총 {len(st.session_state.saved_results)}개)")
@@ -1936,13 +1984,6 @@ elif active_tab == "💾 저장 · 공유":
 
             for idx, rec in enumerate(reversed(st.session_state.saved_results)):
                 real_idx = len(st.session_state.saved_results) - 1 - idx
-                top5_tags = "".join(
-                    f'<span style="display:inline-block;background:{CARD_COLORS[i] if i < len(CARD_COLORS) else "#d4e4f7"};'
-                    f'color:#fff;padding:3px 10px;border-radius:20px;'
-                    f'font-size:0.68rem;font-weight:700;margin:2px;">'
-                    f'{CARD_ICONS[i] if i < len(CARD_ICONS) else "·"} {g}</span>'
-                    for i, g in enumerate(rec["TOP5"])
-                )
                 cond = rec["조건"]
                 cond_parts = []
                 if cond["대학교"] != "선택 안 함": cond_parts.append(f"🎓 {cond['대학교']}")
@@ -1951,20 +1992,71 @@ elif active_tab == "💾 저장 · 공유":
                 if cond["월세"] != "상관없음":     cond_parts.append(f"💸 {cond['월세']}")
                 cond_text = " &nbsp;|&nbsp; ".join(cond_parts) if cond_parts else "조건 없음"
 
-                st.markdown(f"""
-                <div style="background:#fff;border-radius:14px;padding:16px 18px;
-                            border:1.5px solid rgba(41,121,200,0.12);border-left:4px solid #2979c8;
-                            box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:10px;">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-                        <div>
-                            <div style="font-size:0.90rem;font-weight:800;color:#0d2137;">{rec['메모']}</div>
-                            <div style="font-size:0.62rem;color:#8aadcc;margin-top:2px;">{rec['저장시각']}</div>
-                        </div>
-                    </div>
-                    <div style="font-size:0.62rem;color:#4a6d96;margin-bottom:8px;">{cond_text}</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:4px;">{top5_tags}</div>
-                </div>
-                """, unsafe_allow_html=True)
+                top5_tags = "".join(
+                    f'<span style="display:inline-block;background:{CARD_COLORS[i] if i < len(CARD_COLORS) else "#d4e4f7"};'
+                    f'color:#fff;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;margin:2px;">'
+                    f'{CARD_ICONS[i] if i < len(CARD_ICONS) else "·"} {g}</span>'
+                    for i, g in enumerate(rec["TOP5"])
+                )
+
+                # 지역 상세 HTML
+                d = rec.get("지역상세", {})
+                detail_html = ""
+                if d:
+                    detail_html = (
+                        f'<div style="margin-top:10px;padding:10px 12px;background:#f0f5fb;border-radius:10px;">'
+                        f'<div style="font-size:0.63rem;font-weight:800;color:#2979c8;margin-bottom:6px;">🔍 지역 상세 — {d["자치구"]}</div>'
+                        f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'
+                        f'<div style="font-size:0.65rem;color:#4a6d96;">🏠 월세 <b style="color:#0d2137;">{d["평균월세"]}만원</b></div>'
+                        f'<div style="font-size:0.65rem;color:#4a6d96;">💸 물가 <b style="color:#0d2137;">{d["생활물가"]}</b></div>'
+                        f'<div style="font-size:0.65rem;color:#4a6d96;">🌳 공원 <b style="color:#0d2137;">{d["공원수"]}개</b></div>'
+                        f'<div style="font-size:0.65rem;color:#4a6d96;">📚 도서관 <b style="color:#0d2137;">{d["도서관수"]}개</b></div>'
+                        f'<div style="font-size:0.65rem;color:#4a6d96;">🎨 문화 <b style="color:#0d2137;">{d["문화공간수"]}개</b></div>'
+                        f'<div style="font-size:0.65rem;color:#4a6d96;">🛡️ 안전 <b style="color:#0d2137;">{d["안전점수"]}점</b></div>'
+                        f'</div>'
+                        f'<div style="font-size:0.62rem;color:#8aadcc;margin-top:6px;font-style:italic;">💬 {d["한줄평"]}</div>'
+                        f'</div>'
+                    )
+
+                # 비교 분석 HTML
+                c = rec.get("비교분석", {})
+                compare_html_saved = ""
+                if c:
+                    winner_color_a = "#2979c8" if c["우세"] == c["A구"] else "#8aadcc"
+                    winner_color_b = "#2979c8" if c["우세"] == c["B구"] else "#8aadcc"
+                    compare_html_saved = (
+                        f'<div style="margin-top:8px;padding:10px 12px;background:#f5f8ff;border-radius:10px;">'
+                        f'<div style="font-size:0.63rem;font-weight:800;color:#2979c8;margin-bottom:6px;">🆚 비교 분석 — {c["A구"]} vs {c["B구"]}</div>'
+                        f'<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;">'
+                        f'<div>'
+                        f'<div style="font-size:0.78rem;font-weight:900;color:{winner_color_a};">{c["A구"]} {"✓" if c["우세"]==c["A구"] else ""}</div>'
+                        f'<div style="font-size:0.62rem;color:#4a6d96;">추천점수 {c["A_추천점수"]}점 · 월세 {c["A_월세"]}만</div>'
+                        f'<div style="font-size:0.62rem;color:#4a6d96;">공원 {c["A_공원"]}개 · 도서관 {c["A_도서관"]}개</div>'
+                        f'</div>'
+                        f'<div style="font-size:0.75rem;font-weight:900;color:#b8d0f0;">VS</div>'
+                        f'<div>'
+                        f'<div style="font-size:0.78rem;font-weight:900;color:{winner_color_b};">{c["B구"]} {"✓" if c["우세"]==c["B구"] else ""}</div>'
+                        f'<div style="font-size:0.62rem;color:#4a6d96;">추천점수 {c["B_추천점수"]}점 · 월세 {c["B_월세"]}만</div>'
+                        f'<div style="font-size:0.62rem;color:#4a6d96;">공원 {c["B_공원"]}개 · 도서관 {c["B_도서관"]}개</div>'
+                        f'</div>'
+                        f'</div>'
+                        f'</div>'
+                    )
+
+                st.markdown(
+                    f'<div style="background:#fff;border-radius:14px;padding:16px 18px;'
+                    f'border:1.5px solid rgba(41,121,200,0.12);border-left:4px solid #2979c8;'
+                    f'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:10px;">'
+                    f'<div style="font-size:0.90rem;font-weight:800;color:#0d2137;">{rec["메모"]}</div>'
+                    f'<div style="font-size:0.62rem;color:#8aadcc;margin:2px 0 6px;">{rec["저장시각"]}</div>'
+                    f'<div style="font-size:0.62rem;color:#4a6d96;margin-bottom:8px;">{cond_text}</div>'
+                    f'<div style="font-size:0.63rem;font-weight:700;color:#8aadcc;margin-bottom:4px;">🏆 추천 TOP5</div>'
+                    f'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px;">{top5_tags}</div>'
+                    f'{detail_html}'
+                    f'{compare_html_saved}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
                 del_col, share_col, _ = st.columns([1, 1, 4])
                 with del_col:
@@ -1972,14 +2064,28 @@ elif active_tab == "💾 저장 · 공유":
                         st.session_state.saved_results.pop(real_idx)
                         st.rerun()
                 with share_col:
-                    # 공유용 텍스트 생성
-                    share_text = (
-                        f"[서울 스타터] {rec['메모']}\n"
-                        f"📅 {rec['저장시각']}\n"
-                        f"🔍 검색 조건: {', '.join(cond_parts) if cond_parts else '없음'}\n"
-                        f"🏆 추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}\n"
-                        f"📱 서울 스타터 — 서울시 자취 가이드"
-                    )
+                    d = rec.get("지역상세", {})
+                    c = rec.get("비교분석", {})
+                    share_lines = [
+                        f"[서울 스타터] {rec['메모']}",
+                        f"📅 {rec['저장시각']}",
+                        f"🔍 검색 조건: {', '.join(cond_parts) if cond_parts else '없음'}",
+                        f"🏆 추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}",
+                    ]
+                    if d:
+                        share_lines += [
+                            f"\n📍 지역 상세 — {d['자치구']}",
+                            f"  월세 {d['평균월세']}만원 / 물가 {d['생활물가']} / 추천점수 {d['추천점수']}점",
+                            f"  공원 {d['공원수']}개 / 도서관 {d['도서관수']}개 / 안전 {d['안전점수']}점",
+                            f"  💬 {d['한줄평']}",
+                        ]
+                    if c:
+                        share_lines += [
+                            f"\n🆚 비교 — {c['A구']} vs {c['B구']} → 우세: {c['우세']}",
+                            f"  {c['A구']}: {c['A_추천점수']}점 / {c['B구']}: {c['B_추천점수']}점",
+                        ]
+                    share_lines.append("\n📱 서울 스타터 — 서울시 자취 가이드")
+                    share_text = "\n".join(share_lines)
                     if st.button("📋 복사용 텍스트", key=f"copy_{real_idx}", use_container_width=True):
                         st.code(share_text, language=None)
 
@@ -1988,7 +2094,6 @@ elif active_tab == "💾 저장 · 공유":
             # ── 전체 내보내기 ──
             st.markdown('<div style="font-size:0.72rem;font-weight:800;color:#1a5499;margin-bottom:10px;">📤 전체 결과 내보내기</div>', unsafe_allow_html=True)
 
-            # TXT 다운로드
             all_txt = ""
             for i, rec in enumerate(st.session_state.saved_results, 1):
                 cond = rec["조건"]
@@ -1997,32 +2102,29 @@ elif active_tab == "💾 저장 · 공유":
                 if cond["근무지"] != "선택 안 함": cp.append(f"근무지: {cond['근무지']}")
                 if cond["호선"]:                   cp.append(f"호선: {', '.join(cond['호선'])}")
                 if cond["월세"] != "상관없음":     cp.append(f"월세: {cond['월세']}")
-                all_txt += (
-                    f"[{i}] {rec['메모']} ({rec['저장시각']})\n"
-                    f"  조건: {', '.join(cp) if cp else '없음'}\n"
-                    f"  추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}\n\n"
-                )
+                all_txt += f"[{i}] {rec['메모']} ({rec['저장시각']})\n"
+                all_txt += f"  조건: {', '.join(cp) if cp else '없음'}\n"
+                all_txt += f"  추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}\n"
+                d = rec.get("지역상세", {})
+                if d:
+                    all_txt += f"  [지역 상세 — {d['자치구']}]\n"
+                    all_txt += f"    월세 {d['평균월세']}만원 / 물가 {d['생활물가']} / 추천점수 {d['추천점수']}점\n"
+                    all_txt += f"    공원 {d['공원수']}개 / 도서관 {d['도서관수']}개 / 문화 {d['문화공간수']}개 / 안전 {d['안전점수']}점\n"
+                    all_txt += f"    한줄평: {d['한줄평']}\n"
+                c = rec.get("비교분석", {})
+                if c:
+                    all_txt += f"  [비교 — {c['A구']} vs {c['B구']} → 우세: {c['우세']}]\n"
+                    all_txt += f"    {c['A구']}: 추천 {c['A_추천점수']}점 / 월세 {c['A_월세']}만 / 공원 {c['A_공원']}개\n"
+                    all_txt += f"    {c['B구']}: 추천 {c['B_추천점수']}점 / 월세 {c['B_월세']}만 / 공원 {c['B_공원']}개\n"
+                all_txt += "\n"
 
-            # JSON 다운로드
             all_json = _json.dumps(st.session_state.saved_results, ensure_ascii=False, indent=2)
 
             dl1, dl2, dl3 = st.columns([1, 1, 2])
             with dl1:
-                st.download_button(
-                    "📄 TXT 저장",
-                    data=all_txt,
-                    file_name="서울스타터_추천결과.txt",
-                    mime="text/plain",
-                    use_container_width=True,
-                )
+                st.download_button("📄 TXT 저장", data=all_txt,    file_name="서울스타터_추천결과.txt",  mime="text/plain",        use_container_width=True)
             with dl2:
-                st.download_button(
-                    "📦 JSON 저장",
-                    data=all_json,
-                    file_name="서울스타터_추천결과.json",
-                    mime="application/json",
-                    use_container_width=True,
-                )
+                st.download_button("📦 JSON 저장", data=all_json,  file_name="서울스타터_추천결과.json", mime="application/json",  use_container_width=True)
             with dl3:
                 if st.button("🗑️ 전체 삭제", key="del_all", use_container_width=True):
                     st.session_state.saved_results = []
