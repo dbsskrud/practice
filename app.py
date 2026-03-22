@@ -1899,10 +1899,6 @@ elif active_tab == "💾 저장 · 공유":
         </div>
         """, unsafe_allow_html=True)
 
-        save_col, _ = st.columns([2, 3])
-        with save_col:
-            memo = st.text_input("메모 (선택)", placeholder="예: 강남 출퇴근, 월세 저렴 우선", key="save_memo")
-
         # ── 저장할 지역 선택 ──
         st.markdown('<div style="font-size:0.72rem;font-weight:800;color:#1a5499;margin-bottom:10px;">📌 저장할 지역과 메모를 입력하세요</div>', unsafe_allow_html=True)
 
