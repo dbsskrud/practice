@@ -870,7 +870,10 @@ def to_100(score):
         return (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN) * 100
     return 100.0
 
-if st.session_state.selected_gu is None:
+# 선택된 자치구가 없거나 필터링으로 제거된 경우 1위로 초기화
+gu_list_filtered = df['자치구'].tolist()
+if (st.session_state.selected_gu is None or
+        st.session_state.selected_gu not in gu_list_filtered):
     st.session_state.selected_gu = top3_gu[0]
 
 RANK_COLOR = {top3_gu[0]: "#2979c8", top3_gu[1]: "#4a9de0", top3_gu[2]: "#7eb5e8"}
