@@ -621,6 +621,20 @@ PRIORITY_ITEMS = {
     "🌳 녹지/공원":  "norm_공원수",
 }
 
+# ── CCTV 안전 데이터 (2025.12.31 기준, 범죄예방·수사용) ──────────────────
+CCTV_DATA = {
+    '종로구': 2885, '중구': 2861, '용산구': 3357, '성동구': 4226,
+    '광진구': 4590, '동대문구': 4001, '중랑구': 5161, '성북구': 4994,
+    '강북구': 4434, '도봉구': 2917, '노원구': 3843, '은평구': 5220,
+    '서대문구': 3658, '마포구': 3851, '양천구': 4656, '강서구': 4444,
+    '구로구': 5070, '금천구': 3672, '영등포구': 4799, '동작구': 3645,
+    '관악구': 6163, '서초구': 4121, '강남구': 7364, '송파구': 4269,
+    '강동구': 4746,
+}
+CCTV_MAX = max(CCTV_DATA.values())
+CCTV_MIN = min(CCTV_DATA.values())
+CCTV_AVG = sum(CCTV_DATA.values()) / len(CCTV_DATA)
+
 if 'selected_gu' not in st.session_state:
     st.session_state.selected_gu = None
 if 'active_tab' not in st.session_state:
@@ -1529,6 +1543,46 @@ elif active_tab == "🔍 지역 상세 분석":
                 <text x="80" y="78" text-anchor="middle" font-size="28" font-weight="900" fill="{arc_col2}" font-family="Noto Sans KR">{score2:.0f}</text>
                 <text x="80" y="93" text-anchor="middle" font-size="11" fill="#4a6d96" font-family="Noto Sans KR">/ 100점</text>
             </svg>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── 안전 점수 (CCTV 기반) ──
+        cctv_count = CCTV_DATA.get(detail_gu, 0)
+        # 0~100점 정규화 (많을수록 안전)
+        cctv_score = int((cctv_count - CCTV_MIN) / (CCTV_MAX - CCTV_MIN) * 100) if CCTV_MAX > CCTV_MIN else 50
+        cctv_diff  = cctv_count - CCTV_AVG
+        cctv_pct   = cctv_diff / CCTV_AVG * 100 if CCTV_AVG > 0 else 0
+
+        if cctv_score >= 70:
+            safety_label, safety_color, safety_bg, safety_icon = "매우 안전", "#1a6e45", "#eef7ee", "🟢"
+        elif cctv_score >= 45:
+            safety_label, safety_color, safety_bg, safety_icon = "보통",     "#1a5499", "#e8f1fd", "🔵"
+        else:
+            safety_label, safety_color, safety_bg, safety_icon = "주의",     "#b07d00", "#fff8e8", "🟡"
+
+        cctv_bar = int(cctv_score)
+        st.markdown(f"""
+        <div style="background:{safety_bg};border-radius:12px;padding:14px 16px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid {safety_color};margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">
+                    🛡️ 안전 점수 (CCTV 기반)
+                </div>
+                <div style="font-size:0.60rem;color:#8aadcc;">2025.12.31 기준</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <div style="font-size:1.6rem;font-weight:900;color:{safety_color};">{cctv_score}점</div>
+                <div>
+                    <div style="font-size:0.72rem;font-weight:800;color:{safety_color};">{safety_icon} {safety_label}</div>
+                    <div style="font-size:0.62rem;color:#8aadcc;">CCTV {cctv_count:,}대</div>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.6);border-radius:4px;height:8px;overflow:hidden;">
+                <div style="width:{cctv_bar}%;height:100%;border-radius:4px;background:{safety_color};"></div>
+            </div>
+            <div style="margin-top:6px;font-size:0.62rem;color:{safety_color};font-weight:600;">
+                서울 평균 대비 {'+' if cctv_pct>=0 else ''}{cctv_pct:.1f}% ({'더 많은 CCTV' if cctv_pct>=0 else '더 적은 CCTV'})
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
