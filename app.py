@@ -675,7 +675,21 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════
 # ② 컨트롤 패널 — 2개 독립 카드
 # ══════════════════════════════════════════════════════════════════════════
-st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
+sl_col, reset_col = st.columns([6, 1])
+with sl_col:
+    st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
+with reset_col:
+    if st.button("🔄 초기화", key="reset_btn", use_container_width=True):
+        for key in [
+            "university_select", "work_select",
+            "line_select", "rent_band_select",
+            "prio_1", "prio_2", "prio_3", "prio_4"
+        ]:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.session_state.selected_gu  = None
+        st.session_state.search_ready = False
+        st.rerun()
 
 # ── 1행: 통학/통근 + 지하철/월세 ──
 row1_a, row1_b = st.columns(2)
