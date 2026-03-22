@@ -846,9 +846,21 @@ else:
     df = filtered_df.copy()
 
 rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
-top3_gu = rec_df.head(3)['자치구'].tolist()
-top5_gu = rec_df.head(5)['자치구'].tolist()
-top5_df = rec_df.head(5)
+n_avail = len(rec_df)
+
+if n_avail == 0:
+    st.error("조건을 만족하는 자치구가 없습니다. 월세 가격대나 다른 조건을 완화해 주세요.")
+    st.stop()
+
+top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
+top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
+top5_df = rec_df.head(min(5, n_avail))
+
+# 부족할 경우 마지막 항목으로 패딩
+while len(top3_gu) < 3:
+    top3_gu.append(top3_gu[-1])
+while len(top5_gu) < 5:
+    top5_gu.append(top5_gu[-1])
 
 SCORE_MAX = df['total_score'].max()
 SCORE_MIN = df['total_score'].min()
