@@ -641,6 +641,8 @@ if 'active_tab' not in st.session_state:
     st.session_state.active_tab = "🏆 TOP 5 추천"
 if 'search_ready' not in st.session_state:
     st.session_state.search_ready = False
+if 'saved_results' not in st.session_state:
+    st.session_state.saved_results = []
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -674,7 +676,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">📌 페이지</div>', unsafe_allow_html=True)
 
-    tab_options = ["🏆 TOP 5 추천", "🔍 지역 상세 분석", "🆚 자치구 비교"]
+    tab_options = ["🏆 TOP 5 추천", "🔍 지역 상세 분석", "🆚 자치구 비교", "💾 저장 · 공유"]
     for opt in tab_options:
         is_active = st.session_state.active_tab == opt
         if st.button(
@@ -1866,6 +1868,165 @@ elif active_tab == "🆚 자치구 비교":
                 <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 {gu_b} 주요역</div>
                 <div class="station-tags">{tags_b}</div>
             </div>""", unsafe_allow_html=True)
+
+# ────────────────────────────────────────────────────────────────────────
+# PAGE 4 : 저장 · 공유
+# ────────────────────────────────────────────────────────────────────────
+elif active_tab == "💾 저장 · 공유":
+    st.markdown('<div class="section-label">💾 내 추천 결과 저장 · 공유</div>', unsafe_allow_html=True)
+
+    if not st.session_state.search_ready:
+        st.markdown("""
+        <div style="background:#f0f5fb;border-radius:14px;padding:40px 24px;
+                    text-align:center;border:1.5px dashed rgba(41,121,200,0.25);margin-top:12px;">
+            <div style="font-size:1.8rem;margin-bottom:10px;">💾</div>
+            <div style="font-size:0.95rem;font-weight:700;color:#1a5499;margin-bottom:6px;">
+                먼저 검색을 실행해 주세요
+            </div>
+            <div style="font-size:0.80rem;color:#8aadcc;">
+                TOP 5 추천 탭에서 검색 조건을 설정하고 검색 실행 후 결과를 저장할 수 있습니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # ── 현재 결과 저장 ──
+        import json as _json
+        from datetime import datetime
+
+        st.markdown("""
+        <div style="font-size:0.72rem;font-weight:800;color:#1a5499;margin-bottom:10px;">
+            📌 현재 검색 결과를 저장하세요
+        </div>
+        """, unsafe_allow_html=True)
+
+        save_col, _ = st.columns([2, 3])
+        with save_col:
+            memo = st.text_input("메모 (선택)", placeholder="예: 강남 출퇴근, 월세 저렴 우선", key="save_memo")
+
+        if st.button("💾 현재 결과 저장", key="save_btn", type="primary"):
+            record = {
+                "저장시각":    datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "메모":        memo if memo else "저장된 결과",
+                "조건": {
+                    "대학교":   st.session_state.get("university_select", "선택 안 함"),
+                    "근무지":   st.session_state.get("work_select",       "선택 안 함"),
+                    "호선":     st.session_state.get("line_select",       []),
+                    "월세":     st.session_state.get("rent_band_select",  "상관없음"),
+                },
+                "TOP5":       top5_gu[:n_avail],
+            }
+            st.session_state.saved_results.append(record)
+            st.success(f"✅ 저장 완료! (총 {len(st.session_state.saved_results)}개)")
+
+        st.markdown("---")
+
+        # ── 저장된 결과 목록 ──
+        if not st.session_state.saved_results:
+            st.markdown("""
+            <div style="background:#f0f5fb;border-radius:12px;padding:24px;text-align:center;
+                        border:1.5px dashed rgba(41,121,200,0.20);">
+                <div style="font-size:0.85rem;color:#8aadcc;">아직 저장된 결과가 없습니다.</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div style="font-size:0.72rem;font-weight:800;color:#1a5499;margin-bottom:12px;">📋 저장된 결과 ({len(st.session_state.saved_results)}개)</div>', unsafe_allow_html=True)
+
+            CARD_COLORS = ["#1a5499","#2979c8","#4a9de0","#7eb5e8","#b8d0f0"]
+            CARD_ICONS  = ["🥇","🥈","🥉","4️⃣","5️⃣"]
+
+            for idx, rec in enumerate(reversed(st.session_state.saved_results)):
+                real_idx = len(st.session_state.saved_results) - 1 - idx
+                top5_tags = "".join(
+                    f'<span style="display:inline-block;background:{CARD_COLORS[i] if i < len(CARD_COLORS) else "#d4e4f7"};'
+                    f'color:#fff;padding:3px 10px;border-radius:20px;'
+                    f'font-size:0.68rem;font-weight:700;margin:2px;">'
+                    f'{CARD_ICONS[i] if i < len(CARD_ICONS) else "·"} {g}</span>'
+                    for i, g in enumerate(rec["TOP5"])
+                )
+                cond = rec["조건"]
+                cond_parts = []
+                if cond["대학교"] != "선택 안 함": cond_parts.append(f"🎓 {cond['대학교']}")
+                if cond["근무지"] != "선택 안 함": cond_parts.append(f"🏢 {cond['근무지']}")
+                if cond["호선"]:                   cond_parts.append(f"🚇 {', '.join(cond['호선'])}")
+                if cond["월세"] != "상관없음":     cond_parts.append(f"💸 {cond['월세']}")
+                cond_text = " &nbsp;|&nbsp; ".join(cond_parts) if cond_parts else "조건 없음"
+
+                st.markdown(f"""
+                <div style="background:#fff;border-radius:14px;padding:16px 18px;
+                            border:1.5px solid rgba(41,121,200,0.12);border-left:4px solid #2979c8;
+                            box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:0.90rem;font-weight:800;color:#0d2137;">{rec['메모']}</div>
+                            <div style="font-size:0.62rem;color:#8aadcc;margin-top:2px;">{rec['저장시각']}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.62rem;color:#4a6d96;margin-bottom:8px;">{cond_text}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">{top5_tags}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                del_col, share_col, _ = st.columns([1, 1, 4])
+                with del_col:
+                    if st.button("🗑️ 삭제", key=f"del_{real_idx}", use_container_width=True):
+                        st.session_state.saved_results.pop(real_idx)
+                        st.rerun()
+                with share_col:
+                    # 공유용 텍스트 생성
+                    share_text = (
+                        f"[서울 스타터] {rec['메모']}\n"
+                        f"📅 {rec['저장시각']}\n"
+                        f"🔍 검색 조건: {', '.join(cond_parts) if cond_parts else '없음'}\n"
+                        f"🏆 추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}\n"
+                        f"📱 서울 스타터 — 서울시 자취 가이드"
+                    )
+                    if st.button("📋 복사용 텍스트", key=f"copy_{real_idx}", use_container_width=True):
+                        st.code(share_text, language=None)
+
+            st.markdown("---")
+
+            # ── 전체 내보내기 ──
+            st.markdown('<div style="font-size:0.72rem;font-weight:800;color:#1a5499;margin-bottom:10px;">📤 전체 결과 내보내기</div>', unsafe_allow_html=True)
+
+            # TXT 다운로드
+            all_txt = ""
+            for i, rec in enumerate(st.session_state.saved_results, 1):
+                cond = rec["조건"]
+                cp = []
+                if cond["대학교"] != "선택 안 함": cp.append(f"대학교: {cond['대학교']}")
+                if cond["근무지"] != "선택 안 함": cp.append(f"근무지: {cond['근무지']}")
+                if cond["호선"]:                   cp.append(f"호선: {', '.join(cond['호선'])}")
+                if cond["월세"] != "상관없음":     cp.append(f"월세: {cond['월세']}")
+                all_txt += (
+                    f"[{i}] {rec['메모']} ({rec['저장시각']})\n"
+                    f"  조건: {', '.join(cp) if cp else '없음'}\n"
+                    f"  추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}\n\n"
+                )
+
+            # JSON 다운로드
+            all_json = _json.dumps(st.session_state.saved_results, ensure_ascii=False, indent=2)
+
+            dl1, dl2, dl3 = st.columns([1, 1, 2])
+            with dl1:
+                st.download_button(
+                    "📄 TXT 저장",
+                    data=all_txt,
+                    file_name="서울스타터_추천결과.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                )
+            with dl2:
+                st.download_button(
+                    "📦 JSON 저장",
+                    data=all_json,
+                    file_name="서울스타터_추천결과.json",
+                    mime="application/json",
+                    use_container_width=True,
+                )
+            with dl3:
+                if st.button("🗑️ 전체 삭제", key="del_all", use_container_width=True):
+                    st.session_state.saved_results = []
+                    st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════
 # 데이터 출처
