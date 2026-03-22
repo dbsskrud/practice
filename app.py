@@ -672,16 +672,16 @@ with st.sidebar:
            st.session_state.active_tab = opt
             st.rerun()
 
-    st.markdown("---")
-    st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🔄 초기화</div>', unsafe_allow_html=True)
-    if st.button("검색 조건 초기화", key="reset_btn", use_container_width=True):
-        for key in ["university_select", "work_select", "line_select",
-                    "rent_band_select", "prio_1", "prio_2", "prio_3", "prio_4"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.session_state.selected_gu  = None
-        st.session_state.search_ready = False
-        st.rerun()
+        st.markdown("---")
+        st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🔄 초기화</div>', unsafe_allow_html=True)
+        if st.button("검색 조건 초기화", key="reset_btn", use_container_width=True):
+            for key in ["university_select", "work_select", "line_select",
+                        "rent_band_select", "prio_1", "prio_2", "prio_3", "prio_4"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.session_state.selected_gu  = None
+            st.session_state.search_ready = False
+            st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════
 # ② 컨트롤 패널 — 2개 독립 카드
