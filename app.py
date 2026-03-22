@@ -643,7 +643,19 @@ if 'search_ready' not in st.session_state:
     st.session_state.search_ready = False
 if 'saved_results' not in st.session_state:
     st.session_state.saved_results = []
+if 'restore_pending' not in st.session_state:
+    st.session_state.restore_pending = None
 
+# ── restore 대기 처리 — 위젯 렌더링 전 최상단에서 실행 ──
+if st.session_state.restore_pending is not None:
+    cond_r = st.session_state.restore_pending
+    st.session_state["university_select"] = cond_r.get("대학교", "선택 안 함")
+    st.session_state["work_select"]       = cond_r.get("근무지", "선택 안 함")
+    st.session_state["line_select"]       = cond_r.get("호선", [])
+    st.session_state["rent_band_select"]  = cond_r.get("월세", "상관없음")
+    st.session_state.search_ready         = False
+    st.session_state.active_tab           = "🏆 TOP 5 추천"
+    st.session_state.restore_pending      = None
 
 # ══════════════════════════════════════════════════════════════════════════
 # ① 타이틀 배너 — 좌우 분할
@@ -2065,13 +2077,7 @@ elif active_tab == "💾 저장 · 공유":
                         st.rerun()
                 with restore_col:
                     if st.button("🔄 다시 불러오기", key=f"restore_{real_idx}", use_container_width=True):
-                        cond_r = rec["조건"]
-                        st.session_state["university_select"] = cond_r.get("대학교", "선택 안 함")
-                        st.session_state["work_select"]       = cond_r.get("근무지", "선택 안 함")
-                        st.session_state["line_select"]       = cond_r.get("호선", [])
-                        st.session_state["rent_band_select"]  = cond_r.get("월세", "상관없음")
-                        st.session_state.search_ready         = False
-                        st.session_state.active_tab           = "🏆 TOP 5 추천"
+                        st.session_state.restore_pending = rec["조건"]
                         st.rerun()
                 with share_col:
                     d = rec.get("지역상세", {})
