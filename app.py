@@ -417,6 +417,203 @@ RENT_BAND = {
     "90만원대 이상": (90, 999),
 }
 
+# ── 실측 데이터 기반 자치구별 상세 정보 ──────────────────────────────────
+CULTURE_DATA = {
+    '강남구': [('민속극장풍류','공연장'),('강남스포츠문화센터','복합문화'),('서울교육청 개포도서관','도서관')],
+    '강동구': [('광진교 8번가','복합문화'),('강동구민회관','복합문화'),('강동아트센터','공연장')],
+    '강북구': [('강북문화정보도서관','도서관'),('강북청소년문화정보도서관','도서관'),('강북문화원','문화원')],
+    '강서구': [('LG아트센터 서울','공연장'),('스카이아트홀','공연장'),('강서문화원','문화원')],
+    '관악구': [('서울시립 남서울미술관','미술관/갤러리'),('호림박물관','박물관'),('관악아트홀','문화예술회관')],
+    '광진구': [('건국대학교 박물관','박물관'),('광진정보도서관','도서관'),('나루아트센터','공연장')],
+    '구로구': [('신도림 오페라하우스','공연장'),('구로아트밸리','문화예술회관'),('구로문화원','문화원')],
+    '금천구': [('금천예술공장','복합문화'),('문화정원아트홀','공연장'),('금천문화재단','문화예술회관')],
+    '노원구': [('노원문화예술회관','문화예술회관'),('서울생활사박물관','박물관'),('노원어린이극장','공연장')],
+    '도봉구': [('도봉문화원','문화원'),('도봉아트센터','문화예술회관'),('서울특별시교육청 도봉도서관','도서관')],
+    '동대문구': [('세종대왕기념관','박물관'),('서울풍물시장 전통문화체험관','복합문화'),('DDP 연계 전시','기타')],
+    '동작구': [('사당문화회관','복합문화'),('동작문화복지센터','복합문화'),('노들섬','복합문화')],
+    '마포구': [('마포아트센터','문화예술회관'),('포스트극장','공연장'),('서울마당','복합문화')],
+    '서대문구': [('서대문자연사박물관','박물관'),('서대문형무소역사관','박물관'),('서울무용센터','공연장')],
+    '서초구': [('예술의전당','문화예술회관'),('서초문화예술회관','문화예술회관'),('반포심산아트홀','공연장')],
+    '성동구': [('우란2경','공연장'),('성수아트홀','문화예술회관'),('서울숲 문화공간','복합문화')],
+    '성북구': [('최순우 옛집','박물관'),('한상수자수박물관','박물관'),('성북구립미술관','미술관/갤러리')],
+    '송파구': [('한성백제박물관','박물관'),('롯데월드 가든스테이지','공연장'),('뮤지엄한미','미술관/갤러리')],
+    '양천구': [('한국방송회관 코바코홀','공연장'),('갈산문화예술센터','복합문화'),('양천문화재단','문화예술회관')],
+    '영등포구': [('KBS홀','공연장'),('영등포문화재단','문화예술회관'),('타임스퀘어 문화공간','복합문화')],
+    '용산구': [('노들섬 복합문화공간','복합문화'),('용산가족공원 문화시설','복합문화'),('한남동 갤러리거리','미술관/갤러리')],
+    '은평구': [('은평역사한옥박물관','박물관'),('은평문화예술회관','문화예술회관'),('구립증산도서관','도서관')],
+    '종로구': [('씨어터쿰','공연장'),('공평도시유적전시관','박물관'),('국립현대미술관 서울관','미술관/갤러리')],
+    '중구': [('DDP(동대문디자인플라자)','복합문화'),('국립정동극장','공연장'),('서울역사박물관','박물관')],
+    '중랑구': [('중랑아트센터','미술관/갤러리'),('중랑문화원','문화원'),('용마폭포공원 문화행사','복합문화')],
+}
+
+PARK_DATA = {
+    '강남구': ['대모산도시자연공원','도곡근린공원','도산근린공원','선정릉'],
+    '강동구': ['길동생태공원','천호근린공원','샛마을근린공원'],
+    '강북구': ['북서울꿈의숲','오동근린공원','솔밭근린공원'],
+    '강서구': ['허준공원','궁산근린공원','매화근린공원','개화예술공원'],
+    '관악구': ['관악산공원','샘말공원'],
+    '광진구': ['어린이대공원','아차산공원'],
+    '구로구': ['개웅산근린공원','고척근린공원','온수도시자연공원','안양천생태공원'],
+    '금천구': ['감로천생태공원','금천체육공원','금천폭포근린공원'],
+    '노원구': ['불암산도시자연공원','수락산도시자연공원'],
+    '도봉구': ['초안산근린공원','쌍문근린공원','서울창포원'],
+    '동대문구': ['배봉산근린공원','답십리근린공원','간데메근린공원'],
+    '동작구': ['보라매공원','국립서울현충원','까치산근린공원'],
+    '마포구': ['월드컵공원','상암근린공원','하늘공원','노을공원'],
+    '서대문구': ['안산도시자연공원','독립근린공원','궁동근린공원'],
+    '서초구': ['매헌시민의숲','청계산도시자연공원','양재시민의숲'],
+    '성동구': ['서울숲','응봉공원','성수근린공원'],
+    '성북구': ['개운산근린공원','청량공원','성북근린공원'],
+    '송파구': ['올림픽공원','석촌호수근린공원','천마근린공원'],
+    '양천구': ['파리근린공원','계남근린공원','목동근린공원'],
+    '영등포구': ['여의도근린공원','중마루근린공원','영등포근린공원'],
+    '용산구': ['용산가족공원','효창근린공원'],
+    '은평구': ['진관근린공원','봉산도시자연공원','불광근린공원'],
+    '종로구': ['경희궁','낙산근린공원','북악산공원'],
+    '중구': ['남산공원','손기정체육공원','훈련원근린공원'],
+    '중랑구': ['용마폭포공원','봉화산근린공원','중랑캠핑숲'],
+}
+
+LIBRARY_DATA = {
+    '강남구': ['강남구립못골도서관','강남역삼푸른솔도서관','개포하늘꿈도서관'],
+    '강동구': ['강동구립도서관','강동구립강일도서관','강동구립둔촌도서관'],
+    '강북구': ['강북문화정보도서관','강북청소년문화정보도서관','미아문화정보도서관'],
+    '강서구': ['가양도서관','강서영어도서관','곰달래도서관'],
+    '관악구': ['관악중앙도서관','글빛정보도서관','관악청소년도서관'],
+    '광진구': ['광진정보도서관','광진어린이영어도서관','구의제3동도서관'],
+    '구로구': ['개봉도서관','구로구립온누리도서관','고척열린도서관'],
+    '금천구': ['금천구립금나래도서관','금천구립가산도서관','금천구립독산도서관'],
+    '노원구': ['노원중앙도서관','노원어린이도서관','노원휴먼라이브러리'],
+    '도봉구': ['도봉기적의도서관','김근태기념도서관','방학정보도서관'],
+    '동대문구': ['동대문구정보화도서관','동대문구답십리도서관','동대문책마당도서관'],
+    '동작구': ['구립김영삼도서관','사당도서관','대방어린이도서관'],
+    '마포구': ['마포중앙도서관','마포구립서강도서관','마포푸르메어린이도서관'],
+    '서대문구': ['서대문구립이진아기념도서관','서울특별시교육청서대문도서관','남가좌새롬어린이도서관'],
+    '서초구': ['방배도서관','서이도서관','서초구립내곡도서관'],
+    '성동구': ['성동구립도서관','성동구립금호도서관','성동구립매봉산숲속도서관'],
+    '성북구': ['달빛마루도서관','글빛도서관','보문숲길도서관'],
+    '송파구': ['거마도서관','가락몰도서관','돌마리도서관'],
+    '양천구': ['갈산도서관','목마교육도서관','개울건강도서관'],
+    '영등포구': ['문래도서관','대림도서관','서울특별시교육청영등포평생학습관'],
+    '용산구': ['서울특별시교육청남산도서관','서울특별시교육청용산도서관','용산꿈나무도서관'],
+    '은평구': ['구산동도서관마을','상림도서관','내를건너서숲으로도서관'],
+    '종로구': ['4.19혁명기념도서관','서울특별시교육청어린이도서관','라이브러리피치'],
+    '중구': ['다산성곽도서관','가온도서관','남산타운어린이도서관'],
+    '중랑구': ['중랑구립정보도서관','중랑구립면목정보도서관','양원숲속도서관'],
+}
+
+STATION_DATA = {
+    '강남구': [('2호선','삼성(무역센터)'),('2호선','선릉'),('2호선','역삼'),('2호선','강남'),('9호선','언주')],
+    '강동구': [('5호선','천호'),('5호선','강동'),('8호선','강동구청'),('9호선','중앙보훈병원')],
+    '강북구': [('4호선','수유(강북구청)'),('4호선','미아'),('4호선','미아사거리'),('우이신설선','솔밭공원')],
+    '강서구': [('5호선','방화'),('5호선','발산'),('5호선','마곡'),('9호선','가양'),('공항철도','김포공항')],
+    '관악구': [('2호선','낙성대'),('2호선','서울대입구'),('2호선','봉천'),('2호선','신림'),('신림선','신림')],
+    '광진구': [('2호선','건대입구'),('2호선','구의(광진구청)'),('2호선','강변'),('5호선','군자')],
+    '구로구': [('2호선','구로디지털단지'),('2호선','대림'),('2호선','신도림'),('7호선','남구로')],
+    '금천구': [('1호선','금천구청'),('7호선','가산디지털단지'),('1호선','독산')],
+    '노원구': [('4호선','노원'),('4호선','상계'),('7호선','중계'),('6호선','석계')],
+    '도봉구': [('4호선','창동'),('4호선','쌍문'),('7호선','도봉산'),('1호선','방학')],
+    '동대문구': [('1호선','청량리'),('1호선','제기동'),('5호선','답십리'),('2호선','용두')],
+    '동작구': [('2호선','사당'),('4호선','동작'),('4호선','총신대입구(이수)'),('9호선','노량진')],
+    '마포구': [('2호선','홍대입구'),('2호선','합정'),('2호선','신촌'),('5호선','공덕'),('6호선','마포구청')],
+    '서대문구': [('2호선','충정로'),('3호선','홍제'),('3호선','독립문'),('5호선','서대문')],
+    '서초구': [('2호선','교대'),('2호선','서초'),('2호선','방배'),('3호선','양재'),('9호선','고속터미널')],
+    '성동구': [('2호선','왕십리'),('2호선','성수'),('2호선','뚝섬'),('수인분당선','서울숲')],
+    '성북구': [('4호선','길음'),('4호선','성신여대입구'),('4호선','한성대입구'),('6호선','보문')],
+    '송파구': [('2호선','잠실'),('2호선','종합운동장'),('8호선','석촌'),('9호선','석촌고분')],
+    '양천구': [('2호선','양천구청'),('5호선','목동'),('5호선','오목교'),('2호선','신정네거리')],
+    '영등포구': [('2호선','당산'),('2호선','문래'),('5호선','여의도'),('9호선','여의도')],
+    '용산구': [('4호선','삼각지'),('4호선','신용산'),('6호선','이태원'),('경의중앙선','효창공원앞')],
+    '은평구': [('3호선','연신내'),('3호선','불광'),('3호선','구파발'),('6호선','응암')],
+    '종로구': [('1호선','종각'),('1호선','종로3가'),('3호선','경복궁'),('5호선','광화문')],
+    '중구': [('1호선','시청'),('2호선','을지로입구'),('4호선','명동'),('4호선','충무로')],
+    '중랑구': [('6호선','봉화산'),('6호선','신내'),('7호선','중화'),('7호선','상봉')],
+}
+
+TRANSIT_TIME = {
+    '강남': {
+        '강남구':('10~15분','직결 접근 가능, 매우 편리'),
+        '서초구':('10~15분','2·3호선으로 빠른 접근'),
+        '송파구':('15~20분','2·9호선 이용'),
+        '성동구':('20~25분','2호선 환승 없이 가능'),
+        '광진구':('20~25분','2호선 직결'),
+        '동작구':('20~25분','4호선 이수 경유'),
+        '관악구':('25~35분','2호선 이용, 환승 필요'),
+        '마포구':('30~35분','2호선 이용'),
+        '영등포구':('25~30분','2·9호선 환승'),
+        '종로구':('30~35분','3호선 경유'),
+        '용산구':('25~30분','3호선 또는 경의선'),
+        '중구':('25~30분','2·4호선 환승'),
+        '서대문구':('30~35분','2·3호선 환승'),
+        '성북구':('35~40분','4호선 이용'),
+        '강서구':('40~50분','5·9호선 환승'),
+        '양천구':('35~45분','2·5호선 환승'),
+        '구로구':('35~40분','2호선 이용'),
+        '강북구':('40~50분','4호선 이용'),
+        '노원구':('45~55분','4·7호선 환승'),
+        '도봉구':('50~60분','1·4·7호선 환승'),
+        '은평구':('40~50분','3호선 경유'),
+        '동대문구':('30~35분','2호선 이용'),
+        '강동구':('30~35분','5·8호선 환승'),
+        '금천구':('35~45분','1호선 이용'),
+        '중랑구':('40~50분','7호선 환승'),
+    },
+    '여의도': {
+        '영등포구':('10~15분','직결 접근, 매우 편리'),
+        '마포구':('15~20분','5호선·공항철도'),
+        '동작구':('15~20분','9호선 직결'),
+        '강서구':('20~30분','5·9호선'),
+        '양천구':('20~25분','5호선 이용'),
+        '구로구':('25~30분','1호선 환승'),
+        '관악구':('25~30분','2호선 이용'),
+        '서대문구':('25~30분','5호선 이용'),
+        '용산구':('20~25분','5호선 이용'),
+        '중구':('20~25분','5호선 이용'),
+        '종로구':('25~30분','5호선 이용'),
+        '성동구':('30~35분','2·5호선 환승'),
+        '강남구':('30~35분','9호선 이용'),
+        '서초구':('30~35분','9호선 이용'),
+        '은평구':('30~40분','3·6호선 환승'),
+        '성북구':('35~45분','4·5호선 환승'),
+        '강북구':('40~50분','4호선 환승'),
+        '노원구':('50~60분','다중 환승'),
+        '도봉구':('55~65분','다중 환승'),
+        '광진구':('35~40분','5호선 환승'),
+        '송파구':('35~40분','9호선 이용'),
+        '강동구':('40~50분','5·9호선 환승'),
+        '동대문구':('35~40분','5호선 이용'),
+        '금천구':('30~40분','1호선 환승'),
+        '중랑구':('45~55분','다중 환승'),
+    },
+    '광화문': {
+        '종로구':('5~10분','직결, 매우 편리'),
+        '중구':('10~15분','1·2호선 근접'),
+        '용산구':('15~20분','경의중앙선·4호선'),
+        '서대문구':('15~20분','5호선 직결'),
+        '성북구':('20~25분','4호선 이용'),
+        '마포구':('20~25분','5호선 이용'),
+        '은평구':('25~30분','3호선 이용'),
+        '강북구':('30~35분','4호선 이용'),
+        '동대문구':('20~25분','1호선 이용'),
+        '성동구':('25~30분','2·5호선 환승'),
+        '영등포구':('25~30분','5호선 이용'),
+        '강서구':('35~40분','5호선 이용'),
+        '관악구':('30~35분','2호선 이용'),
+        '강남구':('30~35분','3호선 이용'),
+        '서초구':('25~30분','3호선 이용'),
+        '광진구':('30~35분','5호선 환승'),
+        '노원구':('40~50분','4호선 이용'),
+        '도봉구':('45~55분','1·4호선 이용'),
+        '송파구':('35~40분','다중 환승'),
+        '강동구':('40~50분','다중 환승'),
+        '구로구':('30~35분','2호선 환승'),
+        '동작구':('25~30분','4호선 환승'),
+        '양천구':('35~40분','다중 환승'),
+        '금천구':('35~40분','다중 환승'),
+        '중랑구':('40~50분','다중 환승'),
+    },
+}
+
 PRIORITY_ITEMS = {
     "💰 월세 저렴":  "norm_평균월세",
     "🛒 물가 저렴":  "norm_평균물가",
@@ -1008,11 +1205,11 @@ if active_tab == "🏆 TOP 5 추천":
 elif active_tab == "🔍 지역 상세 분석":
     st.markdown('<div class="section-label">🔍 지역 상세 분석</div>', unsafe_allow_html=True)
 
-    all_gu     = df['자치구'].tolist()
-    top5_list  = top5_df['자치구'].tolist()
+    all_gu    = df['자치구'].tolist()
+    top5_list = top5_df['자치구'].tolist()
     top5_icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
-    # 자치구 선택 — TOP5 빠른 버튼 + 전체 드롭다운
+    # 자치구 선택
     st.markdown('<div style="font-size:0.70rem;font-weight:700;color:#4a6d96;margin-bottom:8px;">추천 TOP5 빠른 선택</div>', unsafe_allow_html=True)
     btn_cols = st.columns(5)
     for i, g in enumerate(top5_list):
@@ -1030,9 +1227,8 @@ elif active_tab == "🔍 지역 상세 분석":
 
     with st.expander("🔍 다른 자치구 보기", expanded=False):
         others_all = [g for g in all_gu if g not in top5_list]
-        n_cols = 5
-        for chunk in [others_all[i:i+n_cols] for i in range(0, len(others_all), n_cols)]:
-            cols_o = st.columns(n_cols)
+        for chunk in [others_all[i:i+5] for i in range(0, len(others_all), 5)]:
+            cols_o = st.columns(5)
             for j, g in enumerate(chunk):
                 with cols_o[j]:
                     is_sel = st.session_state.selected_gu == g
@@ -1048,26 +1244,26 @@ elif active_tab == "🔍 지역 상세 분석":
 
     st.markdown("---")
 
-    detail_gu = st.session_state.selected_gu
-    drow      = df[df['자치구'] == detail_gu].iloc[0]
+    detail_gu  = st.session_state.selected_gu
+    drow       = df[df['자치구'] == detail_gu].iloc[0]
     d_rank_idx = top5_list.index(detail_gu) if detail_gu in top5_list else None
-    arc_col2  = ["#ff3c3c","#ffa500","#ffdc00","#4a9de0","#7eb5e8"][d_rank_idx] if d_rank_idx is not None else "#7eb5e8"
-    rank_icon2 = top5_icons[d_rank_idx] if d_rank_idx is not None else "📍"
+    arc_col2   = ["#ff3c3c","#ffa500","#ffdc00","#4a9de0","#7eb5e8"][d_rank_idx] if d_rank_idx is not None else "#7eb5e8"
+    rank_icon2  = top5_icons[d_rank_idx] if d_rank_idx is not None else "📍"
     rank_label2 = f"추천 {d_rank_idx+1}위" if d_rank_idx is not None else "기타 자치구"
 
+    # ── 소제목 ──
     st.markdown(f"""
-    <div style="background:linear-gradient(135deg,#1a5499,#2979c8,#4a9de0);
-                border-radius:16px;padding:20px 24px;margin-bottom:16px;
-                box-shadow:0 4px 16px rgba(26,84,153,0.15);">
-        <div style="font-size:0.72rem;color:rgba(255,255,255,0.70);font-weight:700;
-                    letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;">
+    <div style="margin-bottom:16px;">
+        <div style="font-size:0.72rem;color:#8aadcc;font-weight:700;
+                    letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">
             {rank_icon2} {rank_label2}
         </div>
-        <div style="font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;">
-            {detail_gu}
+        <div style="font-size:1.8rem;font-weight:900;color:#0d2137;letter-spacing:-0.5px;">
+            {detail_gu} 심층 분석
         </div>
-        <div style="font-size:0.84rem;color:rgba(255,255,255,0.82);font-style:italic;">
-            「 {drow['한줄평']} 」
+        <div style="font-size:0.84rem;color:#4a6d96;margin-top:6px;font-style:italic;
+                    padding:10px 14px;background:#e8f1fd;border-radius:10px;border-left:3px solid #2979c8;">
+            💬 {drow['한줄평']}
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1088,11 +1284,11 @@ elif active_tab == "🔍 지역 상세 분석":
                 f'<div style="width:{pct:.0f}%;height:100%;border-radius:4px;background:{color};"></div></div>')
 
     with left_col:
-        r_pct = _pct2(drow['평균월세'],      AVG_RENT)
-        p_pct = _pct2(drow['공원수'],         AVG_PARK)
-        l_pct = _pct2(drow['도서관수'],       AVG_LIB)
+        r_pct = _pct2(drow['평균월세'], AVG_RENT)
+        p_pct = _pct2(drow['공원수'],   AVG_PARK)
         pr2   = drow['물가비율']
 
+        # 핵심 지표 4개
         st.markdown(f"""
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
             <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
@@ -1120,10 +1316,6 @@ elif active_tab == "🔍 지역 상세 분석":
                 <div style="font-size:1.4rem;font-weight:900;color:#0d2137;margin:4px 0;">{int(drow['공원수'])}개</div>
                 <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_PARK:.1f}개</div>
                 {_bar(drow['공원수'], max_park, '#7eb5e8')}
-                <div style="margin-top:6px;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.60rem;font-weight:700;
-                    background:{'#e6f3ff' if p_pct>2 else '#eef4fb'};color:{'#1a5499' if p_pct>2 else '#4a6d96'};">
-                    {f'▲ +{p_pct:.0f}%' if p_pct>2 else (f'▼ {p_pct:.0f}%' if p_pct<-2 else '≈ 평균 수준')}
-                </div>
             </div>
             <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
                 <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;">📚 도서관</div>
@@ -1134,30 +1326,64 @@ elif active_tab == "🔍 지역 상세 분석":
         </div>
         """, unsafe_allow_html=True)
 
+        # ── 교통 접근성 ──
+        transit_row = TRANSIT_TIME.get('강남', {})
+        t_gangnam = TRANSIT_TIME['강남'].get(detail_gu, ('정보 없음',''))
+        t_yeouido = TRANSIT_TIME['여의도'].get(detail_gu, ('정보 없음',''))
+        t_gwanghwa = TRANSIT_TIME['광화문'].get(detail_gu, ('정보 없음',''))
+
+        # 통학/통근 조건 반영
+        extra_transit = ""
+        if university != "선택 안 함":
+            extra_transit += f'<div style="margin-top:6px;font-size:0.72rem;color:#1a5499;"><b>🎓 {university}</b> — {"통학 추천권 ✓" if detail_gu in UNI_TO_GU.get(university,[]) else "통학 일반권"}</div>'
+        if work_place != "선택 안 함":
+            extra_transit += f'<div style="font-size:0.72rem;color:#1a5499;"><b>🏢 {work_place}</b> — {"출퇴근 추천권 ✓" if detail_gu in WORK_TO_GU.get(work_place,[]) else "출퇴근 일반권"}</div>'
+
         st.markdown(f"""
         <div style="background:#fff;border-radius:12px;padding:14px;
                     border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;margin-bottom:12px;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🎨 기타 문화공간</div>
-            <div style="display:flex;align-items:center;gap:12px;">
-                <div style="font-size:1.8rem;font-weight:900;color:#0d2137;">{int(drow['기타문화공간수'])}개</div>
-                <div style="flex:1;">
-                    <div style="font-size:0.62rem;color:#8aadcc;">서울 평균 {AVG_CULTURE:.1f}개</div>
-                    {_bar(drow['기타문화공간수'], max_culture, '#2979c8')}
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:10px;">🚇 주요 업무지구 접근시간</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+                <div style="text-align:center;background:#e8f1fd;border-radius:8px;padding:8px 4px;">
+                    <div style="font-size:0.62rem;color:#4a6d96;font-weight:700;margin-bottom:2px;">강남역</div>
+                    <div style="font-size:0.88rem;font-weight:900;color:#1a5499;">{t_gangnam[0]}</div>
+                </div>
+                <div style="text-align:center;background:#e8f1fd;border-radius:8px;padding:8px 4px;">
+                    <div style="font-size:0.62rem;color:#4a6d96;font-weight:700;margin-bottom:2px;">여의도</div>
+                    <div style="font-size:0.88rem;font-weight:900;color:#1a5499;">{t_yeouido[0]}</div>
+                </div>
+                <div style="text-align:center;background:#e8f1fd;border-radius:8px;padding:8px 4px;">
+                    <div style="font-size:0.62rem;color:#4a6d96;font-weight:700;margin-bottom:2px;">광화문</div>
+                    <div style="font-size:0.88rem;font-weight:900;color:#1a5499;">{t_gwanghwa[0]}</div>
                 </div>
             </div>
+            <div style="font-size:0.68rem;color:#4a6d96;line-height:1.6;">
+                <b>강남:</b> {t_gangnam[1]}<br>
+                <b>여의도:</b> {t_yeouido[1]}
+            </div>
+            {extra_transit}
         </div>
         """, unsafe_allow_html=True)
 
-        tags_html2 = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in drow['지하철역_예시'].split(','))
+        # ── 대표역 ──
+        stations = STATION_DATA.get(detail_gu, [])
+        station_tags = "".join(
+            f'<span style="display:inline-block;background:#e8f1fd;color:#1a5499;'
+            f'padding:4px 10px;border-radius:20px;font-size:0.68rem;font-weight:600;'
+            f'border:1px solid rgba(41,121,200,0.2);margin:2px;">'
+            f'{line} {name}</span>'
+            for line, name in stations
+        )
         st.markdown(f"""
-        <div style="background:#fff;border-radius:12px;padding:14px;
-                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 주변 주요역</div>
-            <div class="station-tags">{tags_html2}</div>
+        <div style="background:#fff;border-radius:12px;padding:13px 14px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;margin-bottom:12px;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 대표 지하철역</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">{station_tags}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with right_col:
+        # ── 추천점수 도넛 ──
         score2 = to_100(drow['total_score'])
         circ2  = 3.14159 * 60
         fill2  = score2 / 100 * circ2
@@ -1176,32 +1402,63 @@ elif active_tab == "🔍 지역 상세 분석":
         </div>
         """, unsafe_allow_html=True)
 
-        metrics = [
-            ("🏠 월세 저렴도", 1 - drow['평균월세']/max_rent,          "#2979c8"),
-            ("💸 물가 저렴도", max(0,1-(drow['물가비율']+20)/40),       "#4a9de0"),
-            ("🌳 공원",        drow['공원수']/max_park,                  "#7eb5e8"),
-            ("📚 도서관",      drow['도서관수']/max_lib,                  "#b8d0f0"),
-            ("🎨 문화공간",    drow['기타문화공간수']/max_culture,        "#1a5499"),
-        ]
-        bars_html = ""
-        for label, val, color in metrics:
-            val = max(0, min(1, val))
-            bars_html += (
-                f'<div style="margin-bottom:10px;">'
-                f'<div style="display:flex;justify-content:space-between;font-size:0.65rem;color:#4a6d96;font-weight:600;margin-bottom:3px;">'
-                f'<span>{label}</span><span style="color:{color};font-weight:800;">{val*100:.0f}</span></div>'
-                f'<div style="background:rgba(41,121,200,0.1);border-radius:4px;height:8px;">'
-                f'<div style="width:{val*100:.0f}%;height:100%;border-radius:4px;background:{color};"></div>'
-                f'</div></div>'
-            )
+        # ── 문화공간 ──
+        culture_list = CULTURE_DATA.get(detail_gu, [])
+        culture_rows = "".join(
+            f'<div style="display:flex;justify-content:space-between;align-items:center;'
+            f'padding:6px 0;border-bottom:1px solid rgba(41,121,200,0.08);">'
+            f'<span style="font-size:0.72rem;color:#0d2137;font-weight:600;">{name}</span>'
+            f'<span style="font-size:0.62rem;background:#e8f1fd;color:#1a5499;padding:2px 8px;'
+            f'border-radius:20px;font-weight:700;">{ctype}</span>'
+            f'</div>'
+            for name, ctype in culture_list
+        )
         st.markdown(f"""
-        <div style="background:#fff;border-radius:12px;padding:16px;
-                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
-            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:12px;">📊 지표별 점수</div>
-            {bars_html}
+        <div style="background:#fff;border-radius:12px;padding:14px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;margin-bottom:12px;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
+                🎨 동네 문화시설 ({int(drow['기타문화공간수'])}개)
+            </div>
+            {culture_rows}
+            <div style="font-size:0.62rem;color:#8aadcc;margin-top:6px;">서울 평균 {AVG_CULTURE:.1f}개</div>
         </div>
         """, unsafe_allow_html=True)
 
+        # ── 공원 ──
+        park_list = PARK_DATA.get(detail_gu, [])
+        park_tags = "".join(
+            f'<span style="display:inline-block;background:#eef7ee;color:#1a6e45;'
+            f'padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:600;'
+            f'border:1px solid rgba(26,110,69,0.15);margin:2px;">{p}</span>'
+            for p in park_list
+        )
+        st.markdown(f"""
+        <div style="background:#fff;border-radius:12px;padding:13px 14px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #7eb5e8;margin-bottom:12px;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
+                🌳 대표 공원 ({int(drow['공원수'])}개)
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">{park_tags}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── 도서관 ──
+        lib_list = LIBRARY_DATA.get(detail_gu, [])
+        lib_tags = "".join(
+            f'<span style="display:inline-block;background:#f0f4ff;color:#1a5499;'
+            f'padding:3px 10px;border-radius:20px;font-size:0.67rem;font-weight:600;'
+            f'border:1px solid rgba(41,121,200,0.15);margin:2px;">{l}</span>'
+            for l in lib_list
+        )
+        st.markdown(f"""
+        <div style="background:#fff;border-radius:12px;padding:13px 14px;
+                    border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #b8d0f0;">
+            <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">
+                📚 대표 도서관 ({int(drow['도서관수'])}개)
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">{lib_tags}</div>
+        </div>
+        """, unsafe_allow_html=True)
 # ────────────────────────────────────────────────────────────────────────
 # PAGE 3 : 자치구 비교
 # ────────────────────────────────────────────────────────────────────────
