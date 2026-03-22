@@ -643,19 +643,7 @@ if 'search_ready' not in st.session_state:
     st.session_state.search_ready = False
 if 'saved_results' not in st.session_state:
     st.session_state.saved_results = []
-if 'restore_pending' not in st.session_state:
-    st.session_state.restore_pending = None
 
-# ── restore 대기 처리 — 위젯 렌더링 전 최상단에서 실행 ──
-if st.session_state.restore_pending is not None:
-    cond_r = st.session_state.restore_pending
-    st.session_state["university_select"] = cond_r.get("대학교", "선택 안 함")
-    st.session_state["work_select"]       = cond_r.get("근무지", "선택 안 함")
-    st.session_state["line_select"]       = cond_r.get("호선", [])
-    st.session_state["rent_band_select"]  = cond_r.get("월세", "상관없음")
-    st.session_state.search_ready         = False
-    st.session_state.active_tab           = "🏆 TOP 5 추천"
-    st.session_state.restore_pending      = None
 
 # ══════════════════════════════════════════════════════════════════════════
 # ① 타이틀 배너 — 좌우 분할
@@ -1915,26 +1903,54 @@ elif active_tab == "💾 저장 · 공유":
         with save_col:
             memo = st.text_input("메모 (선택)", placeholder="예: 강남 출퇴근, 월세 저렴 우선", key="save_memo")
 
-        if st.button("💾 현재 결과 저장", key="save_btn", type="primary"):
-            # 지역 상세 분석 데이터
-            detail_gu_saved = st.session_state.get("selected_gu") or (top5_gu[0] if top5_gu else None)
-            detail_data = {}
-            if detail_gu_saved and detail_gu_saved in df['자치구'].values:
-                drow_s = df[df['자치구'] == detail_gu_saved].iloc[0]
-                cctv_s = CCTV_DATA.get(detail_gu_saved, 0)
-                cctv_score_s = int((cctv_s - CCTV_MIN) / (CCTV_MAX - CCTV_MIN) * 100) if CCTV_MAX > CCTV_MIN else 50
-                detail_data = {
-                    "자치구":     detail_gu_saved,
-                    "한줄평":     str(drow_s['한줄평']),
-                    "평균월세":   int(drow_s['평균월세']),
-                    "생활물가":   f"{drow_s['물가비율']:+.1f}%",
-                    "공원수":     int(drow_s['공원수']),
-                    "도서관수":   int(drow_s['도서관수']),
-                    "문화공간수": int(drow_s['기타문화공간수']),
-                    "안전점수":   cctv_score_s,
-                    "추천점수":   round(to_100(drow_s['total_score']), 1),
-                    "주요역":     str(drow_s['지하철역_예시']),
-                }
+        # ── 저장할 지역 선택 ──
+        st.markdown('<div style="font-size:0.72rem;font-weight:800;color:#1a5499;margin-bottom:10px;">📌 저장할 지역과 메모를 입력하세요</div>', unsafe_allow_html=True)
+
+        all_gu_list = df['자치구'].tolist()
+        default_gu  = st.session_state.get("selected_gu") or (top5_gu[0] if top5_gu else all_gu_list[0])
+        default_idx = all_gu_list.index(default_gu) if default_gu in all_gu_list else 0
+
+        sel_col, memo_col = st.columns([1, 2])
+        with sel_col:
+            save_gu = st.selectbox("저장할 자치구", all_gu_list, index=default_idx, key="save_gu_select")
+        with memo_col:
+            memo = st.text_input("메모 (선택)", placeholder="예: 강남 출퇴근, 월세 저렴 우선", key="save_memo")
+
+        if st.button("💾 이 지역 저장", key="save_btn", type="primary"):
+            # 지역 상세 데이터
+            drow_s       = df[df['자치구'] == save_gu].iloc[0]
+            cctv_s       = CCTV_DATA.get(save_gu, 0)
+            cctv_score_s = int((cctv_s - CCTV_MIN) / (CCTV_MAX - CCTV_MIN) * 100) if CCTV_MAX > CCTV_MIN else 50
+            detail_data  = {
+                "자치구":     save_gu,
+                "한줄평":     str(drow_s['한줄평']),
+                "평균월세":   int(drow_s['평균월세']),
+                "생활물가":   f"{drow_s['물가비율']:+.1f}%",
+                "공원수":     int(drow_s['공원수']),
+                "도서관수":   int(drow_s['도서관수']),
+                "문화공간수": int(drow_s['기타문화공간수']),
+                "안전점수":   cctv_score_s,
+                "추천점수":   round(to_100(drow_s['total_score']), 1),
+                "주요역":     str(drow_s['지하철역_예시']),
+            }
+
+            # 방사형 차트 데이터 (정규화 값)
+            _mr = df['평균월세'].max(); _mp = df['공원수'].max()
+            _ml = df['도서관수'].max(); _mc = df['기타문화공간수'].max()
+            def _nrm(v, mx, inv=False):
+                r = v / mx if mx > 0 else 0
+                return round((1-r)*100 if inv else r*100, 1)
+            radar_data = {
+                "categories": ["월세 저렴", "물가 저렴", "공원", "도서관", "문화공간", "안전"],
+                "values": [
+                    _nrm(drow_s['평균월세'], _mr, inv=True),
+                    _nrm(max(0, 20 - drow_s['물가비율']), 40),
+                    _nrm(drow_s['공원수'],         _mp),
+                    _nrm(drow_s['도서관수'],       _ml),
+                    _nrm(drow_s['기타문화공간수'], _mc),
+                    cctv_score_s,
+                ],
+            }
 
             # 비교 분석 데이터
             compare_data = {}
@@ -1964,19 +1980,19 @@ elif active_tab == "💾 저장 · 공유":
 
             record = {
                 "저장시각":  datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "메모":      memo if memo else "저장된 결과",
+                "메모":      memo if memo else save_gu,
                 "조건": {
                     "대학교": st.session_state.get("university_select", "선택 안 함"),
                     "근무지": st.session_state.get("work_select",       "선택 안 함"),
                     "호선":   st.session_state.get("line_select",       []),
                     "월세":   st.session_state.get("rent_band_select",  "상관없음"),
                 },
-                "TOP5":         top5_gu[:n_avail],
-                "지역상세":     detail_data,
-                "비교분석":     compare_data,
+                "지역상세":  detail_data,
+                "방사형":    radar_data,
+                "비교분석":  compare_data,
             }
             st.session_state.saved_results.append(record)
-            st.success(f"✅ 저장 완료! (총 {len(st.session_state.saved_results)}개)")
+            st.success(f"✅ {save_gu} 저장 완료! (총 {len(st.session_state.saved_results)}개)")
 
         st.markdown("---")
 
@@ -2003,13 +2019,6 @@ elif active_tab == "💾 저장 · 공유":
                 if cond["호선"]:                   cond_parts.append(f"🚇 {', '.join(cond['호선'])}")
                 if cond["월세"] != "상관없음":     cond_parts.append(f"💸 {cond['월세']}")
                 cond_text = " &nbsp;|&nbsp; ".join(cond_parts) if cond_parts else "조건 없음"
-
-                top5_tags = "".join(
-                    f'<span style="display:inline-block;background:{CARD_COLORS[i] if i < len(CARD_COLORS) else "#d4e4f7"};'
-                    f'color:#fff;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;margin:2px;">'
-                    f'{CARD_ICONS[i] if i < len(CARD_ICONS) else "·"} {g}</span>'
-                    for i, g in enumerate(rec["TOP5"])
-                )
 
                 # 지역 상세 HTML
                 d = rec.get("지역상세", {})
@@ -2055,20 +2064,46 @@ elif active_tab == "💾 저장 · 공유":
                         f'</div>'
                     )
 
+                # 카드 헤더
                 st.markdown(
                     f'<div style="background:#fff;border-radius:14px;padding:16px 18px;'
                     f'border:1.5px solid rgba(41,121,200,0.12);border-left:4px solid #2979c8;'
-                    f'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:10px;">'
+                    f'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;">'
                     f'<div style="font-size:0.90rem;font-weight:800;color:#0d2137;">{rec["메모"]}</div>'
                     f'<div style="font-size:0.62rem;color:#8aadcc;margin:2px 0 6px;">{rec["저장시각"]}</div>'
                     f'<div style="font-size:0.62rem;color:#4a6d96;margin-bottom:8px;">{cond_text}</div>'
-                    f'<div style="font-size:0.63rem;font-weight:700;color:#8aadcc;margin-bottom:4px;">🏆 추천 TOP5</div>'
-                    f'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px;">{top5_tags}</div>'
                     f'{detail_html}'
                     f'{compare_html_saved}'
                     f'</div>',
                     unsafe_allow_html=True
                 )
+
+                # 방사형 차트
+                rd = rec.get("방사형", {})
+                if rd:
+                    cats = rd["categories"]
+                    vals = rd["values"]
+                    radar_saved = go.Figure()
+                    radar_saved.add_trace(go.Scatterpolar(
+                        r=vals + [vals[0]],
+                        theta=cats + [cats[0]],
+                        fill='toself',
+                        name=d.get("자치구", ""),
+                        line=dict(color="#2979c8", width=2),
+                        fillcolor="rgba(41,121,200,0.15)"
+                    ))
+                    radar_saved.update_layout(
+                        polar=dict(
+                            radialaxis=dict(visible=True, range=[0,100], tickfont=dict(size=8), gridcolor="rgba(41,121,200,0.12)"),
+                            angularaxis=dict(tickfont=dict(size=10, family="Noto Sans KR"))
+                        ),
+                        showlegend=False,
+                        margin=dict(l=30, r=30, t=10, b=10),
+                        height=260,
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        plot_bgcolor="rgba(0,0,0,0)",
+                    )
+                    st.plotly_chart(radar_saved, use_container_width=True, key=f"radar_{real_idx}")
 
                 del_col, restore_col, share_col, snap_col = st.columns([1, 1.4, 1.4, 1.4])
                 with del_col:
@@ -2077,7 +2112,13 @@ elif active_tab == "💾 저장 · 공유":
                         st.rerun()
                 with restore_col:
                     if st.button("🔄 다시 불러오기", key=f"restore_{real_idx}", use_container_width=True):
-                        st.session_state.restore_pending = rec["조건"]
+                        cond_r = rec["조건"]
+                        st.session_state["university_select"] = cond_r.get("대학교", "선택 안 함")
+                        st.session_state["work_select"]       = cond_r.get("근무지", "선택 안 함")
+                        st.session_state["line_select"]       = cond_r.get("호선", [])
+                        st.session_state["rent_band_select"]  = cond_r.get("월세", "상관없음")
+                        st.session_state.search_ready         = False
+                        st.session_state.active_tab           = "🏆 TOP 5 추천"
                         st.rerun()
                 with share_col:
                     d = rec.get("지역상세", {})
@@ -2086,7 +2127,6 @@ elif active_tab == "💾 저장 · 공유":
                         f"[서울 스타터] {rec['메모']}",
                         f"📅 {rec['저장시각']}",
                         f"🔍 검색 조건: {', '.join(cond_parts) if cond_parts else '없음'}",
-                        f"🏆 추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}",
                     ]
                     if d:
                         share_lines += [
@@ -2112,17 +2152,6 @@ elif active_tab == "💾 저장 · 공유":
                 if st.session_state.get(f"show_snap_{real_idx}", False):
                     d  = rec.get("지역상세", {})
                     c  = rec.get("비교분석", {})
-                    SNAP_ICONS  = ["🥇","🥈","🥉","4️⃣","5️⃣"]
-                    SNAP_COLORS = ["#1a5499","#2979c8","#4a9de0","#7eb5e8","#b8d0f0"]
-
-                    top5_snap = "".join(
-                        f'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);">'
-                        f'<span style="font-size:1.0rem;">{SNAP_ICONS[i] if i<5 else "·"}</span>'
-                        f'<span style="font-size:0.85rem;font-weight:800;color:#fff;">{g}</span>'
-                        f'</div>'
-                        for i, g in enumerate(rec["TOP5"])
-                    )
-
                     detail_snap = ""
                     if d:
                         star_n  = int(d["추천점수"] // 20)
@@ -2146,6 +2175,48 @@ elif active_tab == "💾 저장 · 공유":
                                 </div>
                             </div>
                             <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;">💬 {d['한줄평']}</div>
+                        </div>"""
+
+                    # 방사형 차트 SVG 생성
+                    radar_snap_html = ""
+                    rd_s = rec.get("방사형", {})
+                    if rd_s:
+                        import math as _math
+                        cats_s = rd_s["categories"]
+                        vals_s = rd_s["values"]
+                        n = len(cats_s)
+                        cx, cy, r_outer = 130, 120, 90
+                        levels = 4
+                        svg_lines = ['<svg viewBox="0 0 260 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:260px;margin:auto;display:block;">']
+                        # 격자
+                        for lv in range(1, levels+1):
+                            r_lv = r_outer * lv / levels
+                            pts = " ".join(
+                                f"{cx + r_lv*_math.cos(_math.pi/2 + 2*_math.pi*i/n):.1f},{cy - r_lv*_math.sin(_math.pi/2 + 2*_math.pi*i/n):.1f}"
+                                for i in range(n)
+                            )
+                            svg_lines.append(f'<polygon points="{pts}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>')
+                        # 축선
+                        for i in range(n):
+                            ex = cx + r_outer * _math.cos(_math.pi/2 + 2*_math.pi*i/n)
+                            ey = cy - r_outer * _math.sin(_math.pi/2 + 2*_math.pi*i/n)
+                            svg_lines.append(f'<line x1="{cx}" y1="{cy}" x2="{ex:.1f}" y2="{ey:.1f}" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>')
+                        # 데이터 폴리곤
+                        data_pts = " ".join(
+                            f"{cx + (vals_s[i]/100)*r_outer*_math.cos(_math.pi/2 + 2*_math.pi*i/n):.1f},{cy - (vals_s[i]/100)*r_outer*_math.sin(_math.pi/2 + 2*_math.pi*i/n):.1f}"
+                            for i in range(n)
+                        )
+                        svg_lines.append(f'<polygon points="{data_pts}" fill="rgba(74,157,224,0.3)" stroke="#4a9de0" stroke-width="2"/>')
+                        # 레이블
+                        for i, cat in enumerate(cats_s):
+                            lx = cx + (r_outer+14) * _math.cos(_math.pi/2 + 2*_math.pi*i/n)
+                            ly = cy - (r_outer+14) * _math.sin(_math.pi/2 + 2*_math.pi*i/n)
+                            svg_lines.append(f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="rgba(255,255,255,0.75)" font-family="sans-serif">{cat}</text>')
+                        svg_lines.append('</svg>')
+                        radar_snap_html = f"""
+                        <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:12px;margin-top:10px;">
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">📊 지역 지표 방사형</div>
+                            {"".join(svg_lines)}
                         </div>"""
 
                     compare_snap = ""
@@ -2175,7 +2246,7 @@ elif active_tab == "💾 저장 · 공유":
   * {{ box-sizing:border-box; margin:0; padding:0; }}
   body {{ font-family:'Noto Sans KR',sans-serif; background:#0d2137; display:flex; justify-content:center; align-items:center; min-height:100vh; }}
 </style></head><body>
-<div style="width:400px;background:linear-gradient(135deg,#1a5499,#2979c8 50%,#4a9de0);border-radius:20px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,0.4);">
+<div style="width:420px;background:linear-gradient(135deg,#1a5499,#2979c8 50%,#4a9de0);border-radius:20px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,0.4);">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <div>
       <div style="font-size:0.65rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">🏠 서울 스타터</div>
@@ -2184,9 +2255,8 @@ elif active_tab == "💾 저장 · 공유":
     <div style="font-size:0.60rem;color:rgba(255,255,255,0.5);">{rec['저장시각']}</div>
   </div>
   <div style="font-size:0.65rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">{cond_snap}</div>
-  <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">🏆 추천 TOP5</div>
-  {top5_snap}
   {detail_snap}
+  {radar_snap_html}
   {compare_snap}
   <div style="margin-top:14px;text-align:center;font-size:0.60rem;color:rgba(255,255,255,0.4);">서울시 공공데이터 기반 · 서울 스타터</div>
 </div>
@@ -2216,7 +2286,6 @@ elif active_tab == "💾 저장 · 공유":
                 if cond["월세"] != "상관없음":     cp.append(f"월세: {cond['월세']}")
                 all_txt += f"[{i}] {rec['메모']} ({rec['저장시각']})\n"
                 all_txt += f"  조건: {', '.join(cp) if cp else '없음'}\n"
-                all_txt += f"  추천 TOP{len(rec['TOP5'])}: {', '.join(rec['TOP5'])}\n"
                 d = rec.get("지역상세", {})
                 if d:
                     all_txt += f"  [지역 상세 — {d['자치구']}]\n"
