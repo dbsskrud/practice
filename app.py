@@ -1477,8 +1477,6 @@ elif active_tab == "🆚 자치구 비교":
         sa = to_100(ra['total_score'])
         sb = to_100(rb['total_score'])
 
-       # 733행 (ra, rb 정의 이후)부터 830행(페이지 끝)까지 아래 코드로 교체하세요.
-
         h1, hm, h2 = st.columns([1, 0.3, 1])
         with h1:
             col_a = "#2979c8" if sa >= sb else "#8aadcc"
@@ -1487,6 +1485,7 @@ elif active_tab == "🆚 자치구 비교":
                 <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">{gu_a}</div>
                 <div style="font-size:0.80rem;color:rgba(255,255,255,0.85);">추천 점수</div>
                 <div style="font-size:2rem;font-weight:900;color:#fff;">{sa:.0f}점</div>
+                {'<div style="margin-top:6px;background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 12px;font-size:0.72rem;color:#fff;font-weight:700;display:inline-block;">✓ 우세</div>' if sa>sb else ''}
             </div>""", unsafe_allow_html=True)
         with hm:
             st.markdown('<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1.4rem;font-weight:900;color:#8aadcc;padding-top:20px;">VS</div>', unsafe_allow_html=True)
@@ -1497,85 +1496,79 @@ elif active_tab == "🆚 자치구 비교":
                 <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">{gu_b}</div>
                 <div style="font-size:0.80rem;color:rgba(255,255,255,0.85);">추천 점수</div>
                 <div style="font-size:2rem;font-weight:900;color:#fff;">{sb:.0f}점</div>
+                {'<div style="margin-top:6px;background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 12px;font-size:0.72rem;color:#fff;font-weight:700;display:inline-block;">✓ 우세</div>' if sb>sa else ''}
             </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── 1. 방사형 차트 데이터 준비 및 정규화  ──
-        categories = ['월세 저렴도', '물가 저렴도', '공원 인프라', '도서관 인프라', '문화공간 인프라']
-        lib_max = df['도서관수'].max() if df['도서관수'].max() > 0 else 1
-        
-        # 0~100 스케일로 정규화 (높을수록 외곽)
-        val_a = [ra['norm_평균월세']*100, ra['norm_평균물가']*100, ra['norm_공원수']*100, (ra['도서관수']/lib_max)*100, ra['norm_기타문화공간수']*100]
-        val_b = [rb['norm_평균월세']*100, rb['norm_평균물가']*100, rb['norm_공원수']*100, (rb['도서관수']/lib_max)*100, rb['norm_기타문화공간수']*100]
-
-        # ── 2. 한 줄 승자 요약 헤드라인 추출  ──
-        winner_name = gu_a if sa >= sb else gu_b
-        diffs = [a - b for a, b in zip(val_a, val_b)]
-        cat_labels = ['낮은 월세', '저렴한 물가', '풍부한 녹지', '많은 도서관', '풍부한 문화공간']
-        # 승리한 쪽에서 상대보다 가장 점수가 높은 항목 식별
-        best_idx = diffs.index(max(diffs)) if sa >= sb else diffs.index(min(diffs))
-        best_attr = cat_labels[best_idx]
-
-        st.markdown(f"""
-        <div style="background:linear-gradient(90deg, #f0f6ff 0%, #ffffff 100%); border-left:5px solid #1a5499; padding:20px; border-radius:12px; margin-bottom:20px; box-shadow:var(--sh-s);">
-            <div style="font-size:0.85rem; color:#4a6d96; font-weight:700; margin-bottom:5px;">🥇 AI 분석 결과</div>
-            <div style="font-size:1.4rem; font-weight:900; color:#0d2137;">
-                {winner_name} 판정승! <span style="color:#2979c8;">"{best_attr}"</span> 항목이 가장 압도적입니다.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ── 3. 방사형 차트 (Radar Chart)  ──
-        fig_radar = go.Figure()
-        fig_radar.add_trace(go.Scatterpolar(r=val_a + [val_a[0]], theta=categories + [categories[0]], fill='toself', name=gu_a, line_color='#2979c8'))
-        fig_radar.add_trace(go.Scatterpolar(r=val_b + [val_b[0]], theta=categories + [categories[0]], fill='toself', name=gu_b, line_color='#8aadcc'))
-
-        fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=8))),
-            showlegend=True, height=400, margin=dict(l=50, r=50, t=30, b=30),
-            legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5)
-        )
-        st.plotly_chart(fig_radar, use_container_width=True, key="compare_radar_v2")
-
-        # ── 4. 상세 수치 비교 테이블 (기존 바 차트 형식)  ──
         compare_metrics = [
-            ("🏠 평균 월세 (낮을수록 유리)", ra['평균월세'], rb['평균월세'], df['평균월세'].max(), False),
-            ("💸 생활물가 (낮을수록 유리)", ra['물가비율']+20, rb['물가비율']+20, 40, False),
-            ("🌳 공원 수", ra['공원수'], rb['공원수'], df['공원수'].max(), True),
-            ("📚 도서관 수", ra['도서관수'], rb['도서관수'], df['도서관수'].max(), True),
-            ("🎨 문화공간 수", ra['기타문화공간수'], rb['기타문화공간수'], df['기타문화공간수'].max(), True),
+            ("🏠 평균 월세 (낮을수록 유리)", ra['평균월세'],      rb['평균월세'],      df['평균월세'].max(),      False),
+            ("💸 생활물가 (낮을수록 유리)",  ra['물가비율']+20,   rb['물가비율']+20,   40,                        False),
+            ("🌳 공원 수",                   ra['공원수'],         rb['공원수'],         df['공원수'].max(),         True),
+            ("📚 도서관 수",                 ra['도서관수'],       rb['도서관수'],       df['도서관수'].max(),       True),
+            ("🎨 문화공간 수",               ra['기타문화공간수'], rb['기타문화공간수'], df['기타문화공간수'].max(), True),
         ]
-        
         labels_a = [f"{int(ra['평균월세'])}만원", f"{ra['물가비율']:+.1f}%", f"{int(ra['공원수'])}개", f"{int(ra['도서관수'])}개", f"{int(ra['기타문화공간수'])}개"]
         labels_b = [f"{int(rb['평균월세'])}만원", f"{rb['물가비율']:+.1f}%", f"{int(rb['공원수'])}개", f"{int(rb['도서관수'])}개", f"{int(rb['기타문화공간수'])}개"]
 
-        compare_html = '<div style="background:#fff;border-radius:14px;padding:20px;border:1.5px solid rgba(41,121,200,0.12);">'
+        compare_html = '<div style="background:#fff;border-radius:14px;padding:20px;border:1.5px solid rgba(41,121,200,0.12);box-shadow:0 2px 10px rgba(26,84,153,0.07);">'
+        compare_html += f'<div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;margin-bottom:16px;font-size:0.72rem;font-weight:800;color:#4a6d96;text-align:center;"><span>{gu_a}</span><span></span><span>{gu_b}</span></div>'
         for idx, (label, va, vb, vmax, higher_better) in enumerate(compare_metrics):
-            pct_a, pct_b = max(0, min(va/vmax, 1))*100, max(0, min(vb/vmax, 1))*100
+            pct_a  = max(0, min(va/vmax, 1)) * 100
+            pct_b  = max(0, min(vb/vmax, 1)) * 100
             a_wins = (va < vb) if not higher_better else (va > vb)
             b_wins = (vb < va) if not higher_better else (vb > va)
+            col_a2 = "#2979c8" if a_wins else "#d4e4f7"
+            col_b2 = "#2979c8" if b_wins else "#d4e4f7"
             compare_html += (
                 f'<div style="margin-bottom:14px;">'
                 f'<div style="font-size:0.67rem;color:#8aadcc;font-weight:700;text-align:center;margin-bottom:6px;">{label}</div>'
                 f'<div style="display:grid;grid-template-columns:1fr 60px 1fr;gap:8px;align-items:center;">'
-                f'<div><div style="text-align:right;font-size:0.75rem;font-weight:800;color:{"#1a5499" if a_wins else "#8aadcc"};">{labels_a[idx]}</div>'
-                f'<div style="background:#f0f5fb;height:8px;border-radius:4px;"><div style="width:{pct_a}%;height:100%;background:{"#2979c8" if a_wins else "#d4e4f7"};margin-left:auto;border-radius:4px;"></div></div></div>'
-                f'<div style="text-align:center;font-size:0.6rem;color:#b8d0f0;font-weight:700;">VS</div>'
-                f'<div><div style="font-size:0.75rem;font-weight:800;color:{"#1a5499" if b_wins else "#8aadcc"};">{labels_b[idx]}</div>'
-                f'<div style="background:#f0f5fb;height:8px;border-radius:4px;"><div style="width:{pct_b}%;height:100%;background:{"#2979c8" if b_wins else "#d4e4f7"};border-radius:4px;"></div></div></div>'
+                f'<div><div style="text-align:right;font-size:0.75rem;font-weight:800;color:{"#1a5499" if a_wins else "#8aadcc"};margin-bottom:3px;">{labels_a[idx]}{"  ✓" if a_wins else ""}</div>'
+                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;"><div style="width:{pct_a:.0f}%;height:100%;border-radius:4px;background:{col_a2};margin-left:auto;"></div></div></div>'
+                f'<div style="text-align:center;font-size:0.60rem;color:#b8d0f0;font-weight:700;">vs</div>'
+                f'<div><div style="font-size:0.75rem;font-weight:800;color:{"#1a5499" if b_wins else "#8aadcc"};margin-bottom:3px;">{"✓  " if b_wins else ""}{labels_b[idx]}</div>'
+                f'<div style="background:#f0f5fb;border-radius:4px;height:10px;"><div style="width:{pct_b:.0f}%;height:100%;border-radius:4px;background:{col_b2};"></div></div></div>'
                 f'</div></div>'
             )
         compare_html += '</div>'
         st.markdown(compare_html, unsafe_allow_html=True)
 
+        winner = gu_a if sa >= sb else gu_b
+        loser  = gu_b if sa >= sb else gu_a
+        w_row  = ra if sa >= sb else rb
+        l_row  = rb if sa >= sb else ra
+        rent_adv    = "월세가 더 저렴하고" if w_row['평균월세'] < l_row['평균월세'] else "생활물가가 낮으며"
+        culture_adv = "문화공간이 더 풍부합니다." if w_row['기타문화공간수'] > l_row['기타문화공간수'] else "공원과 도서관이 더 많습니다."
+
+        st.markdown(f"""
+        <div style="margin-top:16px;background:linear-gradient(135deg,#e8f1fd,#f0f6ff);
+                    border-radius:12px;padding:16px 20px;border-left:4px solid #2979c8;">
+            <div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">💬 AI 종합 평가</div>
+            <div style="font-size:0.90rem;color:#0d2137;line-height:1.7;font-weight:500;">
+                현재 우선순위 기준으로 <b style="color:#1a5499;">{winner}</b>가 더 높은 추천 점수를 받았습니다.<br>
+                {winner}은 {rent_adv} {culture_adv}<br>
+                반면 <b style="color:#4a6d96;">{loser}</b>은 다른 조건에서 강점이 있을 수 있으니 우선순위 설정을 바꿔 비교해 보세요.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         sc1, sc2 = st.columns(2)
         with sc1:
             tags_a = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in ra['지하철역_예시'].split(','))
-            st.markdown(f'<div style="margin-top:15px;background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12); border-top:3px solid #2979c8;"><div style="font-size:0.65rem;color:#4a6d96;font-weight:700;margin-bottom:8px;">🚉 {gu_a} 주요역</div><div class="station-tags">{tags_a}</div></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #2979c8;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 {gu_a} 주요역</div>
+                <div class="station-tags">{tags_a}</div>
+            </div>""", unsafe_allow_html=True)
         with sc2:
             tags_b = "".join(f'<span class="station-tag">{s.strip()}</span>' for s in rb['지하철역_예시'].split(','))
-            st.markdown(f'<div style="margin-top:15px;background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12); border-top:3px solid #4a9de0;"><div style="font-size:0.65rem;color:#4a6d96;font-weight:700;margin-bottom:8px;">🚉 {gu_b} 주요역</div><div class="station-tags">{tags_b}</div></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:#fff;border-radius:12px;padding:14px;border:1.5px solid rgba(41,121,200,0.12);border-top:3px solid #4a9de0;">
+                <div style="font-size:0.65rem;color:#4a6d96;font-weight:700;text-transform:uppercase;margin-bottom:8px;">🚉 {gu_b} 주요역</div>
+                <div class="station-tags">{tags_b}</div>
+            </div>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════
 # 데이터 출처
