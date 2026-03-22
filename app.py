@@ -759,7 +759,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.markdown(
-    '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
+   '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · <b style="color:#c0392b;">✱ 필수 선택</b></div>',
     unsafe_allow_html=True
 )
 p_cols = st.columns(4)
@@ -924,11 +924,13 @@ if active_tab == "🏆 TOP 5 추천":
     btn_col, _ = st.columns([1, 4])
     with btn_col:
         if st.button("🔍 검색 실행", key="search_btn", use_container_width=True, type="primary"):
-            st.session_state.search_ready = True
-            if st.session_state.selected_gu is None:
-                st.session_state.selected_gu = top3_gu[0]
-            st.rerun()
-
+            if len(priority_order) < 4:
+                st.error("⚖️ 주거 우선순위 1~4순위를 모두 선택해 주세요.")
+            else:
+                st.session_state.search_ready = True
+                if st.session_state.selected_gu is None:
+                    st.session_state.selected_gu = top3_gu[0]
+                st.rerun()
     if not st.session_state.search_ready:
         st.markdown("""
         <div style="background:#f0f5fb;border-radius:14px;padding:40px 24px;
