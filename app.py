@@ -669,7 +669,7 @@ with st.sidebar:
             use_container_width=True,
             type="primary" if is_active else "secondary"
         ):
-       st.session_state.active_tab = opt
+            st.session_state.active_tab = opt
             st.rerun()
 
     st.markdown("---")
@@ -682,7 +682,7 @@ with st.sidebar:
         st.session_state.selected_gu  = None
         st.session_state.search_ready = False
         st.rerun()
-        
+
 # ══════════════════════════════════════════════════════════════════════════
 # ② 컨트롤 패널 — 2개 독립 카드
 # ══════════════════════════════════════════════════════════════════════════
