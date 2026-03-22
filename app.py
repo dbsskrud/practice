@@ -669,10 +669,10 @@ with st.sidebar:
             use_container_width=True,
             type="primary" if is_active else "secondary"
         ):
-            st.session_state.active_tab = opt
+           st.session_state.active_tab = opt
             st.rerun()
 
-st.markdown("---")
+    st.markdown("---")
     st.markdown('<div style="font-size:0.68rem;font-weight:800;color:#8aadcc;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🔄 초기화</div>', unsafe_allow_html=True)
     if st.button("검색 조건 초기화", key="reset_btn", use_container_width=True):
         for key in ["university_select", "work_select", "line_select",
@@ -682,6 +682,9 @@ st.markdown("---")
         st.session_state.selected_gu  = None
         st.session_state.search_ready = False
         st.rerun()
+
+# ══════════════════════════════════════════════════════════════════════════
+# ② 컨트롤 패널 — 2개 독립 카드
     
 # ══════════════════════════════════════════════════════════════════════════
 # ② 컨트롤 패널 — 2개 독립 카드
