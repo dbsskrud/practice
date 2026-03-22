@@ -818,10 +818,16 @@ else:
     df = filtered_df.copy()
 
 rec_df  = df.sort_values('total_score', ascending=False).reset_index(drop=True)
-top3_gu = rec_df.head(3)['자치구'].tolist()
-top5_gu = rec_df.head(5)['자치구'].tolist()
-top5_df = rec_df.head(5)
+n_avail = len(rec_df)
+top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
+top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
+top5_df = rec_df.head(min(5, n_avail))
 
+# top3/top5 부족할 경우 패딩
+while len(top3_gu) < 3:
+    top3_gu.append(top3_gu[-1])
+while len(top5_gu) < 5:
+    top5_gu.append(top5_gu[-1])
 SCORE_MAX = df['total_score'].max()
 SCORE_MIN = df['total_score'].min()
 
