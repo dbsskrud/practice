@@ -868,9 +868,14 @@ top3_gu = rec_df.head(min(3, n_avail))['자치구'].tolist()
 top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
 top5_df = rec_df.head(min(5, n_avail))
 
-# top3 부족 시 None 패딩
+# top3/top5 부족 시 마지막 값으로 패딩 (딕셔너리 접근 오류 방지)
+# 단, n_avail 변수로 실제 유효 개수를 별도 관리
+_last3 = top3_gu[-1] if top3_gu else "강남구"
+_last5 = top5_gu[-1] if top5_gu else "강남구"
 while len(top3_gu) < 3:
-    top3_gu.append(None)
+    top3_gu.append(_last3)
+while len(top5_gu) < 5:
+    top5_gu.append(_last5)
 
 SCORE_MAX = df['total_score'].max()
 SCORE_MIN = df['total_score'].min()
@@ -960,20 +965,18 @@ if active_tab == "🏆 TOP 5 추천":
             name="기타구"
         ))
 
-        fill_alpha = {top5_gu[0]: "rgba(41,121,200,0.80)",
-                      top5_gu[1]: "rgba(41,121,200,0.55)",
-                      top5_gu[2]: "rgba(41,121,200,0.33)",
-                      top5_gu[3]: "rgba(41,121,200,0.20)",
-                      top5_gu[4]: "rgba(41,121,200,0.12)"}
-        border_col = {top5_gu[0]: "rgba(26,84,153,1.0)",
-                      top5_gu[1]: "rgba(41,121,200,0.85)",
-                      top5_gu[2]: "rgba(74,157,224,0.70)",
-                      top5_gu[3]: "rgba(126,181,232,0.60)",
-                      top5_gu[4]: "rgba(184,208,240,0.50)"}
-        rank_label_map = {top5_gu[0]: "🥇 1위", top5_gu[1]: "🥈 2위", top5_gu[2]: "🥉 3위",
-                          top5_gu[3]: "4️⃣ 4위", top5_gu[4]: "5️⃣ 5위"}
+        _fill_alphas   = ["rgba(41,121,200,0.80)","rgba(41,121,200,0.55)","rgba(41,121,200,0.33)","rgba(41,121,200,0.20)","rgba(41,121,200,0.12)"]
+        _border_cols   = ["rgba(26,84,153,1.0)","rgba(41,121,200,0.85)","rgba(74,157,224,0.70)","rgba(126,181,232,0.60)","rgba(184,208,240,0.50)"]
+        _rank_labels   = ["🥇 1위","🥈 2위","🥉 3위","4️⃣ 4위","5️⃣ 5위"]
+        _rank_icons    = ["🥇","🥈","🥉","4️⃣","5️⃣"]
 
-        for rgu in top5_gu:
+        # 실제 유효한 구만 지도에 표시 (n_avail 기준)
+        fill_alpha    = {top5_gu[j]: _fill_alphas[j]  for j in range(n_avail)}
+        border_col    = {top5_gu[j]: _border_cols[j]  for j in range(n_avail)}
+        rank_label_map = {top5_gu[j]: _rank_labels[j] for j in range(n_avail)}
+        rank_icons_all = {top5_gu[j]: _rank_icons[j]  for j in range(n_avail)}
+
+        for rgu in top5_gu[:n_avail]:
             sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
             fig.add_trace(go.Choroplethmapbox(
                 geojson=active_geojson,
@@ -988,8 +991,7 @@ if active_tab == "🏆 TOP 5 추천":
                 name=rank_label_map[rgu]
             ))
 
-        rank_icons_all = {top5_gu[j]: ["🥇","🥈","🥉","4️⃣","5️⃣"][j] for j in range(5)}
-        for rgu in top5_gu:
+        for rgu in top5_gu[:n_avail]:
             row_d   = df[df['자치구'] == rgu].iloc[0]
             is_top3 = rgu in top3_gu
             fig.add_trace(go.Scattermapbox(
