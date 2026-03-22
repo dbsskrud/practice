@@ -886,12 +886,7 @@ else:
     top5_gu = rec_df.head(min(5, n_avail))['자치구'].tolist()
     top5_df = rec_df.head(min(5, n_avail))
 
-    _last3 = top3_gu[-1] if top3_gu else "강남구"
-    _last5 = top5_gu[-1] if top5_gu else "강남구"
-    while len(top3_gu) < 3:
-        top3_gu.append(_last3)
-    while len(top5_gu) < 5:
-        top5_gu.append(_last5)
+    # 패딩 없이 실제 유효한 구만 유지 — 부족한 슬롯은 UI에서 빈칸 처리
 
     SCORE_MAX = df['total_score'].max()
     SCORE_MIN = df['total_score'].min()
@@ -906,9 +901,12 @@ else:
             st.session_state.selected_gu not in gu_list_filtered):
         st.session_state.selected_gu = top3_gu[0]
 
-    RANK_COLOR = {top3_gu[0]: "#2979c8", top3_gu[1]: "#4a9de0", top3_gu[2]: "#7eb5e8"}
-    RANK_ICON  = {top3_gu[0]: "🥇", top3_gu[1]: "🥈", top3_gu[2]: "🥉"}
-    RANK_LABEL = {top3_gu[0]: "🥇 추천 1위", top3_gu[1]: "🥈 추천 2위", top3_gu[2]: "🥉 추천 3위"}
+    _rc = ["#2979c8","#4a9de0","#7eb5e8"]
+    _ri = ["🥇","🥈","🥉"]
+    _rl = ["🥇 추천 1위","🥈 추천 2위","🥉 추천 3위"]
+    RANK_COLOR = {top3_gu[j]: _rc[j] for j in range(min(3, len(top3_gu)))}
+    RANK_ICON  = {top3_gu[j]: _ri[j] for j in range(min(3, len(top3_gu)))}
+    RANK_LABEL = {top3_gu[j]: _rl[j] for j in range(min(3, len(top3_gu)))}
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -1009,13 +1007,13 @@ if active_tab == "🏆 TOP 5 추천":
         _rank_labels   = ["🥇 1위","🥈 2위","🥉 3위","4️⃣ 4위","5️⃣ 5위"]
         _rank_icons    = ["🥇","🥈","🥉","4️⃣","5️⃣"]
 
-        # 실제 유효한 구만 지도에 표시 (n_avail 기준)
-        fill_alpha    = {top5_gu[j]: _fill_alphas[j]  for j in range(n_avail)}
-        border_col    = {top5_gu[j]: _border_cols[j]  for j in range(n_avail)}
-        rank_label_map = {top5_gu[j]: _rank_labels[j] for j in range(n_avail)}
-        rank_icons_all = {top5_gu[j]: _rank_icons[j]  for j in range(n_avail)}
+        _n = len(top5_gu)  # 실제 유효한 구 개수
+        fill_alpha     = {top5_gu[j]: _fill_alphas[j]  for j in range(_n)}
+        border_col     = {top5_gu[j]: _border_cols[j]  for j in range(_n)}
+        rank_label_map = {top5_gu[j]: _rank_labels[j]  for j in range(_n)}
+        rank_icons_all = {top5_gu[j]: _rank_icons[j]   for j in range(_n)}
 
-        for rgu in top5_gu[:n_avail]:
+        for rgu in top5_gu:
             sub = df[df['자치구'] == rgu][['자치구', 'total_score']]
             fig.add_trace(go.Choroplethmapbox(
                 geojson=active_geojson,
@@ -1030,7 +1028,7 @@ if active_tab == "🏆 TOP 5 추천":
                 name=rank_label_map[rgu]
             ))
 
-        for rgu in top5_gu[:n_avail]:
+        for rgu in top5_gu:
             row_d   = df[df['자치구'] == rgu].iloc[0]
             is_top3 = rgu in top3_gu
             fig.add_trace(go.Scattermapbox(
