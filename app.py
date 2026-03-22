@@ -677,83 +677,90 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-label">⚙️ 검색 조건 설정</div>', unsafe_allow_html=True)
 
-col_a, col_b, col_c = st.columns([1, 1, 1.6])
+# ── 1행: 통학/통근 + 지하철/월세 ──
+row1_a, row1_b = st.columns(2)
 
-with col_a:
+with row1_a:
     st.markdown(
-        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        '<div style="background:#ffffff;border-radius:14px;padding:14px 18px 12px;'
         'border:1.5px solid rgba(41,121,200,0.12);'
-        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:10px;'
         'border-top:3px solid #2979c8;">'
         '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
         'letter-spacing:0.5px;margin-bottom:10px;">🎓 통학 · 🏢 통근 조건</div>'
         '</div>',
         unsafe_allow_html=True
     )
-    university = st.selectbox(
-        "재학 중인 대학교",
-        list(UNI_TO_GU.keys()),
-        key="university_select"
-    )
-    work_place = st.selectbox(
-        "근무지 / 자주 가는 업무지구",
-        list(WORK_TO_GU.keys()),
-        key="work_select"
-    )
+    sub1, sub2 = st.columns(2)
+    with sub1:
+        university = st.selectbox(
+            "재학 중인 대학교",
+            list(UNI_TO_GU.keys()),
+            key="university_select"
+        )
+    with sub2:
+        work_place = st.selectbox(
+            "근무지 / 자주 가는 업무지구",
+            list(WORK_TO_GU.keys()),
+            key="work_select"
+        )
 
-with col_b:
+with row1_b:
     st.markdown(
-        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
+        '<div style="background:#ffffff;border-radius:14px;padding:14px 18px 12px;'
         'border:1.5px solid rgba(41,121,200,0.12);'
-        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:10px;'
         'border-top:3px solid #4a9de0;">'
         '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
         'letter-spacing:0.5px;margin-bottom:10px;">🚉 지하철 · 💸 월세 조건</div>'
         '</div>',
         unsafe_allow_html=True
     )
-    selected_lines = st.multiselect(
-        "희망 지하철 호선 (최대 3개)",
-        list(LINE_STATIONS.keys()),
-        max_selections=3,
-        key="line_select"
-    )
-    rent_band = st.selectbox(
-        "희망 월세 가격대",
-        list(RENT_BAND.keys()),
-        index=0,
-        key="rent_band_select"
-    )
+    sub3, sub4 = st.columns(2)
+    with sub3:
+        selected_lines = st.multiselect(
+            "희망 지하철 호선 (최대 3개)",
+            list(LINE_STATIONS.keys()),
+            max_selections=3,
+            key="line_select"
+        )
+    with sub4:
+        rent_band = st.selectbox(
+            "희망 월세 가격대",
+            list(RENT_BAND.keys()),
+            index=0,
+            key="rent_band_select"
+        )
 
-with col_c:
-    st.markdown(
-        '<div style="background:#ffffff;border-radius:14px;padding:16px 18px 14px;'
-        'border:1.5px solid rgba(41,121,200,0.12);'
-        'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
-        'border-top:3px solid #7eb5e8;">'
-        '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
-        'letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
-        unsafe_allow_html=True
-    )
-    p_cols = st.columns(4)
-    priority_keys = list(PRIORITY_ITEMS.keys())
-    used, priority_order = [], []
-    for rank in range(1, 5):
-        with p_cols[rank - 1]:
-            st.markdown(f"**{rank}순위**")
-            remaining = [k for k in priority_keys if k not in used]
-            choice = st.selectbox(
-                f"#{rank}", options=["선택"] + remaining,
-                key=f"prio_{rank}", label_visibility="collapsed"
-            )
-            if choice != "선택":
-                used.append(choice)
-                priority_order.append(choice)
+# ── 2행: 주거 우선순위 ──
+st.markdown(
+    '<div style="background:#ffffff;border-radius:14px;padding:14px 18px 12px;'
+    'border:1.5px solid rgba(41,121,200,0.12);'
+    'box-shadow:0 2px 10px rgba(26,84,153,0.07);margin-bottom:4px;'
+    'border-top:3px solid #7eb5e8;">'
+    '<div style="font-size:0.72rem;font-weight:800;color:#2979c8;'
+    'letter-spacing:0.5px;margin-bottom:6px;">⚖️ 주거 우선순위 설정</div>'
+    '</div>',
+    unsafe_allow_html=True
+)
+st.markdown(
+    '<div class="priority-hint">💡 1순위가 가장 중요 · 중복 선택 불가 · 미선택 시 균등 가중치 적용</div>',
+    unsafe_allow_html=True
+)
+p_cols = st.columns(4)
+priority_keys = list(PRIORITY_ITEMS.keys())
+used, priority_order = [], []
+for rank in range(1, 5):
+    with p_cols[rank - 1]:
+        st.markdown(f"**{rank}순위**")
+        remaining = [k for k in priority_keys if k not in used]
+        choice = st.selectbox(
+            f"#{rank}", options=["선택"] + remaining,
+            key=f"prio_{rank}", label_visibility="collapsed"
+        )
+        if choice != "선택":
+            used.append(choice)
+            priority_order.append(choice)
 
 # ── 입력값 요약 배너 ──────────────────────────────────────────────────────
 summary_chips = []
